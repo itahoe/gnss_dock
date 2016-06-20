@@ -261,7 +261,7 @@ void HAL_PCD_ResetCallback(PCD_HandleTypeDef *hpcd)
 void HAL_PCD_SuspendCallback(PCD_HandleTypeDef *hpcd)
 {
 	USBD_LL_Suspend(hpcd->pData);
-	ui_led_usb_set( UI_LED_MODE_OFF );
+	ui_led_usb_set( false );
 }
 
 /**
@@ -272,7 +272,7 @@ void HAL_PCD_SuspendCallback(PCD_HandleTypeDef *hpcd)
 void HAL_PCD_ResumeCallback(PCD_HandleTypeDef *hpcd)
 {
 	USBD_LL_Resume(hpcd->pData);
-	ui_led_usb_set( UI_LED_MODE_ON );
+	ui_led_usb_set( true );
 }
 
 /**
@@ -540,7 +540,7 @@ USBD_StatusTypeDef USBD_LL_Transmit(USBD_HandleTypeDef *pdev,
                                     uint8_t *pbuf,
                                     uint16_t size)
 {
-	ui_led_usb_set( UI_LED_MODE_FLSH_SHRT );
+	ui_led_usb_flash( UI_LED_FLSH_SHRT_TCKS );
 	HAL_PCD_EP_Transmit(pdev->pData, ep_addr, pbuf, size);
 	return USBD_OK;
 }
@@ -558,7 +558,7 @@ USBD_StatusTypeDef USBD_LL_PrepareReceive(USBD_HandleTypeDef *pdev,
                                           uint8_t *pbuf,
                                           uint16_t size)
 {
-	ui_led_usb_set( UI_LED_MODE_FLSH_SHRT );
+	ui_led_usb_flash( UI_LED_FLSH_SHRT_TCKS );
 
 	HAL_PCD_EP_Receive(pdev->pData, ep_addr, pbuf, size);
 	return USBD_OK;

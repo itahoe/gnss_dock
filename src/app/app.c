@@ -32,8 +32,8 @@ void	app_error( void )
 
 	while( true )
 	{
-		ui_led_sd_set( UI_LED_MODE_TOGGLE );
-		ui_led_usb_set( UI_LED_MODE_TOGGLE );
+		ui_led_sd_toggle();
+		ui_led_usb_toggle();
 		HAL_Delay( delay_msec );
 	}
 }
@@ -152,7 +152,7 @@ void	HAL_UART_RxHalfCpltCallback(    UART_HandleTypeDef *    huart )
 {
 	if( flog.sts.enable )
 	{
-		ui_led_sd_set( UI_LED_MODE_FLSH_SHRT );
+		ui_led_sd_flash( UI_LED_FLSH_SHRT_TCKS );
 
 		flog_write(     &flog,
 		                uart_data_recv + 0,
@@ -174,7 +174,7 @@ void	HAL_UART_RxCpltCallback(        UART_HandleTypeDef *	huart )
 {
 	if( flog.sts.enable )
 	{
-		ui_led_sd_set( UI_LED_MODE_FLSH_SHRT );
+		ui_led_sd_flash( UI_LED_FLSH_SHRT_TCKS );
 
 		flog_write(     &flog,
 		                uart_data_recv + CFG_FMNG_BLCK_SIZE_OCT/2,
@@ -209,8 +209,8 @@ int main( void )
 
 	ui_init();
 
-	ui_led_sd_set(          UI_LED_MODE_OFF         );
-	ui_led_usb_set(         UI_LED_MODE_OFF         );
+	ui_led_sd_set(          false                   );
+	ui_led_usb_set(         false                   );
 	ui_led_gnss_set(        UI_LED_GNSS_MODE_NONE   );
 	ui_led_pwr_set(         UI_LED_RGB_COLOR_BLACK  );
 
@@ -230,12 +230,12 @@ int main( void )
 		#endif
 	}
 
-	ui_led_sd_set( UI_LED_MODE_FLSH_LONG );
-	ui_led_usb_set( UI_LED_MODE_FLSH_LONG );
+	ui_led_sd_flash(        UI_LED_FLSH_LONG_TCKS );
+	ui_led_usb_flash(       UI_LED_FLSH_LONG_TCKS );
+	ui_led_gnss_flash(      UI_LED_FLSH_LONG_TCKS );
+	ui_led_pwr_set(         UI_LED_RGB_COLOR_WHITE );
 
-	ui_led_pwr_set( UI_LED_RGB_COLOR_WHITE );
-
-
+/*
 ui_led_gnss_set( UI_LED_GNSS_MODE_GPS );
 HAL_Delay( 500 );
 ui_led_gnss_set( UI_LED_GNSS_MODE_DGPS );
@@ -245,7 +245,7 @@ HAL_Delay( 500 );
 ui_led_gnss_set( UI_LED_GNSS_MODE_RTKFLT );
 HAL_Delay( 500 );
 	ui_led_gnss_set( UI_LED_GNSS_MODE_NONE );
-
+*/
 
 ui_led_pwr_set( UI_LED_RGB_COLOR_RED );
 HAL_Delay( 1000 );
@@ -259,11 +259,11 @@ HAL_Delay( 1000 );
 
 	if( flog.sts.ready )
 	{
-		ui_led_sd_set( UI_LED_MODE_ON );
+		ui_led_sd_set( true );
 	}
 	else
 	{
-		ui_led_sd_set( UI_LED_MODE_OFF );
+		ui_led_sd_set( false );
 	}
 
 ui_led_pwr_set( UI_LED_RGB_COLOR_GREEN );
@@ -300,7 +300,7 @@ HAL_Delay( 1000 );
 			switch( ui.key[0].status )
 			{
 				case UI_KEY_STS_SHORT:
-					ui_led_pwr_flash( UI_LED_RGB_FLSH_SHRT );
+					ui_led_pwr_flash( UI_LED_FLSH_SHRT_TCKS );
 
 					//gnss_send( &gnss, CFG_GNSS_MSG_KEY0S );
 					break;
@@ -321,7 +321,7 @@ HAL_Delay( 1000 );
 			switch( ui.key[1].status )
 			{
 				case UI_KEY_STS_SHORT:
-					ui_led_pwr_flash( UI_LED_RGB_FLSH_SHRT );
+					ui_led_pwr_flash( UI_LED_FLSH_SHRT_TCKS );
 					//gnss_send( &gnss, CFG_GNSS_MSG_KEY1S );
 					break;
 
@@ -330,13 +330,13 @@ HAL_Delay( 1000 );
 					{
 						flog.sts.enable         =  false;
 						flog_close( &flog );
-						ui_led_sd_set( UI_LED_MODE_ON );
+						ui_led_sd_set( true );
 					}
 					else
 					{
 						flog_open( &flog );
 						flog.sts.enable         =  true;
-						ui_led_sd_set( UI_LED_MODE_OFF );
+						ui_led_sd_set( false );
 					}
 					break;
 
@@ -349,7 +349,7 @@ HAL_Delay( 1000 );
 		{
 			app.evt.tick_1hz    =   false;
 
-			ui_led_sd_set( flog.sts.enable ? UI_LED_MODE_ON : UI_LED_MODE_OFF );
+			ui_led_sd_set( flog.sts.enable ? true : false );
 
 			switch( gnss.nmea.gga.fix )
 			{
@@ -371,7 +371,7 @@ HAL_Delay( 1000 );
 				default:                ui_led_pwr_set( UI_LED_RGB_COLOR_WHITE   ); break;
 			}
 
-			ui_led_pwr_flash( UI_LED_RGB_FLSH_SHRT );
+			ui_led_pwr_flash( UI_LED_FLSH_SHRT_TCKS );
 /*
 			APP_TRACE(	"ERR: %d, PE: %d, FE: %d, NE: %d, ORE: %d, IDLE: %d\n",
 			                gnss.nmea.chksum_errors,
