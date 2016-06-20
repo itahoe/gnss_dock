@@ -8,6 +8,27 @@
 
 extern	ui_led_rgb_t            ui_led_pwr;
 
+static
+void ui_led_pwr_color_decomp(           bool *                  r,
+                                        bool *                  g,
+                                        bool *                  b,
+                                const   ui_led_rgb_color_t      color )
+{
+	switch( color )
+	{
+		case UI_LED_RGB_COLOR_WHITE:    *r = true;  *g = true;  *b = true;  break;
+		case UI_LED_RGB_COLOR_MAGENTA:  *r = true;  *g = false; *b = true;  break;
+		case UI_LED_RGB_COLOR_CYAN:     *r = false; *g = true;  *b = true;  break;
+		case UI_LED_RGB_COLOR_YELLOW:   *r = true;  *g = true;  *b = false; break;
+		case UI_LED_RGB_COLOR_BLUE:     *r = false; *g = false; *b = true;  break;
+		case UI_LED_RGB_COLOR_GREEN:    *r = false; *g = true;  *b = false; break;
+		case UI_LED_RGB_COLOR_RED:      *r = true;  *g = false; *b = false; break;
+		case UI_LED_RGB_COLOR_BLACK:    *r = false; *g = false; *b = false; break;
+		//case UI_LED_RGB_COLOR_BLACK:    *r = true;  *g = true;  *b = true;  break;
+		default:                        *r = false; *g = false; *b = false; break;
+	}
+}
+
 /**
  * @brief POWER LED SysTick Hook.
  */
@@ -29,44 +50,7 @@ void ui_led_pwr_toggle( void )
 	bool            r, g, b;
 
 
-	switch( p->color )
-	{
-		case UI_LED_RGB_COLOR_WHITE:
-			r = true;  g = true;  b = true;
-			break;
-
-		case UI_LED_RGB_COLOR_MAGENTA:
-			r = true;  g = false; b = true;
-			break;
-
-		case UI_LED_RGB_COLOR_CYAN:
-			r = false; g = true;  b = true;
-			break;
-
-		case UI_LED_RGB_COLOR_YELLOW:
-			r = true;  g = true;  b = false;
-			break;
-
-		case UI_LED_RGB_COLOR_BLUE:
-			r = false; g = false; b = true;
-			break;
-
-		case UI_LED_RGB_COLOR_GREEN:
-			r = false; g = true;  b = false;
-			break;
-
-		case UI_LED_RGB_COLOR_RED:
-			r = true;  g = false; b = false;
-			break;
-
-		case UI_LED_RGB_COLOR_BLACK:
-			r = true;  g = true;  b = true;
-			break;
-
-		default:
-			r = false; g = false; b = false;
-			break;
-	}
+	ui_led_pwr_color_decomp( &r, &g, &b, p->color );
 
 	if( r )
 	{
@@ -96,18 +80,7 @@ void ui_led_pwr_set(            const   ui_led_rgb_color_t      color )
 
 	p->color        =   color;
 
-	switch( p->color )
-	{
-		case UI_LED_RGB_COLOR_WHITE:    r = true;  g = true;  b = true;  break;
-		case UI_LED_RGB_COLOR_MAGENTA:  r = true;  g = false; b = true;  break;
-		case UI_LED_RGB_COLOR_CYAN:     r = false; g = true;  b = true;  break;
-		case UI_LED_RGB_COLOR_YELLOW:   r = true;  g = true;  b = false; break;
-		case UI_LED_RGB_COLOR_BLUE:     r = false; g = false; b = true;  break;
-		case UI_LED_RGB_COLOR_GREEN:    r = false; g = true;  b = false; break;
-		case UI_LED_RGB_COLOR_RED:      r = true;  g = false; b = false; break;
-		case UI_LED_RGB_COLOR_BLACK:    r = false; g = false; b = false; break;
-		default:                        r = false; g = false; b = false; break;
-	}
+	ui_led_pwr_color_decomp( &r, &g, &b, p->color );
 
 	p->r.set( r );
 	p->g.set( g );
@@ -123,44 +96,7 @@ void ui_led_pwr_flash(          const   size_t                  len )
 	bool            r, g, b;
 
 
-	switch( p->color )
-	{
-		case UI_LED_RGB_COLOR_WHITE:
-			r = true;  g = true;  b = true;
-			break;
-
-		case UI_LED_RGB_COLOR_MAGENTA:
-			r = true;  g = false; b = true;
-			break;
-
-		case UI_LED_RGB_COLOR_CYAN:
-			r = false; g = true;  b = true;
-			break;
-
-		case UI_LED_RGB_COLOR_YELLOW:
-			r = true;  g = true;  b = false;
-			break;
-
-		case UI_LED_RGB_COLOR_BLUE:
-			r = false; g = false; b = true;
-			break;
-
-		case UI_LED_RGB_COLOR_GREEN:
-			r = false; g = true;  b = false;
-			break;
-
-		case UI_LED_RGB_COLOR_RED:
-			r = true;  g = false; b = false;
-			break;
-
-		case UI_LED_RGB_COLOR_BLACK:
-			r = true;  g = true;  b = true;
-			break;
-
-		default:
-			r = false; g = false; b = false;
-			break;
-	}
+	ui_led_pwr_color_decomp( &r, &g, &b, p->color );
 
 	if( r )
 	{

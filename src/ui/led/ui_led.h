@@ -25,15 +25,6 @@ typedef    void    ( * ui_led_init_t )( void );
 typedef    bool    ( * ui_led_get_t )( void );
 typedef    void    ( * ui_led_set_t )( bool bval );
 
-/*
-typedef enum    ui_led_mode_e
-{
-	UI_LED_MODE_OFF,
-	UI_LED_MODE_ON,
-	//UI_LED_MODE_TOGGLE,
-} ui_led_mode_t;
-*/
-
 typedef	struct	ui_led_s
 {
 	ui_led_init_t           init;
@@ -41,6 +32,7 @@ typedef	struct	ui_led_s
 	ui_led_get_t            get;
 	size_t                  tick;
 } ui_led_t;
+
 
 /**
   * @brief   Single Poll, Four Throw
