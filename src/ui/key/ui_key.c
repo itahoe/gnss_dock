@@ -4,11 +4,10 @@
   * @author  Igor T. <research.tahoe@gmail.com>
   */
 
-#include	<string.h>
 #include	"ui_key.h"
 
 /**
- * @brief User Interface Key hook.
+ * @brief UI - Key hook.
  */
 bool	ui_key_hook( ui_key_t *p )
 {
@@ -30,10 +29,6 @@ bool	ui_key_hook( ui_key_t *p )
 	{
 		if( p->tick > 0 )
 		{
-/*
-			p->status       =   p->tick < UI_KEY_DEBOUNCE_TCKS ? UI_KEY_STS_NONE :
-			                         p->tick < UI_KEY_SHRT_TCKS     ? UI_KEY_STS_SHORT : UI_KEY_STS_LONG;
-*/
 			p->status       =   p->tick < UI_KEY_DEBOUNCE_TCKS ? UI_KEY_STS_NONE :
 			                         p->tick < UI_KEY_SHRT_TCKS     ? UI_KEY_STS_SHORT : UI_KEY_STS_RELEASE;
 

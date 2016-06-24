@@ -6,10 +6,8 @@
 
 #include	"ui_led.h"
 
-
-
 /**
- * @brief UI LED SysTick Hook.
+ * @brief LED SysTick Hook.
  */
 bool ui_led_hook(                       ui_led_t *              p )
 {
@@ -30,7 +28,7 @@ bool ui_led_hook(                       ui_led_t *              p )
 }
 
 /**
- * @brief UI LED Toggle.
+ * @brief LED Toggle.
  */
 void ui_led_toggle(                     ui_led_t *              p )
 {
@@ -40,7 +38,7 @@ void ui_led_toggle(                     ui_led_t *              p )
 }
 
 /**
- * @brief UI LED Control.
+ * @brief LED Control.
  */
 void ui_led_set(                        ui_led_t *              p,
                                 const   bool                    mode )
@@ -49,7 +47,7 @@ void ui_led_set(                        ui_led_t *              p,
 }
 
 /**
- * @brief UI LED Flash.
+ * @brief LED Flash.
  */
 void ui_led_flash(                      ui_led_t *              p,
                                         size_t                  len )
@@ -61,4 +59,3 @@ void ui_led_flash(                      ui_led_t *              p,
 
 	p->tick         =   len;
 }
-

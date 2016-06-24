@@ -4,15 +4,12 @@
   * @author  Igor T. <research.tahoe@gmail.com>
   */
 
-#include	<string.h>
 #include	"ui_key.h"
-
 
 extern	ui_key_t                ui_key_pwr;
 
-
 /**
- * @brief User Interface - Key Hook.
+ * @brief PWR Key Hook.
  */
 bool ui_key_pwr_hook( void )
 {
@@ -22,7 +19,7 @@ bool ui_key_pwr_hook( void )
 }
 
 /**
- * @brief User Interface - Key Reset.
+ * @brief PWR Key Reset.
  */
 void ui_key_pwr_reset( void )
 {
@@ -31,7 +28,7 @@ void ui_key_pwr_reset( void )
 }
 
 /**
- * @brief User Interface Key State.
+ * @brief PWR Key State.
  */
 bool ui_key_pwr_forced( void )
 {
@@ -41,7 +38,7 @@ bool ui_key_pwr_forced( void )
 }
 
 /**
- * @brief User Interface Key Status.
+ * @brief PWR Key Status.
  */
 ui_key_sts_t ui_key_pwr_status( void )
 {

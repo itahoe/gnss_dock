@@ -4,15 +4,12 @@
   * @author  Igor T. <research.tahoe@gmail.com>
   */
 
-#include	<string.h>
 #include	"ui_key.h"
-
 
 extern	ui_key_t                ui_key_func;
 
-
 /**
- * @brief User Interface - Key Hook.
+ * @brief FUNC Key Hook.
  */
 bool ui_key_func_hook( void )
 {
@@ -22,7 +19,7 @@ bool ui_key_func_hook( void )
 }
 
 /**
- * @brief User Interface - Key Reset.
+ * @brief FUNC Key Reset.
  */
 void ui_key_func_reset( void )
 {
@@ -31,7 +28,7 @@ void ui_key_func_reset( void )
 }
 
 /**
- * @brief User Interface - Key State.
+ * @brief FUNC Key State.
  */
 bool ui_key_func_forced( void )
 {
@@ -41,7 +38,7 @@ bool ui_key_func_forced( void )
 }
 
 /**
- * @brief User Interface - Key Status.
+ * @brief FUNC Key Status.
  */
 ui_key_sts_t ui_key_func_status( void )
 {
