@@ -1,5 +1,5 @@
 /**
-  * @file    bsp_pmu.h
+  * @file    bsp_pmu.c
   * @brief   Board Support Package - Power Management Unit
   * @author  Igor T. <research.tahoe@gmail.com>
   */
@@ -63,7 +63,7 @@ void	bsp_pmu_ldo_enable( bool  bval )
  */
 bool	bsp_pmu_sts_charge_get( void )
 {
-	return( HAL_GPIO_ReadPin( GPIOB, GPIO_PIN_15 ) ? false : true );
+	return( HAL_GPIO_ReadPin( GPIOB, GPIO_PIN_15 ) != GPIO_PIN_SET ? true : false );
 }
 
 /**
@@ -71,5 +71,5 @@ bool	bsp_pmu_sts_charge_get( void )
  */
 bool	bsp_pmu_sts_pgood_get( void )
 {
-	return( HAL_GPIO_ReadPin( GPIOC, GPIO_PIN_6 ) ? false : true );
+	return( HAL_GPIO_ReadPin( GPIOC, GPIO_PIN_6 )  != GPIO_PIN_SET ? true : false );
 }

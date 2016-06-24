@@ -233,63 +233,29 @@ int main( void )
 	ui_led_sd_flash(        UI_LED_FLSH_LONG_TCKS );
 	ui_led_usb_flash(       UI_LED_FLSH_LONG_TCKS );
 	ui_led_gnss_flash(      UI_LED_FLSH_LONG_TCKS );
-	ui_led_pwr_set(         UI_LED_RGB_COLOR_WHITE );
+	ui_led_pwr_set(         UI_LED_RGB_COLOR_BLACK );
 
-/*
-ui_led_gnss_set( UI_LED_GNSS_MODE_GPS );
-HAL_Delay( 500 );
-ui_led_gnss_set( UI_LED_GNSS_MODE_DGPS );
-HAL_Delay( 500 );
-ui_led_gnss_set( UI_LED_GNSS_MODE_RTKINT );
-HAL_Delay( 500 );
-ui_led_gnss_set( UI_LED_GNSS_MODE_RTKFLT );
-HAL_Delay( 500 );
-	ui_led_gnss_set( UI_LED_GNSS_MODE_NONE );
-*/
-
-ui_led_pwr_set( UI_LED_RGB_COLOR_RED );
-HAL_Delay( 1000 );
+	HAL_Delay( CFG_UI_LED_FLSH_LONG_mSEC );
 
 	ui.key[0].status        =   UI_KEY_STS_NONE;
 	ui.key[0].tick          =   0;
 
-
 	flog_init( &flog );
-
-
-	if( flog.sts.ready )
-	{
-		ui_led_sd_set( true );
-	}
-	else
-	{
-		ui_led_sd_set( false );
-	}
-
-ui_led_pwr_set( UI_LED_RGB_COLOR_GREEN );
-HAL_Delay( 1000 );
 
 	gnss_init( &gnss );
 
-ui_led_pwr_set( UI_LED_RGB_COLOR_BLUE );
-HAL_Delay( 1000 );
-
 	pmu_ctl( PMU_CTL_LDO, true );
-
-HAL_Delay( 1000 );
 
 	gnss_ctl( GNSS_CTL_RECV_START );
 
 	ui_led_pwr_set( UI_LED_RGB_COLOR_WHITE );
-	HAL_Delay( 1000 );
-
 
 	USBD_Init(                      &USBD_Device,   &VCP_Desc,      0); //Init Device Library
 	USBD_RegisterClass(             &USBD_Device,   USBD_CDC_CLASS ); //Add Supported Class
 	USBD_CDC_RegisterInterface(     &USBD_Device,   &USBD_CDC_fops ); //Add CDC Interface Class
 	USBD_Start( &USBD_Device ); //Start Device Process 
 
-HAL_Delay( 1000 );
+//HAL_Delay( 1000 );
 
 	while( true )
 	{

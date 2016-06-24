@@ -12,14 +12,26 @@
  */
 pmu_sts_t   pmu_sts_get( void )
 {
-	bool            sts_charge      =   bsp_pmu_sts_charge_get();
 	bool            sts_pgood       =   bsp_pmu_sts_pgood_get();
+	bool            sts_charge      =   bsp_pmu_sts_charge_get();
 	pmu_sts_t       status;
 
 
-	status          =   (sts_pgood && sts_charge) ? PMU_STS_CHRG :
-	                    (sts_pgood && !sts_charge) ? PMU_STS_VBUS :
-	                    !sts_pgood ? PMU_STS_BATT_FULL : PMU_STS_BATT_LOW;
+	if( sts_charge )
+	{
+		status          =   PMU_STS_CHRG;
+	}
+	else
+	{
+		if( sts_pgood )
+		{
+			status          =   PMU_STS_VBUS ;
+		}
+		else
+		{
+			status          =   PMU_STS_BATT_FULL;
+		}
+	}
 
 	return( status );
 }
