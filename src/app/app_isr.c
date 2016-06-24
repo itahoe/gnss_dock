@@ -16,7 +16,7 @@
 #include "pmu.h"
 #include "app.h"
 
-extern	ui_t                    ui;
+//extern	ui_t                    ui;
 extern	gnss_t                  gnss;
 extern	app_t                   app;
 extern	flog_t                  flog;
@@ -190,8 +190,11 @@ void SysTick_Handler(void)
 	ui_led_pwr_hook();
 	ui_led_gnss_hook();
 
-	app.evt.ui_key0     =    ui_key_hook( &ui.key[0] ) ? true : false;
-	app.evt.ui_key1     =    ui_key_hook( &ui.key[1] ) ? true : false;
+	app.evt.ui_key0     =    ui_key_pwr_hook() ? true : false;
+	app.evt.ui_key1     =    ui_key_func_hook() ? true : false;
+
+	//app.evt.ui_key0     =    ui_key_hook( &ui.key[0] ) ? true : false;
+	//app.evt.ui_key1     =    ui_key_hook( &ui.key[1] ) ? true : false;
 
 	if( ++(app.tick_1hz) > BSP_SYSTICK_HZ )
 	{

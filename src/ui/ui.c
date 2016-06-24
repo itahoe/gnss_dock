@@ -8,11 +8,16 @@
 #include	"bsp_led.h"
 #include	"ui.h"
 
-        ui_t            ui                      =   {   .key[0].init    =   bsp_key0_init,
-	                                                .key[0].get     =   bsp_key0_get,
+	ui_key_t        ui_key_pwr              =   {   .init   =   bsp_key0_init,
+	                                                .get    =   bsp_key0_get,
+	                                                .status =   UI_KEY_STS_NONE,
+	                                                .tick   =   0 };
 
-	                                                .key[1].init    =   bsp_key1_init,
-	                                                .key[1].get     =   bsp_key1_get };
+	ui_key_t        ui_key_func             =   {   .init   =   bsp_key1_init,
+	                                                .get    =   bsp_key1_get,
+	                                                .status =   UI_KEY_STS_NONE,
+	                                                .tick   =   0 };
+
 
 	ui_led_t        ui_led_sd               =   {   .init   =   bsp_led_sd_init,
 	                                                .get    =   bsp_led_sd_get,
@@ -59,34 +64,24 @@
 	                                                .b.set          =   bsp_led_pwr_b_set,
 	                                                .b.tick         =   0 };
 
-static
-void ui_led_gnss_init( void )
-{
-	ui_led_gnss.gps.init();
-	ui_led_gnss.dgps.init();
-	ui_led_gnss.rtkint.init();
-	ui_led_gnss.rtkflt.init();
-}
-
-static
-void ui_led_pwr_init( void )
-{
-	ui_led_pwr.r.init();
-	ui_led_pwr.g.init();
-	ui_led_pwr.b.init();
-}
-
 /**
  * @brief UI initialization.
  */
 void	ui_init( void )
 {
 	ui_led_sd.init();
+
 	ui_led_usb.init();
 
-	ui_led_gnss_init();
-	ui_led_pwr_init();
+	ui_led_gnss.gps.init();
+	ui_led_gnss.dgps.init();
+	ui_led_gnss.rtkint.init();
+	ui_led_gnss.rtkflt.init();
 
-	ui.key[0].init();
-	ui.key[1].init();
+	ui_led_pwr.r.init();
+	ui_led_pwr.g.init();
+	ui_led_pwr.b.init();
+
+	ui_key_pwr.init();
+	ui_key_func.init();
 }

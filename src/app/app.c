@@ -18,7 +18,6 @@
 	app_t                   app;
 	flog_t                  flog;
 	USBD_HandleTypeDef      USBD_Device;
-extern	ui_t                    ui;
 extern	uint8_t                 uart_data_xmit[];
 extern	uint8_t                 uart_data_recv[];
 
@@ -219,7 +218,8 @@ int main( void )
 
 	HAL_Delay( UI_KEY_LONG_TCKS );
 
-	if( ui.key[0].get() == true )
+	//if( ui.key[0].get() == true )
+	if( ui_key_pwr_forced() )
 	{
 		//while( ui.key[0].get() == true );
 	}
@@ -237,8 +237,7 @@ int main( void )
 
 	HAL_Delay( CFG_UI_LED_FLSH_LONG_mSEC );
 
-	ui.key[0].status        =   UI_KEY_STS_NONE;
-	ui.key[0].tick          =   0;
+	ui_key_pwr_reset();
 
 	flog_init( &flog );
 
@@ -255,15 +254,14 @@ int main( void )
 	USBD_CDC_RegisterInterface(     &USBD_Device,   &USBD_CDC_fops ); //Add CDC Interface Class
 	USBD_Start( &USBD_Device ); //Start Device Process 
 
-//HAL_Delay( 1000 );
-
 	while( true )
 	{
 		if( app.evt.ui_key0 )
 		{
 			app.evt.ui_key0 =    false;
 
-			switch( ui.key[0].status )
+			//switch( ui.key[0].status )
+			switch( ui_key_pwr_status() )
 			{
 				case UI_KEY_STS_SHORT:
 					ui_led_pwr_flash( UI_LED_FLSH_SHRT_TCKS );
@@ -284,7 +282,8 @@ int main( void )
 		{
 			app.evt.ui_key1 =    false;
 
-			switch( ui.key[1].status )
+			//switch( ui.key[1].status )
+			switch( ui_key_func_status() )
 			{
 				case UI_KEY_STS_SHORT:
 					ui_led_pwr_flash( UI_LED_FLSH_SHRT_TCKS );

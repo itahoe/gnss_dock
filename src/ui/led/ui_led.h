@@ -1,6 +1,6 @@
 /**
   * @file    ui_led.h
-  * @brief   User Interface - LED services
+  * @brief   User Interface - LED Services
   * @author  Igor T. <research.tahoe@gmail.com>
   */
 
