@@ -17,9 +17,8 @@ typedef	union	app_event_u
 	struct
 	{
 		bool            tick_1hz        :    1;
-		bool            ui_key0         :    1;
-		bool            ui_key1         :    1;
-		bool            nmea            :    1;
+		bool            ui_key_pwr      :    1;
+		bool            ui_key_func     :    1;
 		bool            log_write       :    1;
 		bool                            :    0;
 	};

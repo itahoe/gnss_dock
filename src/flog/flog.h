@@ -25,15 +25,12 @@ typedef	union	flog_sts_u
 
 typedef struct  flog_s
 {
-	//bool            enable;
-	//char *          data;
 	size_t          len;
 	flog_sts_t      sts;
 	FIL             file_log;
 	char            fname[ _MAX_LFN ];
 
-	char *          buf_full;
-	size_t          pingpong;
+	char *          buf_ready;
 	char            buf[ 2 ][ CFG_FMNG_BLCK_SIZE_OCT ];
 }	flog_t;
 

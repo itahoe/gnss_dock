@@ -218,7 +218,6 @@ int main( void )
 
 	HAL_Delay( UI_KEY_LONG_TCKS );
 
-	//if( ui.key[0].get() == true )
 	if( ui_key_pwr_forced() )
 	{
 		//while( ui.key[0].get() == true );
@@ -256,16 +255,14 @@ int main( void )
 
 	while( true )
 	{
-		if( app.evt.ui_key0 )
+		if( app.evt.ui_key_pwr )
 		{
-			app.evt.ui_key0 =    false;
+			app.evt.ui_key_pwr      =    false;
 
-			//switch( ui.key[0].status )
 			switch( ui_key_pwr_status() )
 			{
 				case UI_KEY_STS_SHORT:
-					ui_led_pwr_flash( UI_LED_FLSH_SHRT_TCKS );
-
+					//ui_led_pwr_flash( UI_LED_FLSH_SHRT_TCKS );
 					//gnss_send( &gnss, CFG_GNSS_MSG_KEY0S );
 					break;
 
@@ -278,15 +275,14 @@ int main( void )
 			}
 		}
 
-		if( app.evt.ui_key1 )
+		if( app.evt.ui_key_func )
 		{
-			app.evt.ui_key1 =    false;
+			app.evt.ui_key_func     =    false;
 
-			//switch( ui.key[1].status )
 			switch( ui_key_func_status() )
 			{
 				case UI_KEY_STS_SHORT:
-					ui_led_pwr_flash( UI_LED_FLSH_SHRT_TCKS );
+					//ui_led_pwr_flash( UI_LED_FLSH_SHRT_TCKS );
 					//gnss_send( &gnss, CFG_GNSS_MSG_KEY1S );
 					break;
 
@@ -337,20 +333,10 @@ int main( void )
 			}
 
 			ui_led_pwr_flash( UI_LED_FLSH_SHRT_TCKS );
-/*
-			APP_TRACE(	"ERR: %d, PE: %d, FE: %d, NE: %d, ORE: %d, IDLE: %d\n",
-			                gnss.nmea.chksum_errors,
-			                app.uart1.parity_error,
-			                app.uart1.framing_error,
-			                app.uart1.noise_error,
-			                app.uart1.overrun_error,
-			                app.uart1.idle_line );
-*/
-		}
 
-		if( app.evt.nmea )
-		{
-			app.evt.nmea        =   false;
+			APP_TRACE(	"\n" );
+			APP_TRACE(	"PMU: PG=%c CH=%c, ", bsp_pmu_sts_pgood_get() ? '1' : '0', bsp_pmu_sts_charge_get() ? '1' : '0' );
+			APP_TRACE(	"FLOG=%c ", flog.sts.enable ? '1' : '0' );
 		}
 
 		if( app.evt.log_write )

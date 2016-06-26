@@ -67,22 +67,22 @@ void hard_fault_handler(uint32_t *arg)
 	stacked_pc = arg[6];
 	stacked_psr = arg[7];
 
-	APP_TRACE("\r\n\n--- Hard fault handler ---\n");
-	APP_TRACE("stck_ptr\t= 0x%08X\n", stack_ptr);
-	APP_TRACE("R0\t= 0x%08X\n", stacked_r0);
-	APP_TRACE("R1\t= 0x%08X\n", stacked_r1);
-	APP_TRACE("R2\t= 0x%08X\n", stacked_r2);
-	APP_TRACE("R3\t= 0x%08X\n", stacked_r3);
-	APP_TRACE("R12\t= 0x%08X\n", stacked_r12);
-	APP_TRACE("LR[R14]\t= 0x%08X\tsubroutine call return address\n", stacked_lr);
-	APP_TRACE("PC[R15]\t= 0x%08X\tprogram counter\n", stacked_pc);
-	APP_TRACE("PSR\t= 0x%08X\n", stacked_psr);
-	APP_TRACE("BFAR\t= 0x%08Xh\n", (uint32_t)(*((volatile uint32_t *)(0xE000ED38))));
-	APP_TRACE("CFSR\t= 0x%08Xh\n", (uint32_t)(*((volatile uint32_t *)(0xE000ED28))));
-	APP_TRACE("HFSR\t= 0x%08Xh\n", (uint32_t)(*((volatile uint32_t *)(0xE000ED2C))));
-	APP_TRACE("DFSR\t= 0x%08Xh\n", (uint32_t)(*((volatile uint32_t *)(0xE000ED30))));
-	APP_TRACE("AFSR\t= 0x%08Xh\n", (uint32_t)(*((volatile uint32_t *)(0xE000ED3C))));
-	APP_TRACE("SCB_SHCSR\t= 0x%08Xh\n", SCB->SHCSR);
+	APP_TRACE("\r\n--- Hard fault handler ---\n");
+	APP_TRACE("\nstck_ptr\t= 0x%08X", stack_ptr);
+	APP_TRACE("\nR0\t= 0x%08X", stacked_r0);
+	APP_TRACE("\nR1\t= 0x%08X", stacked_r1);
+	APP_TRACE("\nR2\t= 0x%08X", stacked_r2);
+	APP_TRACE("\nR3\t= 0x%08X", stacked_r3);
+	APP_TRACE("\nR12\t= 0x%08X", stacked_r12);
+	APP_TRACE("\nLR[R14]\t= 0x%08X\tsubroutine call return address", stacked_lr);
+	APP_TRACE("\nPC[R15]\t= 0x%08X\tprogram counter", stacked_pc);
+	APP_TRACE("\nPSR\t= 0x%08X", stacked_psr);
+	APP_TRACE("\nBFAR\t= 0x%08X", (uint32_t)(*((volatile uint32_t *)(0xE000ED38))));
+	APP_TRACE("\nCFSR\t= 0x%08X", (uint32_t)(*((volatile uint32_t *)(0xE000ED28))));
+	APP_TRACE("\nHFSR\t= 0x%08X", (uint32_t)(*((volatile uint32_t *)(0xE000ED2C))));
+	APP_TRACE("\nDFSR\t= 0x%08X", (uint32_t)(*((volatile uint32_t *)(0xE000ED30))));
+	APP_TRACE("\nAFSR\t= 0x%08X", (uint32_t)(*((volatile uint32_t *)(0xE000ED3C))));
+	APP_TRACE("\nSCB_SHCSR\t= 0x%08X", SCB->SHCSR);
 	// memstat();
 	__asm volatile ("bkpt #0\n");         // Break into the debugger
 	while(1);
@@ -190,11 +190,8 @@ void SysTick_Handler(void)
 	ui_led_pwr_hook();
 	ui_led_gnss_hook();
 
-	app.evt.ui_key0     =    ui_key_pwr_hook() ? true : false;
-	app.evt.ui_key1     =    ui_key_func_hook() ? true : false;
-
-	//app.evt.ui_key0     =    ui_key_hook( &ui.key[0] ) ? true : false;
-	//app.evt.ui_key1     =    ui_key_hook( &ui.key[1] ) ? true : false;
+	app.evt.ui_key_pwr  =    ui_key_pwr_hook() ? true : false;
+	app.evt.ui_key_func =    ui_key_func_hook() ? true : false;
 
 	if( ++(app.tick_1hz) > BSP_SYSTICK_HZ )
 	{
@@ -236,7 +233,7 @@ void    EXTI1_IRQHandler( void )
 }
 
 /**
- * @brief EXTI1 interrupt handler
+ * @brief EXTI2 interrupt handler
  */
 void    EXTI2_IRQHandler( void )
 {
@@ -247,8 +244,7 @@ void    EXTI2_IRQHandler( void )
 		if( flog.sts.enable )
 		{
 			app.evt.log_write   =   true;
-			flog_write( &flog, flog.buf_full, CFG_FMNG_BLCK_SIZE_OCT );
-
+			flog_write( &flog, flog.buf_ready, CFG_FMNG_BLCK_SIZE_OCT );
 		}
 	}
 }
@@ -260,32 +256,6 @@ void    USART1_IRQHandler( void )
 {
 	uint32_t        sts                     =   USART1->SR;
 	uint32_t        data                    =   USART1->DR;
-
-/*
-	//uint32_t        data;
-	bool            gnss_recv_complete;
-	bool            fmng_buff_complete;
-
-
-	if( sts & USART_SR_RXNE )
-	{
-		USART1->SR      =   0;
-		USART1->CR1     |=  (USART_CR1_RXNEIE | USART_CR1_PEIE | USART_CR3_EIE);
-		//data                    =   USART1->DR;
-		gnss_recv_complete	=   gnss_recv_hook( &gnss, data );
-		fmng_buff_complete      =   flog_save_hook( &flog, data );
-
-		if( gnss_recv_complete )
-		{
-			__HAL_GPIO_EXTI_GENERATE_SWIT( BSP_IRQ_EXTI_0 );
-		}
-
-		if( fmng_buff_complete )
-		{
-			__HAL_GPIO_EXTI_GENERATE_SWIT( BSP_IRQ_EXTI_1 );
-		}
-	}
-*/
 }
 
 /**
