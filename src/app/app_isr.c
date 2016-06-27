@@ -22,6 +22,7 @@ extern	app_t                   app;
 extern	flog_t                  flog;
 	time_t                  time_dat        =   0;
 extern	UART_HandleTypeDef      huart;
+extern	TIM_HandleTypeDef       htim_cdc;
 
 extern	PCD_HandleTypeDef       hpcd;
 
@@ -317,3 +318,14 @@ void OTG_HS_IRQHandler(void)
 {
 	HAL_PCD_IRQHandler( &hpcd );
 }
+
+/**
+  * @brief  This function handles TIM interrupt request.
+  * @param  None
+  * @retval None
+  */
+void TIM3_IRQHandler( void )
+{
+	HAL_TIM_IRQHandler( &htim_cdc );
+}
+

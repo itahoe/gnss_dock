@@ -13,6 +13,7 @@
 #include "usbd_cdc.h" 
 #include "usbd_cdc_interface.h"
 
+#define TEST_STR                "test_string "
 
 	gnss_t                  gnss;
 	app_t                   app;
@@ -115,35 +116,6 @@ void	app_clock_config( void )
 	SystemCoreClockUpdate();
 }
 
-#define APP_TX_DATA_SIZE  2048
-
-extern	uint8_t		*UserTxBuffer;
-extern	uint32_t        UserTxBufPtrIn;
-
-static
-void app_usb_cdc_send(                  uint8_t *               data,
-                                        size_t                  size )
-{
-	//HAL_UART_Receive_IT( huart, (uint8_t *)(UserTxBuffer + UserTxBufPtrIn), 1);
-/*
-	while( size-- )
-	{
-		*(UserTxBuffer + UserTxBufPtrIn++)	=  *data++;
-
-		if( UserTxBufPtrIn >= APP_TX_DATA_SIZE )
-		{
-			UserTxBufPtrIn          =   0;
-		}
-	}
-*/
-
-	USBD_CDC_SetTxBuffer(   &USBD_Device,
-	                        data,
-	                        size );
-    
-	USBD_CDC_TransmitPacket( &USBD_Device );
-}
-
 /**
  * @brief
  */
@@ -204,6 +176,7 @@ int main( void )
 	app_clock_config();
 	SysTick_Config(SystemCoreClock / BSP_SYSTICK_HZ);
 	HAL_Init();
+
 	__enable_irq();
 
 	ui_init();
@@ -284,6 +257,8 @@ int main( void )
 				case UI_KEY_STS_SHORT:
 					//ui_led_pwr_flash( UI_LED_FLSH_SHRT_TCKS );
 					//gnss_send( &gnss, CFG_GNSS_MSG_KEY1S );
+					app_usb_cdc_send( TEST_STR, sizeof( TEST_STR ) );
+
 					break;
 
 				case UI_KEY_STS_LONG:

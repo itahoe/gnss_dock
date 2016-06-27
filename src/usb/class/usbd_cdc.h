@@ -92,11 +92,11 @@
   */ 
 typedef struct
 {
-  uint32_t bitrate;
-  uint8_t  format;
-  uint8_t  paritytype;
-  uint8_t  datatype;
-}USBD_CDC_LineCodingTypeDef;
+	uint32_t        baudrate;
+	uint8_t         stop_bits;
+	uint8_t         parity_type;
+	uint8_t         data_len;
+} USBD_CDC_LineCodingTypeDef;
 
 typedef struct _USBD_CDC_Itf
 {

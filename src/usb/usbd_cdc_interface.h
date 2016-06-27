@@ -37,6 +37,7 @@
 /* User can use this section to tailor USARTx/UARTx instance used and associated 
    resources */
 /* Definition for USARTx clock resources */
+/*
 #define USARTx                           USART1
 #define USARTx_CLK_ENABLE()              __HAL_RCC_USART1_CLK_ENABLE();
 #define DMAx_CLK_ENABLE()                __HAL_RCC_DMA2_CLK_ENABLE()
@@ -45,31 +46,37 @@
 
 #define USARTx_FORCE_RESET()             __HAL_RCC_USART1_FORCE_RESET()
 #define USARTx_RELEASE_RESET()           __HAL_RCC_USART1_RELEASE_RESET()
+*/
 
 /* Definition for USARTx Pins */
+/*
 #define USARTx_TX_PIN                    GPIO_PIN_6
 #define USARTx_TX_GPIO_PORT              GPIOB
 #define USARTx_TX_AF                     GPIO_AF7_USART1
 #define USARTx_RX_PIN                    GPIO_PIN_7
 #define USARTx_RX_GPIO_PORT              GPIOB
 #define USARTx_RX_AF                     GPIO_AF7_USART1
+*/
 
 /* Definition for USARTx's NVIC: used for receiving data over Rx pin */
+/*
 #define USARTx_IRQn                      USART1_IRQn
 #define USARTx_IRQHandler                USART1_IRQHandler
+*/
 
 /* Definition for USARTx's DMA: used for transmitting data over Tx pin */
+/*
 #define USARTx_TX_DMA_CHANNEL            DMA_CHANNEL_4
 #define USARTx_TX_DMA_STREAM             DMA2_Stream7
 
 #define USARTx_DMA_TX_IRQHandler         DMA2_Stream7_IRQHandler
 #define USARTx_DMA_TX_IRQn               DMA2_Stream7_IRQn
-
+*/
 /* Definition for TIMx clock resources */
 #define TIMx                             TIM3
 #define TIMx_CLK_ENABLE                  __HAL_RCC_TIM3_CLK_ENABLE
-#define TIMx_FORCE_RESET()               __HAL_RCC_USART1_FORCE_RESET()
-#define TIMx_RELEASE_RESET()             __HAL_RCC_USART1_RELEASE_RESET()
+#define TIMx_FORCE_RESET()               __HAL_RCC_TIM3_FORCE_RESET()
+#define TIMx_RELEASE_RESET()             __HAL_RCC_TIM3_RELEASE_RESET()
 
 /* Definition for TIMx's NVIC */
 #define TIMx_IRQn                        TIM3_IRQn
@@ -84,5 +91,8 @@ extern USBD_CDC_ItfTypeDef  USBD_CDC_fops;
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
 #endif /* __USBD_CDC_IF_H */
+
+void app_usb_cdc_send(                  uint8_t *               data,
+                                        size_t                  size );
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
