@@ -7,8 +7,8 @@
 #ifndef  CFG_FMNG_H
 #define  CFG_FMNG_H
 
-#define CFG_FMNG_BLCK_SIZE_OCT          64
-//#define CFG_FMNG_BLCK_SIZE_OCT          512
+//#define CFG_FMNG_BLCK_SIZE_OCT          64
+#define CFG_FMNG_BLCK_SIZE_OCT          128
 //#define CFG_FMNG_BLCK_SIZE_OCT          4096
 #define CFG_FMNG_FILE_SYNC_TOUT_SEC     120
 

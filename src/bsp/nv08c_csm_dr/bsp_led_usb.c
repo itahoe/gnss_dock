@@ -13,14 +13,14 @@
  */
 void	bsp_led_usb_init( void )
 {
-	GPIO_InitTypeDef        gpio_led_usb    =   {    .Pin       =    GPIO_PIN_14,
+	GPIO_InitTypeDef        gpio_led_usb    =   {    .Pin       =    GPIO_PIN_1,
 	                                                 .Mode      =    GPIO_MODE_OUTPUT_PP,
 	                                                 .Pull      =    GPIO_NOPULL,
 	                                                 .Speed     =    GPIO_SPEED_FREQ_LOW };
 
-	__HAL_RCC_GPIOB_CLK_ENABLE();
+	__HAL_RCC_GPIOA_CLK_ENABLE();
 
-	HAL_GPIO_Init( GPIOB, &gpio_led_usb );
+	HAL_GPIO_Init( GPIOA, &gpio_led_usb );
 }
 
 /**
@@ -28,7 +28,7 @@ void	bsp_led_usb_init( void )
  */
 bool	bsp_led_usb_get( void )
 {
-	return( HAL_GPIO_ReadPin( GPIOB, GPIO_PIN_14 ) ? true : false  );
+	return( HAL_GPIO_ReadPin( GPIOA, GPIO_PIN_1 ) ? true : false  );
 }
 
 /**
@@ -36,5 +36,5 @@ bool	bsp_led_usb_get( void )
  */
 void	bsp_led_usb_set(                const   bool                bval )
 {
-	HAL_GPIO_WritePin( GPIOB, GPIO_PIN_14,  bval ? GPIO_PIN_SET : GPIO_PIN_RESET );
+	HAL_GPIO_WritePin( GPIOA, GPIO_PIN_1,  bval ? GPIO_PIN_SET : GPIO_PIN_RESET );
 }

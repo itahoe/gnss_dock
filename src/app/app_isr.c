@@ -242,7 +242,7 @@ void    EXTI2_IRQHandler( void )
 	{
 		__HAL_GPIO_EXTI_CLEAR_IT( BSP_IRQ_EXTI_2 );
 
-		if( flog.sts.enable )
+		if( flog.sts.write )
 		{
 			app.evt.log_write   =   true;
 			flog_write( &flog, flog.buf_ready, CFG_FMNG_BLCK_SIZE_OCT );

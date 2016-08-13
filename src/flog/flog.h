@@ -17,7 +17,8 @@ typedef	union	flog_sts_u
 	uint16_t				whole;
 	struct
 	{
-		bool                    enable          :    1;
+		//bool                    enable          :    1;
+		bool                    write           :    1;
 		bool                    ready           :    1;
 		bool                                    :    0;
 	};
@@ -41,7 +42,7 @@ bool	flog_save_hook(                 flog_t *                p,
 
 void	flog_close(                     flog_t *                p );
 
-void	flog_open(                      flog_t *                p );
+bool	flog_open(                      flog_t *                p );
 
 void	flog_write(                     flog_t *                p,
 	                        const   uint8_t *               data,

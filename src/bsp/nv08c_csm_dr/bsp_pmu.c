@@ -11,7 +11,7 @@
 static
 void	bsp_pmu_ldo_init( void )
 {
-	GPIO_InitTypeDef        gpio_ldo_en     =   {   .Pin    =    GPIO_PIN_4,
+	GPIO_InitTypeDef        gpio_ldo_en     =   {   .Pin    =    GPIO_PIN_6,
 	                                                .Mode   =    GPIO_MODE_OUTPUT_PP,
 	                                                .Pull   =    GPIO_NOPULL,
 	                                                .Speed  =    GPIO_SPEED_FREQ_LOW };
@@ -24,21 +24,20 @@ void	bsp_pmu_ldo_init( void )
 static
 void	bsp_pmu_sts_init( void )
 {
-	GPIO_InitTypeDef        gpio_sts_charge =   {   .Pin    =   GPIO_PIN_15,
+	GPIO_InitTypeDef        gpio_sts_charge =   {   .Pin    =   GPIO_PIN_12,
 	                                                .Mode   =   GPIO_MODE_INPUT,
 	                                                .Pull   =   GPIO_PULLUP,
 	                                                .Speed  =   GPIO_SPEED_FREQ_LOW };
 
-	GPIO_InitTypeDef        gpio_sts_pgood  =   {   .Pin    =   GPIO_PIN_6,
+	GPIO_InitTypeDef        gpio_sts_pgood  =   {   .Pin    =   GPIO_PIN_13,
 	                                                .Mode   =   GPIO_MODE_INPUT,
 	                                                .Pull   =   GPIO_PULLUP,
 	                                                .Speed  =   GPIO_SPEED_FREQ_LOW };
 
 	__HAL_RCC_GPIOB_CLK_ENABLE();
-	__HAL_RCC_GPIOC_CLK_ENABLE();
 
 	HAL_GPIO_Init( GPIOB, &gpio_sts_charge );
-	HAL_GPIO_Init( GPIOC, &gpio_sts_pgood );
+	HAL_GPIO_Init( GPIOB, &gpio_sts_pgood );
 }
 
 /**
@@ -55,7 +54,7 @@ void	bsp_pmu_init( void )
  */
 void	bsp_pmu_ldo_enable( bool  bval )
 {
-	HAL_GPIO_WritePin( GPIOA, GPIO_PIN_4, bval ? GPIO_PIN_SET : GPIO_PIN_RESET );
+	HAL_GPIO_WritePin( GPIOA, GPIO_PIN_6, bval ? GPIO_PIN_SET : GPIO_PIN_RESET );
 }
 
 /**
@@ -63,7 +62,7 @@ void	bsp_pmu_ldo_enable( bool  bval )
  */
 bool	bsp_pmu_sts_charge_get( void )
 {
-	return( HAL_GPIO_ReadPin( GPIOB, GPIO_PIN_15 ) != GPIO_PIN_SET ? true : false );
+	return( HAL_GPIO_ReadPin( GPIOB, GPIO_PIN_12 ) != GPIO_PIN_SET ? true : false );
 }
 
 /**
@@ -71,5 +70,5 @@ bool	bsp_pmu_sts_charge_get( void )
  */
 bool	bsp_pmu_sts_pgood_get( void )
 {
-	return( HAL_GPIO_ReadPin( GPIOC, GPIO_PIN_6 )  != GPIO_PIN_SET ? true : false );
+	return( HAL_GPIO_ReadPin( GPIOB, GPIO_PIN_13 )  != GPIO_PIN_SET ? true : false );
 }

@@ -121,7 +121,7 @@ void	app_clock_config( void )
  */
 void	HAL_UART_RxHalfCpltCallback(    UART_HandleTypeDef *    huart )
 {
-	if( flog.sts.enable )
+	if( flog.sts.write )
 	{
 		ui_led_sd_flash( UI_LED_FLSH_SHRT_TCKS );
 
@@ -143,7 +143,7 @@ void	HAL_UART_RxHalfCpltCallback(    UART_HandleTypeDef *    huart )
  */
 void	HAL_UART_RxCpltCallback(        UART_HandleTypeDef *	huart )
 {
-	if( flog.sts.enable )
+	if( flog.sts.write )
 	{
 		ui_led_sd_flash( UI_LED_FLSH_SHRT_TCKS );
 
@@ -215,6 +215,8 @@ int main( void )
 
 	gnss_init( &gnss );
 
+	HAL_Delay( CFG_UI_LED_FLSH_LONG_mSEC );
+
 	pmu_ctl( PMU_CTL_LDO, true );
 
 	gnss_ctl( GNSS_CTL_RECV_START );
@@ -262,18 +264,21 @@ int main( void )
 					break;
 
 				case UI_KEY_STS_LONG:
-					if( flog.sts.enable )
+					if( flog.sts.write )
 					{
-						flog.sts.enable         =  false;
+						flog.sts.write          =  false;
 						flog_close( &flog );
-						ui_led_sd_set( true );
+						//ui_led_sd_set( true );
 					}
 					else
 					{
-						flog_open( &flog );
-						flog.sts.enable         =  true;
-						ui_led_sd_set( false );
+						flog.sts.write          =  flog_open( &flog );
+						//flog.sts.write          =  true;
+						//ui_led_sd_set( false );
 					}
+
+					ui_led_sd_set( flog.sts.write );
+
 					break;
 
 				default:
@@ -285,7 +290,7 @@ int main( void )
 		{
 			app.evt.tick_1hz    =   false;
 
-			ui_led_sd_set( flog.sts.enable ? true : false );
+			ui_led_sd_set( flog.sts.write ? true : false );
 
 			switch( gnss.nmea.gga.fix )
 			{
@@ -310,8 +315,9 @@ int main( void )
 			ui_led_pwr_flash( UI_LED_FLSH_SHRT_TCKS );
 
 			APP_TRACE(	"\n" );
-			APP_TRACE(	"PMU: PG=%c CH=%c, ", bsp_pmu_sts_pgood_get() ? '1' : '0', bsp_pmu_sts_charge_get() ? '1' : '0' );
-			APP_TRACE(	"FLOG=%c ", flog.sts.enable ? '1' : '0' );
+			//APP_TRACE(	"PMU: PG=%c CH=%c, ", bsp_pmu_sts_pgood_get() ? '1' : '0', bsp_pmu_sts_charge_get() ? '1' : '0' );
+			//APP_TRACE(	"FLOG=%c ", flog.sts.write ? '1' : '0' );
+			APP_TRACE(	"NMEA_ERR=%d ", gnss.nmea.chksum_errors );
 		}
 
 		if( app.evt.log_write )

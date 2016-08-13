@@ -13,7 +13,7 @@
  */
 void	bsp_led_sd_init( void )
 {
-	GPIO_InitTypeDef        gpio_led_sd     =   {    .Pin       =    GPIO_PIN_7,
+	GPIO_InitTypeDef        gpio_led_sd     =   {    .Pin       =    GPIO_PIN_5,
 	                                                 .Mode      =    GPIO_MODE_OUTPUT_PP,
 	                                                 .Pull      =    GPIO_NOPULL,
 	                                                 .Speed     =    GPIO_SPEED_FREQ_LOW };
@@ -28,7 +28,7 @@ void	bsp_led_sd_init( void )
  */
 bool	bsp_led_sd_get( void )
 {
-	return( HAL_GPIO_ReadPin( GPIOA, GPIO_PIN_7 ) ? true : false );
+	return( HAL_GPIO_ReadPin( GPIOA, GPIO_PIN_5 ) ? true : false );
 }
 
 /**
@@ -36,5 +36,5 @@ bool	bsp_led_sd_get( void )
  */
 void	bsp_led_sd_set(                 const   bool                bval )
 {
-	HAL_GPIO_WritePin( GPIOA, GPIO_PIN_7,  bval ? GPIO_PIN_SET : GPIO_PIN_RESET );
+	HAL_GPIO_WritePin( GPIOA, GPIO_PIN_5,  bval ? GPIO_PIN_SET : GPIO_PIN_RESET );
 }

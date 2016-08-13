@@ -47,7 +47,7 @@ void	flog_close(                     flog_t *                p )
 	FRESULT         resp;
 
 	resp    =   f_close( &p->file_log );
-	APP_TRACE( "f_close() - " );
+	APP_TRACE( "\nf_close() - " );
 	APP_TRACE_FF_RES( resp );
 	resp    =   resp;
 }
@@ -55,44 +55,56 @@ void	flog_close(                     flog_t *                p )
 /**
  * @brief File Manager file open
  */
-void	flog_open(                      flog_t *                p )
+bool	flog_open(                      flog_t *                p )
 {
-	FRESULT         resp;
+	bool            resp    =   false;
+	FRESULT         rslt;
 
 
 	flog_name_compose( p->fname, "log", sizeof( p->fname ) );
 
-	resp    =   f_open( &p->file_log, p->fname, FA_CREATE_ALWAYS | FA_WRITE);
+	rslt    =   f_open( &p->file_log, p->fname, FA_CREATE_ALWAYS | FA_WRITE);
 
-	APP_TRACE( "f_open() - " );
-	APP_TRACE_FF_RES( resp );
+	APP_TRACE( "\nf_open() - " );
+	APP_TRACE_FF_RES( rslt );
 
-	if( resp != FR_OK )
+	if( rslt != FR_OK )
 	{
 		//resp    =   f_close( &p->file_log );
 		//APP_TRACE( "f_close() - " );
 		//ff_trace_res( resp );
 
-		resp    =   f_mount( NULL, (TCHAR const*) SDPath, 1 );
-		APP_TRACE( "f_mount(NULL) - " );
-		APP_TRACE_FF_RES( resp );
+		rslt    =   f_mount( NULL, (TCHAR const*) SDPath, 1 );
+		APP_TRACE( "\nf_mount(NULL) - " );
+		APP_TRACE_FF_RES( rslt );
 
 		//FATFS_UnLinkDriver( SDPath );
 
 		//FATFS_LinkDriver( &SD_Driver, SDPath );
 
-		resp    =   f_mount( &SDFatFs, (TCHAR const*) SDPath, 1 );
-		APP_TRACE( "f_mount(SD) - " );
-		APP_TRACE_FF_RES( resp );
+		rslt    =   f_mount( &SDFatFs, (TCHAR const*) SDPath, 1 );
+		APP_TRACE( "\nf_mount(SD) - " );
+		APP_TRACE_FF_RES( rslt );
 
-		if( resp == FR_OK )
+		if( rslt == FR_OK )
 		{
-			resp    =   f_open( &p->file_log, p->fname, FA_CREATE_ALWAYS | FA_WRITE);
+			rslt    =   f_open( &p->file_log, p->fname, FA_CREATE_ALWAYS | FA_WRITE);
 
-			APP_TRACE( "f_open() - " );
-			APP_TRACE_FF_RES( resp );
+			if( rslt == FR_OK )
+			{
+				resp    =   true;
+			}
+
+			APP_TRACE( "\nf_open() - " );
+			APP_TRACE_FF_RES( rslt );
 		}
 	}
+	else
+	{
+		resp    =   true;
+	}
+
+	return( resp );
 }
 
 /**
@@ -114,7 +126,7 @@ void	flog_write(                     flog_t *                p,
 		{
 			if( wr_bytes < len )
 			{
-				APP_TRACE( "f_write() - len: %d, wr_bytes: %d\n", len, wr_bytes );
+				APP_TRACE( "\nf_write() - len: %d, wr_bytes: %d\n", len, wr_bytes );
 			}
 			else
 			{
@@ -126,7 +138,7 @@ void	flog_write(                     flog_t *                p,
 		}
 		else
 		{
-			APP_TRACE( "f_write() - " );
+			APP_TRACE( "\nf_write() - " );
 			APP_TRACE_FF_RES( res );
 			APP_TRACE( "pbuf: %0X\n", pbuf );
 			APP_TRACE( "len: %d\n", len );

@@ -13,14 +13,14 @@
  */
 void	bsp_led_pwr_r_init( void )
 {
-	GPIO_InitTypeDef        gpio_led_pwr_r  =   {    .Pin       =    GPIO_PIN_13,
+	GPIO_InitTypeDef        gpio_led_pwr_r  =   {    .Pin       =    GPIO_PIN_4,
 	                                                 .Mode      =    GPIO_MODE_OUTPUT_PP,
 	                                                 .Pull      =    GPIO_NOPULL,
 	                                                 .Speed     =    GPIO_SPEED_FREQ_LOW };
 
-	__HAL_RCC_GPIOB_CLK_ENABLE();
+	__HAL_RCC_GPIOC_CLK_ENABLE();
 
-	HAL_GPIO_Init( GPIOB, &gpio_led_pwr_r );
+	HAL_GPIO_Init( GPIOC, &gpio_led_pwr_r );
 }
 
 /**
@@ -28,17 +28,18 @@ void	bsp_led_pwr_r_init( void )
  */
 void	bsp_led_pwr_g_init( void )
 {
-	GPIO_InitTypeDef        gpio_led_pwr_g  =   {    .Pin       =    GPIO_PIN_12,
+	GPIO_InitTypeDef        gpio_led_pwr_g  =   {    .Pin       =    GPIO_PIN_7,
 	                                                 .Mode      =    GPIO_MODE_OUTPUT_PP,
 	                                                 .Pull      =    GPIO_NOPULL,
 	                                                 .Speed     =    GPIO_SPEED_FREQ_LOW };
-	__HAL_RCC_GPIOB_CLK_ENABLE();
+	__HAL_RCC_GPIOA_CLK_ENABLE();
 
-	HAL_GPIO_Init( GPIOB, &gpio_led_pwr_g );
+	HAL_GPIO_Init( GPIOA, &gpio_led_pwr_g );
 }
 
 void	bsp_led_pwr_b_init( void )
 {
+/*
 	GPIO_InitTypeDef        gpio_led_pwr_b  =   {    .Pin       =    GPIO_PIN_15,
 	                                                 .Mode      =    GPIO_MODE_OUTPUT_PP,
 	                                                 .Pull      =    GPIO_NOPULL,
@@ -47,6 +48,7 @@ void	bsp_led_pwr_b_init( void )
 	__HAL_RCC_GPIOA_CLK_ENABLE();
 
 	HAL_GPIO_Init( GPIOA, &gpio_led_pwr_b );
+*/
 }
 
 /**
@@ -54,7 +56,7 @@ void	bsp_led_pwr_b_init( void )
  */
 bool	bsp_led_pwr_r_get( void )
 {
-	return( HAL_GPIO_ReadPin( GPIOB, GPIO_PIN_13 ) ? false : true );
+	return( HAL_GPIO_ReadPin( GPIOC, GPIO_PIN_4 ) ? false : true );
 }
 
 /**
@@ -62,7 +64,7 @@ bool	bsp_led_pwr_r_get( void )
  */
 bool	bsp_led_pwr_g_get( void )
 {
-	return( HAL_GPIO_ReadPin( GPIOB, GPIO_PIN_12 ) ? false : true );
+	return( HAL_GPIO_ReadPin( GPIOA, GPIO_PIN_7 ) ? false : true );
 }
 
 /**
@@ -70,7 +72,8 @@ bool	bsp_led_pwr_g_get( void )
  */
 bool	bsp_led_pwr_b_get( void )
 {
-	return( HAL_GPIO_ReadPin( GPIOA, GPIO_PIN_15 ) ? false : true );
+	//return( HAL_GPIO_ReadPin( GPIOA, GPIO_PIN_15 ) ? false : true );
+	return( false );
 }
 
 /**
@@ -78,7 +81,7 @@ bool	bsp_led_pwr_b_get( void )
  */
 void	bsp_led_pwr_r_set(              const   bool                bval )
 {
-	HAL_GPIO_WritePin( GPIOB, GPIO_PIN_13,  bval ? GPIO_PIN_RESET : GPIO_PIN_SET );
+	HAL_GPIO_WritePin( GPIOC, GPIO_PIN_4,  bval ? GPIO_PIN_RESET : GPIO_PIN_SET );
 }
 
 /**
@@ -86,7 +89,7 @@ void	bsp_led_pwr_r_set(              const   bool                bval )
  */
 void	bsp_led_pwr_g_set(              const   bool                bval )
 {
-	HAL_GPIO_WritePin( GPIOB, GPIO_PIN_12,  bval ? GPIO_PIN_RESET : GPIO_PIN_SET );
+	HAL_GPIO_WritePin( GPIOA, GPIO_PIN_7,  bval ? GPIO_PIN_RESET : GPIO_PIN_SET );
 }
 
 /**
@@ -94,5 +97,5 @@ void	bsp_led_pwr_g_set(              const   bool                bval )
  */
 void	bsp_led_pwr_b_set(              const   bool                bval )
 {
-	HAL_GPIO_WritePin( GPIOA, GPIO_PIN_15,  bval ? GPIO_PIN_RESET : GPIO_PIN_SET );
+	//HAL_GPIO_WritePin( GPIOA, GPIO_PIN_15,  bval ? GPIO_PIN_RESET : GPIO_PIN_SET );
 }

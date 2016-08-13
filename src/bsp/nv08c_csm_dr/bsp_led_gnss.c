@@ -25,7 +25,7 @@ void	bsp_led_gnss_gps_init( void )
 
 void	bsp_led_gnss_dgps_init( void )
 {
-	GPIO_InitTypeDef        gpio_led_gnss_dgps      =   {    .Pin       =    GPIO_PIN_9,
+	GPIO_InitTypeDef        gpio_led_gnss_dgps      =   {    .Pin       =    GPIO_PIN_8,
 	                                                         .Mode      =    GPIO_MODE_OUTPUT_PP,
 	                                                         .Pull      =    GPIO_NOPULL,
 	                                                         .Speed     =    GPIO_SPEED_FREQ_LOW };
@@ -37,26 +37,26 @@ void	bsp_led_gnss_dgps_init( void )
 
 void	bsp_led_gnss_rtkint_init( void )
 {
-	GPIO_InitTypeDef        gpio_led_gnss_rtkint    =   {    .Pin       =    GPIO_PIN_8,
+	GPIO_InitTypeDef        gpio_led_gnss_rtkint    =   {    .Pin       =    GPIO_PIN_1,
 	                                                         .Mode      =    GPIO_MODE_OUTPUT_PP,
 	                                                         .Pull      =    GPIO_NOPULL,
 	                                                         .Speed     =    GPIO_SPEED_FREQ_LOW };
 
-	__HAL_RCC_GPIOA_CLK_ENABLE();
+	__HAL_RCC_GPIOB_CLK_ENABLE();
 
-	HAL_GPIO_Init( GPIOA, &gpio_led_gnss_rtkint );
+	HAL_GPIO_Init( GPIOB, &gpio_led_gnss_rtkint );
 }
 
 void	bsp_led_gnss_rtkflt_init( void )
 {
-	GPIO_InitTypeDef        gpio_led_gnss_rtkflt    =   {    .Pin       =    GPIO_PIN_7,
+	GPIO_InitTypeDef        gpio_led_gnss_rtkflt    =   {    .Pin       =    GPIO_PIN_9,
 	                                                         .Mode      =    GPIO_MODE_OUTPUT_PP,
 	                                                         .Pull      =    GPIO_NOPULL,
 	                                                         .Speed     =    GPIO_SPEED_FREQ_LOW };
 
-	__HAL_RCC_GPIOC_CLK_ENABLE();
+	__HAL_RCC_GPIOB_CLK_ENABLE();
 
-	HAL_GPIO_Init( GPIOC, &gpio_led_gnss_rtkflt );
+	HAL_GPIO_Init( GPIOA, &gpio_led_gnss_rtkflt );
 }
 
 /**
@@ -72,7 +72,7 @@ bool	bsp_led_gnss_gps_get( void )
  */
 bool	bsp_led_gnss_dgps_get( void )
 {
-	return( HAL_GPIO_ReadPin( GPIOA, GPIO_PIN_9 ) ? true : false );
+	return( HAL_GPIO_ReadPin( GPIOA, GPIO_PIN_8 ) ? true : false );
 }
 
 /**
@@ -80,7 +80,7 @@ bool	bsp_led_gnss_dgps_get( void )
  */
 bool	bsp_led_gnss_rtkint_get( void )
 {
-	return( HAL_GPIO_ReadPin( GPIOA, GPIO_PIN_8 ) ? true : false );
+	return( HAL_GPIO_ReadPin( GPIOB, GPIO_PIN_1 ) ? true : false );
 }
 
 /**
@@ -88,7 +88,7 @@ bool	bsp_led_gnss_rtkint_get( void )
  */
 bool	bsp_led_gnss_rtkflt_get( void )
 {
-	return( HAL_GPIO_ReadPin( GPIOC, GPIO_PIN_7 ) ? true : false );
+	return( HAL_GPIO_ReadPin( GPIOA, GPIO_PIN_9 ) ? true : false );
 }
 
 /**
@@ -104,7 +104,7 @@ void	bsp_led_gnss_gps_set(           const   bool                bval )
  */
 void	bsp_led_gnss_dgps_set(          const   bool                bval )
 {
-	HAL_GPIO_WritePin( GPIOA, GPIO_PIN_9,  bval ? GPIO_PIN_SET : GPIO_PIN_RESET );
+	HAL_GPIO_WritePin( GPIOA, GPIO_PIN_8,  bval ? GPIO_PIN_SET : GPIO_PIN_RESET );
 }
 
 /**
@@ -112,7 +112,7 @@ void	bsp_led_gnss_dgps_set(          const   bool                bval )
  */
 void	bsp_led_gnss_rtkint_set(        const   bool                bval )
 {
-	HAL_GPIO_WritePin( GPIOA, GPIO_PIN_8,  bval ? GPIO_PIN_SET : GPIO_PIN_RESET );
+	HAL_GPIO_WritePin( GPIOB, GPIO_PIN_1,  bval ? GPIO_PIN_SET : GPIO_PIN_RESET );
 }
 
 /**
@@ -120,5 +120,5 @@ void	bsp_led_gnss_rtkint_set(        const   bool                bval )
  */
 void	bsp_led_gnss_rtkflt_set(        const   bool                bval )
 {
-	HAL_GPIO_WritePin( GPIOC, GPIO_PIN_7,  bval ? GPIO_PIN_SET : GPIO_PIN_RESET );
+	HAL_GPIO_WritePin( GPIOA, GPIO_PIN_9,  bval ? GPIO_PIN_SET : GPIO_PIN_RESET );
 }
