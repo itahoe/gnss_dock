@@ -17,6 +17,8 @@
 
 #define BSP_NVIC_PRIO_GNSS_RECV_SMBL    1
 #define BSP_NVIC_PRIO_GNSS_RECV_STR     3
+#define BSP_NVIC_PRIO_GNSS_DMA_RX       11
+#define BSP_NVIC_PRIO_GNSS_DMA_TX       11
 #define BSP_NVIC_PRIO_SDIO              5
 #define BSP_NVIC_PRIO_SDIO_DMA_RX       7
 #define BSP_NVIC_PRIO_SDIO_DMA_TX       7

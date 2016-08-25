@@ -5,15 +5,19 @@
   */
 
 
-#include	<stdio.h>
-#include	<string.h>
-#include	<ctype.h>
-#include	"bsp_gnss.h"
-#include	"gnss.h"
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+#include "usbd_cdc_interface.h"
+#include "bsp_gnss.h"
+#include "gnss.h"
 
 
-	uint8_t                 gnss_data_recv[ CFG_GNSS_BLCK_SIZE_OCT ];
-	uint8_t                 gnss_data_xmit[ CFG_GNSS_BLCK_SIZE_OCT ];
+//uint8_t                 gnss_data_recv[ CFG_GNSS_BLCK_SIZE_OCT ];
+//uint8_t                 gnss_data_xmit[ CFG_GNSS_BLCK_SIZE_OCT ];
+
+gnss_fifo_t             gnss_data_uart_rx;
+gnss_fifo_t             gnss_data_uart_tx;
 
 
 /**
@@ -24,6 +28,24 @@ void gnss_init(                             gnss_t *            p )
 	bsp_gnss_init();
 
 	memset( p, 0, sizeof( gnss_t ) );
+}
+
+/**
+ * @brief GNSS xmit
+ */
+void gnss_xmit(                                 gnss_fifo_t *   p,
+                                                uint8_t *       data,
+                                                size_t          count )
+{
+	while( count-- )
+	{
+		p->data[ p->head++ ]    =   *data++;
+
+		if( p->head >= CFG_GNSS_BLCK_SIZE_OCT )
+		{
+			p->head                 =   0;
+		}
+	}
 }
 
 /**
@@ -45,14 +67,15 @@ void gnss_send(                             gnss_t *            gnss,
 	xmit_buf[len++] =   '*';
 	sprintf( (char *) &xmit_buf[len], "%02X\r\n", chksum );
 	len             +=  4;
-	bsp_gnss_xmit( (char *) xmit_buf, len );
+
+	gnss_xmit( &gnss_data_uart_tx, xmit_buf, len );
 }
 
 /**
  * @brief GNSS recieve char hook
  */
-bool gnss_recv_hook(                        gnss_t *            gnss,
-                                    const   char                c )
+bool gnss_recv_hook(                            gnss_t *            gnss,
+                                        const   char                c )
 {
 	bool            resp        =   false;
 	gnss_data_t *   recv        =   &gnss->recv;
@@ -86,9 +109,9 @@ bool gnss_recv_hook(                        gnss_t *            gnss,
 /**
  * @brief GNSS Recieve 
  */
-void gnss_read(                             gnss_t *            gnss,
-                                    const   uint8_t *           str,
-	                                    size_t              size )
+void gnss_read(                                 gnss_t *            gnss,
+                                        const   uint8_t *           str,
+                                                size_t              size )
 {
 	while( size-- )
 	{
@@ -99,68 +122,63 @@ void gnss_read(                             gnss_t *            gnss,
 /**
  * @brief UART Control
  */
-void	gnss_ctl(                           gnss_ctl_t          ctl )
+void gnss_ctl(                                  gnss_ctl_t          ctl )
 {
 	switch( ctl )
 	{
-		case GNSS_CTL_RECV_START:    bsp_gnss_recv_start( gnss_data_recv, CFG_GNSS_BLCK_SIZE_OCT ); break;
+		case GNSS_CTL_RECV_START:    bsp_gnss_recv_start( gnss_data_uart_rx.data, CFG_GNSS_BLCK_SIZE_OCT ); break;
 		case GNSS_CTL_RECV_STOP:     bsp_gnss_recv_stop(); break;
-		case GNSS_CTL_XMIT_START:    bsp_gnss_xmit_start( gnss_data_xmit, CFG_GNSS_BLCK_SIZE_OCT ); break;
+		case GNSS_CTL_XMIT_START:    gnss_xmit( &gnss_data_uart_tx, gnss_data_uart_rx.data, CFG_GNSS_BLCK_SIZE_OCT ); break;
 		case GNSS_CTL_XMIT_STOP:     bsp_gnss_xmit_stop(); break;
 		default:                        break;
 
 		//case GNSS_CTL_RECV_START:    HAL_UART_Receive_DMA( &huart, (uint8_t *) gnss_data_recv, CFG_GNSS_BLCK_SIZE_OCT );	break;
 		//case GNSS_CTL_XMIT_START:    HAL_UART_Transmit_DMA( &huart, (uint8_t *) gnss_data_xmit, CFG_GNSS_BLCK_SIZE_OCT );	break;
+		//case GNSS_CTL_RECV_START:    bsp_gnss_recv_start( gnss_data_recv, CFG_GNSS_BLCK_SIZE_OCT ); break;
+		//case GNSS_CTL_XMIT_START:    bsp_gnss_xmit( gnss_data_xmit, CFG_GNSS_BLCK_SIZE_OCT ); break;
+
 	}
 }
 
 /**
- * @brief GNSS Recieve current status
+ * @brief GNSS UART recieve hook
  */
 
-void gnss_cdc_hook(                         gnss_t *            p )
+void gnss_uart_rx_hook(                      gnss_fifo_t *            p )
 {
-        gnss_fifo_t *           fifo    =   &( p->cdc );
-        size_t                  head    =   bsp_gnss_recv_fifo_head_get();
-        size_t                  tile    =   fifo->tile;
+        //gnss_fifo_t *           fifo    =   &( p->cdc );
+        size_t                  tile    =   p->tile;
         size_t                  size    =   bsp_gnss_recv_fifo_size_get();
+        size_t                  head    =   CFG_GNSS_BLCK_SIZE_OCT - size;
 
-
-	//head            -=   (uint32_t) gnss_data_recv;
-	head            =   CFG_GNSS_BLCK_SIZE_OCT - size;
 
 	if( head > tile )
 	{
 		size            =   head - tile;
-		fifo->tile      +=  usb_cdc_send( gnss_data_recv + tile, size );
+		p->tile         +=  usb_cdc_send( gnss_data_uart_rx.data + tile, size );
 	}
-	else
+	else if( head < tile )
 	{
-		if( head < tile )
+		if( p->overcome )
 		{
-			if( fifo->overcome )
-			{
-				fifo->overcome  = false;
-				size            =   CFG_GNSS_BLCK_SIZE_OCT - tile;
-				usb_cdc_send( gnss_data_recv + tile, size );
-		                fifo->tile      =   0;
+			p->overcome     = false;
+			size            =   CFG_GNSS_BLCK_SIZE_OCT - tile;
+			usb_cdc_send( gnss_data_uart_rx.data + tile, size );
+	                p->tile         =   0;
 
-				#ifndef  NDEBUG
-				fifo->total_overcomes++;
-				#endif //NDEBUG
-			}
-			else
-			{
-				#ifndef  NDEBUG
-				fifo->total_overruns++;
-				#endif //NDEBUG
-			}
+			#ifndef  NDEBUG
+			p->total_overcomes++;
+			#endif //NDEBUG
+		}
+		else
+		{
+			#ifndef  NDEBUG
+			p->total_overruns++;
+			#endif //NDEBUG
 		}
 	}
 
-
         #ifndef  NDEBUG
-        fifo->total_data        +=   size;
+        p->total_data           +=   size;
         #endif //NDEBUG
-
 }

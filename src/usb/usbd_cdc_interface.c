@@ -26,7 +26,6 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
-//#include "main.h"
 #include "usbd_desc.h"
 #include "usbd_cdc.h" 
 #include "usbd_cdc_interface.h"
@@ -41,10 +40,10 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-USBD_CDC_LineCodingTypeDef      LineCoding      =   {	.baudrate       =   115200,     //baud rate
-                                                        .stop_bits      =   0x00,       //stop bits-1
-                                                        .parity_type    =   0x00,       //parity - none
-                                                        .data_len       =   0x08, };    //nb. of bits 8
+USBD_CDC_LineCodingTypeDef      LineCoding      =   {	.bitrate        =   115200,     //baud rate
+                                                        .format         =   0x00,       //stop bits-1
+                                                        .paritytype     =   0x00,       //parity - none
+                                                        .datatype       =   0x08, };    //nb. of bits 8
 
 	uint8_t                 UserRxBuffer[ APP_RX_DATA_SIZE ]; //Received Data over USB are stored in this buffer
 	uint8_t                 UserTxBuffer[ APP_TX_DATA_SIZE ]; //Received Data over UART (CDC interface) are stored in this buffer
@@ -55,6 +54,9 @@ USBD_CDC_LineCodingTypeDef      LineCoding      =   {	.baudrate       =   115200
 	//UART_HandleTypeDef      UartHandle; //UART handler declaration
 	TIM_HandleTypeDef       htim_cdc; //TIM handler declaration
 extern	USBD_HandleTypeDef	USBD_Device; //USB handler declaration
+extern	UART_HandleTypeDef      huart;
+extern	gnss_fifo_t             gnss_data_uart_tx;
+
 
 /* Private function prototypes -----------------------------------------------*/
 static	int8_t CDC_Itf_Init( void );
@@ -100,7 +102,7 @@ void ComPort_Config(void)
 	}
 */
 	/* set the Stop bit */
-	switch( LineCoding.stop_bits )
+	switch( LineCoding.format )
 	{
 /*
 		case 0:     UartHandle.Init.StopBits    =   UART_STOPBITS_1;	break;
@@ -110,7 +112,7 @@ void ComPort_Config(void)
 	}
 
 	/* set the parity bit*/
-	switch( LineCoding.parity_type )
+	switch( LineCoding.paritytype )
 	{
 /*
 		case 0:     UartHandle.Init.Parity      =   UART_PARITY_NONE;   break;
@@ -121,7 +123,7 @@ void ComPort_Config(void)
 	}
 
 	/*set the data type : only 8bits and 9bits is supported */
-	switch( LineCoding.data_len )
+	switch( LineCoding.datatype )
 	{
 		case 0x07:  //With this configuration a parity (Even or Odd) must be set
 /*
@@ -307,24 +309,24 @@ int8_t CDC_Itf_Control (uint8_t cmd, uint8_t* pbuf, uint16_t length)
 			break;
 
 		case CDC_SET_LINE_CODING:
-			LineCoding.baudrate     =   (uint32_t)(pbuf[0] | (pbuf[1] << 8) |\
+			LineCoding.bitrate      =   (uint32_t)(pbuf[0] | (pbuf[1] << 8) |\
 			                            (pbuf[2] << 16) | (pbuf[3] << 24));
-			LineCoding.stop_bits    =   pbuf[4];
-			LineCoding.parity_type  =   pbuf[5];
-			LineCoding.data_len     =   pbuf[6];
+			LineCoding.format       =   pbuf[4];
+			LineCoding.paritytype   =   pbuf[5];
+			LineCoding.datatype     =   pbuf[6];
     
 			/* Set the new configuration */
 			ComPort_Config();
 			break;
 
 		case CDC_GET_LINE_CODING:
-			pbuf[0] = (uint8_t)(LineCoding.baudrate >>  0 );
-			pbuf[1] = (uint8_t)(LineCoding.baudrate >>  8 );
-			pbuf[2] = (uint8_t)(LineCoding.baudrate >> 16 );
-			pbuf[3] = (uint8_t)(LineCoding.baudrate >> 24 );
-			pbuf[4] = LineCoding.stop_bits;
-			pbuf[5] = LineCoding.parity_type;
-			pbuf[6] = LineCoding.data_len;     
+			pbuf[0] = (uint8_t)(LineCoding.bitrate  >>  0 );
+			pbuf[1] = (uint8_t)(LineCoding.bitrate  >>  8 );
+			pbuf[2] = (uint8_t)(LineCoding.bitrate  >> 16 );
+			pbuf[3] = (uint8_t)(LineCoding.bitrate  >> 24 );
+			pbuf[4] = LineCoding.format;
+			pbuf[5] = LineCoding.paritytype;
+			pbuf[6] = LineCoding.datatype;     
 			break;
 
 		case CDC_SET_CONTROL_LINE_STATE:
@@ -351,78 +353,19 @@ int8_t CDC_Itf_Control (uint8_t cmd, uint8_t* pbuf, uint16_t length)
   * @retval Result of the operation: USBD_OK if all operations are OK else USBD_FAIL
   */
 static
-int8_t CDC_Itf_Receive(uint8_t* Buf, uint32_t *Len)
+int8_t CDC_Itf_Receive(                 uint8_t *               data,
+                                        uint32_t *              size )
 {
-/*
-	HAL_UART_Transmit_DMA( &UartHandle, Buf, *Len );
-*/
+	HAL_UART_Transmit_DMA( &huart, data, *size );
+
+        //gnss_xmit( &gnss_data_uart_tx, data, *size );
+
+	//ui_led_usb_flash( 100 );
+
+        //USBD_CDC_ReceivePacket( &USBD_Device );
+
 	return( USBD_OK );
 }
-
-/**
-  * @brief  TIM period elapsed callback
-  * @param  htim: TIM handle
-  * @retval None
-  */
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-/*
-	uint32_t        data_idx;
-        uint32_t        data_size;
-
-
-	if( UserTxBufPtrOut != UserTxBufPtrIn )
-	{
-		if( UserTxBufPtrOut > UserTxBufPtrIn ) //Rollback
-		{
-			data_size       =   APP_RX_DATA_SIZE - UserTxBufPtrOut;
-		}
-		else 
-		{
-			data_size       =   UserTxBufPtrIn - UserTxBufPtrOut;
-		}
-
-		data_idx        =   UserTxBufPtrOut;
-
-		USBD_CDC_SetTxBuffer(   &USBD_Device,
-		                        (uint8_t*) &UserTxBuffer[ data_idx ],
-		                        data_size );
-
-		if( USBD_CDC_TransmitPacket( &USBD_Device ) == USBD_OK )
-		{
-			UserTxBufPtrOut +=  data_size;
-
-			if( UserTxBufPtrOut == APP_RX_DATA_SIZE )
-			{
-				UserTxBufPtrOut =   0;
-			}
-		}
-
-	}
-*/
-}
-
-/**
-  * @brief  Rx Transfer completed callback
-  * @param  huart: UART handle
-  * @retval None
-  */
-/*
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-	//Increment Index for buffer writing
-	UserTxBufPtrIn++;
-
-	//To avoid buffer overflow
-	if( UserTxBufPtrIn == APP_RX_DATA_SIZE )
-	{
-		UserTxBufPtrIn = 0;
-	}
-
-	//Start another reception: provide the buffer pointer with offset and the buffer size
-	HAL_UART_Receive_IT( huart, (uint8_t *)(UserTxBuffer + UserTxBufPtrIn), 1);
-}
-*/
 
 /**
   * @brief  Tx Transfer completed callback
@@ -433,16 +376,6 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
 	/* Initiate next USB packet transfer once UART completes transfer (transmitting data over Tx line) */
 	USBD_CDC_ReceivePacket( &USBD_Device );
-}
-
-/**
-  * @brief  UART error callbacks
-  * @param  UartHandle: UART handle
-  * @retval None
-  */
-void HAL_UART_ErrorCallback(UART_HandleTypeDef *UartHandle)
-{
-	Error_Handler();
 }
 
 size_t usb_cdc_send(                    uint8_t *               data,
@@ -464,5 +397,12 @@ size_t usb_cdc_send(                    uint8_t *               data,
         return( sent );
 }
 
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+/**
+  * @brief  UART error callbacks
+  * @param  UartHandle: UART handle
+  * @retval None
+  */
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *UartHandle)
+{
+	Error_Handler();
+}

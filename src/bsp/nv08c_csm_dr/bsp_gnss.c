@@ -131,8 +131,8 @@ void	bsp_gnss_init( void )
 	HAL_NVIC_EnableIRQ(     DMA2_Stream2_IRQn );
 
 	//HAL_NVIC_SetPriority( USART1_IRQn, 1, 0 );
-	HAL_NVIC_SetPriority( USART1_IRQn, BSP_NVIC_PRIO_GNSS_RECV_SMBL, 0 );
-	HAL_NVIC_EnableIRQ( USART1_IRQn );
+	//HAL_NVIC_SetPriority( USART1_IRQn, BSP_NVIC_PRIO_GNSS_RECV_SMBL, 0 );
+	//HAL_NVIC_EnableIRQ( USART1_IRQn );
 
 	EXTI->IMR       |=  BSP_IRQ_EXTI_0;
 	HAL_NVIC_SetPriority( EXTI0_IRQn, BSP_NVIC_PRIO_GNSS_RECV_STR, 0 );

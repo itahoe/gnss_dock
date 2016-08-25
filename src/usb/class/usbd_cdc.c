@@ -2,8 +2,8 @@
   ******************************************************************************
   * @file    usbd_cdc.c
   * @author  MCD Application Team
-  * @version V2.4.1
-  * @date    19-June-2015
+  * @version V2.4.2
+  * @date    11-December-2015
   * @brief   This file provides the high layer firmware functions to manage the 
   *          following functionalities of the USB CDC Class:
   *           - Initialization and Configuration of high and low layer
@@ -59,7 +59,7 @@
   */ 
 
 /* Includes ------------------------------------------------------------------*/
-#include "USBD_CDC.h"
+#include "usbd_cdc.h"
 #include "usbd_desc.h"
 #include "usbd_ctlreq.h"
 
@@ -599,60 +599,59 @@ static uint8_t  USBD_CDC_DeInit (USBD_HandleTypeDef *pdev,
 static uint8_t  USBD_CDC_Setup (USBD_HandleTypeDef *pdev, 
                                 USBD_SetupReqTypedef *req)
 {
-	        USBD_CDC_HandleTypeDef *        hcdc    =   (USBD_CDC_HandleTypeDef *) pdev->pClassData;
-	static  uint8_t                         ifalt   =   0;
+  USBD_CDC_HandleTypeDef   *hcdc = (USBD_CDC_HandleTypeDef*) pdev->pClassData;
+  static uint8_t ifalt = 0;
     
-	switch( req->bmRequest & USB_REQ_TYPE_MASK )
-	{
-		case USB_REQ_TYPE_CLASS:
-			if( req->wLength )
-			{
-				if( req->bmRequest & 0x80 )
-				{
-					((USBD_CDC_ItfTypeDef *) pdev->pUserData)->Control(req->bRequest,
-					(uint8_t *) hcdc->data,
-					req->wLength );
-
-					USBD_CtlSendData(               pdev, 
-				                        (uint8_t *)     hcdc->data,
-				                                        req->wLength );
-				}
-				else
-				{
-					hcdc->CmdOpCode	=   req->bRequest;
-					hcdc->CmdLength =   req->wLength;
-
-					USBD_CtlPrepareRx(              pdev, 
-					                (uint8_t *)     hcdc->data,
-					                                req->wLength );
-				}
-			}
-			else
-			{
-				((USBD_CDC_ItfTypeDef *)pdev->pUserData)->Control(req->bRequest,
-				                        (uint8_t*)      req,
-				                                        0);
-			}
-			break;
-
-		case USB_REQ_TYPE_STANDARD:
-			switch( req->bRequest )
-			{
-				case USB_REQ_GET_INTERFACE :
-					USBD_CtlSendData(       pdev,
-				                        &ifalt,
-					                        1 );
-					break;
+  switch (req->bmRequest & USB_REQ_TYPE_MASK)
+  {
+  case USB_REQ_TYPE_CLASS :
+    if (req->wLength)
+    {
+      if (req->bmRequest & 0x80)
+      {
+        ((USBD_CDC_ItfTypeDef *)pdev->pUserData)->Control(req->bRequest,
+                                                          (uint8_t *)hcdc->data,
+                                                          req->wLength);
+          USBD_CtlSendData (pdev, 
+                            (uint8_t *)hcdc->data,
+                            req->wLength);
+      }
+      else
+      {
+        hcdc->CmdOpCode = req->bRequest;
+        hcdc->CmdLength = req->wLength;
+        
+        USBD_CtlPrepareRx (pdev, 
+                           (uint8_t *)hcdc->data,
+                           req->wLength);
+      }
       
-				case USB_REQ_SET_INTERFACE :
-					break;
-			}
- 
-		default: 
-			break;
-	}
+    }
+    else
+    {
+      ((USBD_CDC_ItfTypeDef *)pdev->pUserData)->Control(req->bRequest,
+                                                        (uint8_t*)req,
+                                                        0);
+    }
+    break;
 
-	return( USBD_OK );
+  case USB_REQ_TYPE_STANDARD:
+    switch (req->bRequest)
+    {      
+    case USB_REQ_GET_INTERFACE :
+      USBD_CtlSendData (pdev,
+                        &ifalt,
+                        1);
+      break;
+      
+    case USB_REQ_SET_INTERFACE :
+      break;
+    }
+ 
+  default: 
+    break;
+  }
+  return USBD_OK;
 }
 
 /**

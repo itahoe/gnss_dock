@@ -52,7 +52,7 @@ int     bsp_gnss_init_uart_dma( void )
 	hdma_tx.Init.MemInc                     =   DMA_MINC_ENABLE;
 	hdma_tx.Init.PeriphDataAlignment        =   DMA_PDATAALIGN_BYTE;
 	hdma_tx.Init.MemDataAlignment           =   DMA_MDATAALIGN_BYTE;
-	hdma_tx.Init.Mode                       =   DMA_CIRCULAR;
+	hdma_rx.Init.Mode                       =   DMA_NORMAL;
 	hdma_tx.Init.Priority                   =   DMA_PRIORITY_LOW;
 	hdma_tx.Init.FIFOMode                   =   DMA_FIFOMODE_DISABLE;
 	hdma_tx.Init.FIFOThreshold              =   DMA_FIFO_THRESHOLD_FULL;
@@ -124,32 +124,18 @@ void	bsp_gnss_init( void )
 /*
 	USART1->CR1     |=  (USART_CR1_RXNEIE | USART_CR1_PEIE | USART_CR3_EIE);
 */
-	HAL_NVIC_SetPriority(   DMA2_Stream7_IRQn, 11, 0 ); //DMA TX
+	HAL_NVIC_SetPriority(   DMA2_Stream7_IRQn, BSP_NVIC_PRIO_GNSS_DMA_TX, 0 ); //DMA TX
 	HAL_NVIC_EnableIRQ(     DMA2_Stream7_IRQn );
 
-	HAL_NVIC_SetPriority(   DMA2_Stream2_IRQn, 11, 0 ); //DMA RX
+	HAL_NVIC_SetPriority(   DMA2_Stream2_IRQn, BSP_NVIC_PRIO_GNSS_DMA_RX, 0 ); //DMA RX
 	HAL_NVIC_EnableIRQ(     DMA2_Stream2_IRQn );
 
-	//HAL_NVIC_SetPriority( USART1_IRQn, 1, 0 );
 	HAL_NVIC_SetPriority( USART1_IRQn, BSP_NVIC_PRIO_GNSS_RECV_SMBL, 0 );
 	HAL_NVIC_EnableIRQ( USART1_IRQn );
 
 	EXTI->IMR       |=  BSP_IRQ_EXTI_0;
 	HAL_NVIC_SetPriority( EXTI0_IRQn, BSP_NVIC_PRIO_GNSS_RECV_STR, 0 );
 	HAL_NVIC_EnableIRQ( EXTI0_IRQn );
-}
-
-/**
- * @brief BSP GNSS xmit block
- */
-void bsp_gnss_xmit(                 const   char *              data,
-                                            size_t              size )
-{
-	while( size-- )
-	{
-		while( !(USART1->SR & UART_FLAG_TXE) );
-		USART1->DR      =   *data++;
-	}
 }
 
 /**
@@ -170,12 +156,35 @@ void bsp_gnss_recv_stop( void )
 }
 
 /**
- * @brief BSP GNSS xmit enable
+ * @brief BSP GNSS xmit block
  */
-void bsp_gnss_xmit_start(                   uint8_t *           data,
+/*
+void bsp_gnss_xmit(                 const   char *              data,
                                             size_t              size )
 {
+	while( size-- )
+	{
+		while( !(USART1->SR & UART_FLAG_TXE) );
+		USART1->DR      =   *data++;
+	}
+}
+*/
+
+/**
+ * @brief BSP GNSS xmit enable
+ */
+void bsp_gnss_xmit(                         uint8_t *           data,
+                                            size_t              size )
+{
+	while( size-- )
+	{
+		while( !(USART1->SR & UART_FLAG_TXE) );
+		USART1->DR      =   *data++;
+	}
+
+/*
 	HAL_UART_Transmit_DMA( &huart, data, size );
+*/
 }
 
 /**

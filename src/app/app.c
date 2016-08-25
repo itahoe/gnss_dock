@@ -19,8 +19,11 @@
 	gnss_t                  gnss;
 	app_t                   app;
 	flog_t                  flog;
-extern	uint8_t                 gnss_data_recv[];
+//extern	uint8_t                 gnss_data_recv[];
 extern	uint8_t                 gnss_data_xmit[];
+
+extern	gnss_fifo_t             gnss_data_uart_rx;
+//extern	gnss_fifo_t             gnss_data_uart_tx;
 
 
 /**
@@ -121,7 +124,7 @@ void	app_clock_config( void )
  */
 void	HAL_UART_RxHalfCpltCallback(    UART_HandleTypeDef *    huart )
 {
-	uint8_t *       data    =   gnss_data_recv + 0;
+	uint8_t *       data    =   gnss_data_uart_rx.data + 0;
 	size_t          size    =   CFG_GNSS_BLCK_SIZE_OCT / 2;
 
 
@@ -143,11 +146,12 @@ void	HAL_UART_RxHalfCpltCallback(    UART_HandleTypeDef *    huart )
  */
 void	HAL_UART_RxCpltCallback(        UART_HandleTypeDef *	huart )
 {
-	uint8_t *       data    =   gnss_data_recv + CFG_GNSS_BLCK_SIZE_OCT/2;
+	uint8_t *       data    =   gnss_data_uart_rx.data + CFG_GNSS_BLCK_SIZE_OCT/2;
 	size_t          size    =   CFG_GNSS_BLCK_SIZE_OCT / 2;
 
 
-	gnss.cdc.overcome       =  true;
+	//gnss.cdc.overcome       =  true;
+        gnss_data_uart_rx.overcome      =   true;
 
 	//usb_cdc_send( data, size );
 
@@ -179,10 +183,7 @@ int main( void )
 	SysTick_Config(SystemCoreClock / BSP_SYSTICK_HZ);
 	HAL_Init();
 
-	__enable_irq();
-
 	ui_init();
-
 	ui_led_sd_set(          false                   );
 	ui_led_usb_set(         false                   );
 	ui_led_gnss_set(        UI_LED_GNSS_MODE_NONE   );
@@ -190,6 +191,8 @@ int main( void )
 
 	pmu_init();
 	pmu_ctl( PMU_CTL_LDO, false );
+
+	__enable_irq();
 
 	HAL_Delay( UI_KEY_LONG_TCKS );
 
@@ -207,11 +210,10 @@ int main( void )
 	ui_led_sd_flash(        UI_LED_FLSH_LONG_TCKS );
 	ui_led_usb_flash(       UI_LED_FLSH_LONG_TCKS );
 	ui_led_gnss_flash(      UI_LED_FLSH_LONG_TCKS );
-	ui_led_pwr_set(         UI_LED_RGB_COLOR_BLACK );
+	ui_led_pwr_set(         UI_LED_RGB_COLOR_WHITE );
+	//ui_led_pwr_set(         UI_LED_RGB_COLOR_BLACK );
 
 	HAL_Delay( CFG_UI_LED_FLSH_LONG_mSEC );
-
-	ui_led_pwr_set( UI_LED_RGB_COLOR_WHITE );
 
 	ui_key_pwr_reset();
 
@@ -257,8 +259,8 @@ int main( void )
 			{
 				case UI_KEY_STS_SHORT:
 					//ui_led_pwr_flash( UI_LED_FLSH_SHRT_TCKS );
-					//gnss_send( &gnss, CFG_GNSS_MSG_KEY1S );
-					usb_cdc_send( TEST_STR, sizeof( TEST_STR ) );
+					gnss_send( &gnss, CFG_GNSS_MSG_KEY1S );
+					//usb_cdc_send( TEST_STR, sizeof( TEST_STR ) );
 
 					break;
 
@@ -310,12 +312,11 @@ int main( void )
 
 			ui_led_pwr_flash( UI_LED_FLSH_SHRT_TCKS );
 
-			APP_TRACE(	"\n" );
-			//APP_TRACE(	"PMU: PG=%c CH=%c, ", bsp_pmu_sts_pgood_get() ? '1' : '0', bsp_pmu_sts_charge_get() ? '1' : '0' );
-			APP_TRACE(	"FLOG=%c ", flog.sts.enable ? '1' : '0' );
-			APP_TRACE(	"OVR=%d ", gnss.cdc.total_overruns );
-			APP_TRACE(	"OVC=%d ", gnss.cdc.total_overcomes );
-			APP_TRACE(	"DAT=%d ", gnss.cdc.total_data );
+			//APP_TRACE(	"\n" );
+			//APP_TRACE(	"FLOG=%c ", flog.sts.enable ? '1' : '0' );
+			//APP_TRACE(	"OVR=%d ", gnss_data_uart_rx.total_overruns );
+			//APP_TRACE(	"OVC=%d ", gnss_data_uart_rx.total_overcomes );
+			//APP_TRACE(	"DAT=%d ", gnss_data_uart_rx.total_data );
 		}
 
 		if( app.evt.log_write )

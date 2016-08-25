@@ -16,15 +16,15 @@
 #include "pmu.h"
 #include "app.h"
 
-//extern	ui_t                    ui;
-extern	gnss_t                  gnss;
+extern	UART_HandleTypeDef      huart;
+extern	TIM_HandleTypeDef       htim_cdc;
+extern	PCD_HandleTypeDef       hpcd;
 extern	app_t                   app;
 extern	flog_t                  flog;
 	time_t                  time_dat        =   0;
-extern	UART_HandleTypeDef      huart;
-extern	TIM_HandleTypeDef       htim_cdc;
+extern	gnss_t                  gnss;
+extern	gnss_fifo_t             gnss_data_uart_rx;
 
-extern	PCD_HandleTypeDef       hpcd;
 
 void	hard_fault_handler( uint32_t *arg );
 void	NMI_Handler( void );
@@ -255,8 +255,10 @@ void    EXTI2_IRQHandler( void )
  */
 void    USART1_IRQHandler( void )
 {
-	uint32_t        sts                     =   USART1->SR;
-	uint32_t        data                    =   USART1->DR;
+	//uint32_t        sts                     =   USART1->SR;
+	//uint32_t        data                    =   USART1->DR;
+
+        HAL_UART_IRQHandler( &huart );
 }
 
 /**
@@ -326,16 +328,12 @@ void OTG_HS_IRQHandler(void)
   */
 void TIM3_IRQHandler( void )
 {
-	//HAL_TIM_IRQHandler( &htim_cdc );
-
 	if( __HAL_TIM_GET_FLAG( &htim_cdc, TIM_FLAG_UPDATE ) != RESET )
 	{
 		if( __HAL_TIM_GET_IT_SOURCE( &htim_cdc, TIM_IT_UPDATE ) !=RESET )
 		{
 			__HAL_TIM_CLEAR_IT( &htim_cdc, TIM_IT_UPDATE );
-			//HAL_TIM_PeriodElapsedCallback( &htim_cdc );
-
-			gnss_cdc_hook( &gnss );
+			gnss_uart_rx_hook( &gnss_data_uart_rx );
 		}
 	}
 }

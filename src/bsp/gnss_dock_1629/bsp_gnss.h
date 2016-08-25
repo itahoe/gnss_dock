@@ -13,15 +13,17 @@
 
 void	bsp_gnss_init( void );
 
-void bsp_gnss_xmit(                 const   char *              data,
-                                            size_t              size );
-
 void bsp_gnss_recv_start(                   uint8_t *           data,
                                             size_t              size );
 
 void bsp_gnss_recv_stop( void );
 
-void bsp_gnss_xmit_start(                   uint8_t *           data,
+/*
+void bsp_gnss_xmit(                 const   char *              data,
+                                            size_t              size );
+*/
+
+void bsp_gnss_xmit(                         uint8_t *           data,
                                             size_t              size );
 
 void bsp_gnss_xmit_stop( void );
