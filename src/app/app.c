@@ -15,12 +15,12 @@
 
 #define TEST_STR                "test_string "
 
+	USBD_HandleTypeDef      USBD_Device;
 	gnss_t                  gnss;
 	app_t                   app;
 	flog_t                  flog;
-	USBD_HandleTypeDef      USBD_Device;
-extern	uint8_t                 uart_data_xmit[];
-extern	uint8_t                 uart_data_recv[];
+extern	uint8_t                 gnss_data_recv[];
+extern	uint8_t                 gnss_data_xmit[];
 
 
 /**
@@ -121,21 +121,21 @@ void	app_clock_config( void )
  */
 void	HAL_UART_RxHalfCpltCallback(    UART_HandleTypeDef *    huart )
 {
+	uint8_t *       data    =   gnss_data_recv + 0;
+	size_t          size    =   CFG_GNSS_BLCK_SIZE_OCT / 2;
+
+
+	//usb_cdc_send( data, size );
+
 	if( flog.sts.enable )
 	{
 		ui_led_sd_flash( UI_LED_FLSH_SHRT_TCKS );
 
-		flog_write(     &flog,
-		                uart_data_recv + 0,
-		                CFG_FMNG_BLCK_SIZE_OCT/2 );
+		flog_write( &flog, data, size );
 	}
 
-	gnss_recv(	&gnss,
-	                uart_data_recv + 0,
-	                CFG_FMNG_BLCK_SIZE_OCT/2 );
+	gnss_read( &gnss, data, size );
 
-	app_usb_cdc_send( uart_data_recv + 0,
-	                  CFG_FMNG_BLCK_SIZE_OCT/2 );
 }
 
 /**
@@ -143,21 +143,23 @@ void	HAL_UART_RxHalfCpltCallback(    UART_HandleTypeDef *    huart )
  */
 void	HAL_UART_RxCpltCallback(        UART_HandleTypeDef *	huart )
 {
+	uint8_t *       data    =   gnss_data_recv + CFG_GNSS_BLCK_SIZE_OCT/2;
+	size_t          size    =   CFG_GNSS_BLCK_SIZE_OCT / 2;
+
+
+	gnss.cdc.overcome       =  true;
+
+	//usb_cdc_send( data, size );
+
 	if( flog.sts.enable )
 	{
 		ui_led_sd_flash( UI_LED_FLSH_SHRT_TCKS );
 
-		flog_write(     &flog,
-		                uart_data_recv + CFG_FMNG_BLCK_SIZE_OCT/2,
-		                CFG_FMNG_BLCK_SIZE_OCT/2 );
+		flog_write( &flog, data, size );
 	}
 
-	gnss_recv(	&gnss,
-	                uart_data_recv + CFG_FMNG_BLCK_SIZE_OCT/2,
-	                CFG_FMNG_BLCK_SIZE_OCT/2 );
+	gnss_read( &gnss, data, size );
 
-	app_usb_cdc_send( uart_data_recv + CFG_FMNG_BLCK_SIZE_OCT/2,
-	                  CFG_FMNG_BLCK_SIZE_OCT/2 );
 }
 
 /**
@@ -166,7 +168,7 @@ void	HAL_UART_RxCpltCallback(        UART_HandleTypeDef *	huart )
 int main( void )
 {
 	#if defined( NDEBUG )
-	//do nothing
+	//skip debugger setup
 	#else
 	HAL_DBGMCU_EnableDBGSleepMode();
 	HAL_DBGMCU_EnableDBGStopMode();
@@ -209,22 +211,21 @@ int main( void )
 
 	HAL_Delay( CFG_UI_LED_FLSH_LONG_mSEC );
 
+	ui_led_pwr_set( UI_LED_RGB_COLOR_WHITE );
+
 	ui_key_pwr_reset();
 
 	flog_init( &flog );
 
-	gnss_init( &gnss );
-
 	pmu_ctl( PMU_CTL_LDO, true );
-
-	gnss_ctl( GNSS_CTL_RECV_START );
-
-	ui_led_pwr_set( UI_LED_RGB_COLOR_WHITE );
 
 	USBD_Init(                      &USBD_Device,   &VCP_Desc,      0); //Init Device Library
 	USBD_RegisterClass(             &USBD_Device,   USBD_CDC_CLASS ); //Add Supported Class
 	USBD_CDC_RegisterInterface(     &USBD_Device,   &USBD_CDC_fops ); //Add CDC Interface Class
 	USBD_Start( &USBD_Device ); //Start Device Process 
+
+	gnss_init( &gnss );
+	gnss_ctl( GNSS_CTL_RECV_START );
 
 	while( true )
 	{
@@ -257,7 +258,7 @@ int main( void )
 				case UI_KEY_STS_SHORT:
 					//ui_led_pwr_flash( UI_LED_FLSH_SHRT_TCKS );
 					//gnss_send( &gnss, CFG_GNSS_MSG_KEY1S );
-					app_usb_cdc_send( TEST_STR, sizeof( TEST_STR ) );
+					usb_cdc_send( TEST_STR, sizeof( TEST_STR ) );
 
 					break;
 
@@ -285,7 +286,7 @@ int main( void )
 		{
 			app.evt.tick_1hz    =   false;
 
-			ui_led_sd_set( flog.sts.enable ? true : false );
+			//ui_led_sd_set( flog.sts.enable ? true : false );
 
 			switch( gnss.nmea.gga.fix )
 			{
@@ -310,8 +311,11 @@ int main( void )
 			ui_led_pwr_flash( UI_LED_FLSH_SHRT_TCKS );
 
 			APP_TRACE(	"\n" );
-			APP_TRACE(	"PMU: PG=%c CH=%c, ", bsp_pmu_sts_pgood_get() ? '1' : '0', bsp_pmu_sts_charge_get() ? '1' : '0' );
+			//APP_TRACE(	"PMU: PG=%c CH=%c, ", bsp_pmu_sts_pgood_get() ? '1' : '0', bsp_pmu_sts_charge_get() ? '1' : '0' );
 			APP_TRACE(	"FLOG=%c ", flog.sts.enable ? '1' : '0' );
+			APP_TRACE(	"OVR=%d ", gnss.cdc.total_overruns );
+			APP_TRACE(	"OVC=%d ", gnss.cdc.total_overcomes );
+			APP_TRACE(	"DAT=%d ", gnss.cdc.total_data );
 		}
 
 		if( app.evt.log_write )

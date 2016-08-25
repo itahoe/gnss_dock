@@ -31,7 +31,7 @@ typedef struct  flog_s
 	char            fname[ _MAX_LFN ];
 
 	char *          buf_ready;
-	char            buf[ 2 ][ CFG_FMNG_BLCK_SIZE_OCT ];
+	char            buf[ 2 ][ CFG_GNSS_BLCK_SIZE_OCT ];
 }	flog_t;
 
 void	flog_init(                      flog_t *                p );

@@ -14,6 +14,7 @@
 FATFS   SDFatFs;  /* File system object for SD card logical drive */
 char    SDPath[4]; /* SD card logical drive path */
 
+/*
 static
 bool	flog_file_expired(              flog_t *                p )
 {
@@ -21,6 +22,7 @@ bool	flog_file_expired(              flog_t *                p )
 
 	return( resp );
 }
+*/
 
 /**
  * @brief File Manager initialization

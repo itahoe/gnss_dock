@@ -30,6 +30,7 @@
 #include "usbd_desc.h"
 #include "usbd_cdc.h" 
 #include "usbd_cdc_interface.h"
+#include "gnss.h"
 #include "bsp_usb.h"
 #include "bsp.h"
 
@@ -183,7 +184,8 @@ void TIM_Config( void )
 	//	+ Counter direction = Up
 
 	htim_cdc.Init.Period            =   (CDC_POLLING_INTERVAL * 1000) - 1;
-	htim_cdc.Init.Prescaler         =   84-1;
+	//htim_cdc.Init.Prescaler         =   84-1;
+	htim_cdc.Init.Prescaler         =   ( (SystemCoreClock / 2) / 10000 ) - 1;
 	htim_cdc.Init.ClockDivision     =   0;
 	htim_cdc.Init.CounterMode       =   TIM_COUNTERMODE_UP;
 
@@ -364,30 +366,31 @@ int8_t CDC_Itf_Receive(uint8_t* Buf, uint32_t *Len)
   */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-	uint32_t        buffptr;
-        uint32_t        buffsize;
+/*
+	uint32_t        data_idx;
+        uint32_t        data_size;
 
 
 	if( UserTxBufPtrOut != UserTxBufPtrIn )
 	{
 		if( UserTxBufPtrOut > UserTxBufPtrIn ) //Rollback
 		{
-			buffsize        =   APP_RX_DATA_SIZE - UserTxBufPtrOut;
+			data_size       =   APP_RX_DATA_SIZE - UserTxBufPtrOut;
 		}
 		else 
 		{
-			buffsize        =   UserTxBufPtrIn - UserTxBufPtrOut;
+			data_size       =   UserTxBufPtrIn - UserTxBufPtrOut;
 		}
 
-		buffptr         =   UserTxBufPtrOut;
+		data_idx        =   UserTxBufPtrOut;
 
 		USBD_CDC_SetTxBuffer(   &USBD_Device,
-		                        (uint8_t*) &UserTxBuffer[ buffptr ],
-		                        buffsize );
+		                        (uint8_t*) &UserTxBuffer[ data_idx ],
+		                        data_size );
 
-		if( USBD_CDC_TransmitPacket(&USBD_Device) == USBD_OK )
+		if( USBD_CDC_TransmitPacket( &USBD_Device ) == USBD_OK )
 		{
-			UserTxBufPtrOut +=  buffsize;
+			UserTxBufPtrOut +=  data_size;
 
 			if( UserTxBufPtrOut == APP_RX_DATA_SIZE )
 			{
@@ -396,6 +399,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		}
 
 	}
+*/
 }
 
 /**
@@ -441,34 +445,23 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *UartHandle)
 	Error_Handler();
 }
 
-
-//#define APP_TX_DATA_SIZE  2048
-
-//extern	uint8_t		*UserTxBuffer;
-//extern	uint32_t        UserTxBufPtrIn;
-
-void app_usb_cdc_send(                  uint8_t *               data,
+size_t usb_cdc_send(                    uint8_t *               data,
                                         size_t                  size )
 {
-	//HAL_UART_Receive_IT( huart, (uint8_t *)(UserTxBuffer + UserTxBufPtrIn), 1);
+        size_t          sent    =   0;
 
-	while( size-- )
-	{
-		*(UserTxBuffer + UserTxBufPtrIn++)	=  *data++;
 
-		if( UserTxBufPtrIn >= APP_TX_DATA_SIZE )
-		{
-			UserTxBufPtrIn          =   0;
-		}
-	}
+        if( size > 0 )
+        {
+                USBD_CDC_SetTxBuffer(   &USBD_Device, data, size );
 
-/*
-	USBD_CDC_SetTxBuffer(   &USBD_Device,
-	                        data,
-	                        size );
-    
-	USBD_CDC_TransmitPacket( &USBD_Device );
-*/
+                if( USBD_CDC_TransmitPacket( &USBD_Device ) == USBD_OK )
+                {
+                        sent            =       size;
+                }
+        }
+
+        return( sent );
 }
 
 

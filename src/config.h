@@ -8,7 +8,7 @@
 #define  CONFIG_H
 
 #include "cfg_board.h"
-#include "cfg_fmng.h"
+//#include "cfg_fmng.h"
 #include "cfg_log.h"
 #include "cfg_nmea.h"
 #include "cfg_gnss.h"

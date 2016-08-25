@@ -92,7 +92,7 @@ extern USBD_CDC_ItfTypeDef  USBD_CDC_fops;
 /* Exported functions ------------------------------------------------------- */
 #endif /* __USBD_CDC_IF_H */
 
-void app_usb_cdc_send(                  uint8_t *               data,
+size_t usb_cdc_send(                    uint8_t *               data,
                                         size_t                  size );
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

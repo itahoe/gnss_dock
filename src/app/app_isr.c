@@ -245,7 +245,7 @@ void    EXTI2_IRQHandler( void )
 		if( flog.sts.enable )
 		{
 			app.evt.log_write   =   true;
-			flog_write( &flog, flog.buf_ready, CFG_FMNG_BLCK_SIZE_OCT );
+			flog_write( &flog, flog.buf_ready, CFG_GNSS_BLCK_SIZE_OCT );
 		}
 	}
 }
@@ -326,6 +326,17 @@ void OTG_HS_IRQHandler(void)
   */
 void TIM3_IRQHandler( void )
 {
-	HAL_TIM_IRQHandler( &htim_cdc );
+	//HAL_TIM_IRQHandler( &htim_cdc );
+
+	if( __HAL_TIM_GET_FLAG( &htim_cdc, TIM_FLAG_UPDATE ) != RESET )
+	{
+		if( __HAL_TIM_GET_IT_SOURCE( &htim_cdc, TIM_IT_UPDATE ) !=RESET )
+		{
+			__HAL_TIM_CLEAR_IT( &htim_cdc, TIM_IT_UPDATE );
+			//HAL_TIM_PeriodElapsedCallback( &htim_cdc );
+
+			gnss_cdc_hook( &gnss );
+		}
+	}
 }
 
