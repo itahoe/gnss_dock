@@ -30,7 +30,7 @@ bool	flog_file_expired(              flog_t *                p )
 void	flog_init(                      flog_t *                p )
 {
 	bsp_flog_init();
-
+/*
 	if( f_mount(&SDFatFs, (TCHAR const*)SDPath, 1 ) != FR_OK )
 	{
 		//app_error();	//FatFs Initialization Error
@@ -39,6 +39,7 @@ void	flog_init(                      flog_t *                p )
 	{
 		p->sts.ready    =   true;   
 	}
+*/
 }
 
 /**
@@ -48,10 +49,17 @@ void	flog_close(                     flog_t *                p )
 {
 	FRESULT         resp;
 
-	resp    =   f_close( &p->file_log );
-	APP_TRACE( "f_close() - " );
-	APP_TRACE_FF_RES( resp );
-	resp    =   resp;
+	resp            =   f_close( &p->file_log );
+	APP_TRACE_FF( "f_close() = ", resp );
+
+        if( resp == FR_OK )
+        {
+                p->sts.enable   =   false;
+        }
+        else
+        {
+                p->sts.enable   =   false;
+        }
 }
 
 /**
@@ -65,35 +73,32 @@ void	flog_open(                      flog_t *                p )
 	flog_name_compose( p->fname, "log", sizeof( p->fname ) );
 
 	resp    =   f_open( &p->file_log, p->fname, FA_CREATE_ALWAYS | FA_WRITE);
+	APP_TRACE_FF( "f_open() = ", resp );
 
-	APP_TRACE( "f_open() - " );
-	APP_TRACE_FF_RES( resp );
-
-	if( resp != FR_OK )
+	if( resp == FR_OK )
+        {
+                p->sts.enable   =   true;
+        }
+        else
 	{
-		//resp    =   f_close( &p->file_log );
-		//APP_TRACE( "f_close() - " );
-		//ff_trace_res( resp );
-
 		resp    =   f_mount( NULL, (TCHAR const*) SDPath, 1 );
-		APP_TRACE( "f_mount(NULL) - " );
-		APP_TRACE_FF_RES( resp );
-
-		//FATFS_UnLinkDriver( SDPath );
-
-		//FATFS_LinkDriver( &SD_Driver, SDPath );
+                APP_TRACE_FF( "f_mount() = ", resp );
 
 		resp    =   f_mount( &SDFatFs, (TCHAR const*) SDPath, 1 );
-		APP_TRACE( "f_mount(SD) - " );
-		APP_TRACE_FF_RES( resp );
+                APP_TRACE_FF( "f_mount(SD) = ", resp );
 
 		if( resp == FR_OK )
 		{
-			resp    =   f_open( &p->file_log, p->fname, FA_CREATE_ALWAYS | FA_WRITE);
+			resp            =   f_open( &p->file_log, p->fname, FA_CREATE_ALWAYS | FA_WRITE);
 
-			APP_TRACE( "f_open() - " );
-			APP_TRACE_FF_RES( resp );
+                        APP_TRACE_FF( "f_open() = ", resp );
+
+                        p->sts.enable   =   (resp == FR_OK) ? true : false;
 		}
+                else
+                {
+                        p->sts.enable   =   false;
+                }
 	}
 }
 
@@ -104,37 +109,40 @@ void	flog_write(                     flog_t *                p,
 	                        const   uint8_t *               pbuf,
 	                                size_t                  len )
 {
-	FRESULT         res;
+	FRESULT         resp;
 	uint32_t        wr_bytes        =   0;
 
 
-	while( len > 0 )
-	{
-		res     =   f_write( &p->file_log, pbuf, len, (void *) &wr_bytes );
+        while( len > 0 )
+        {
+                resp    =   f_write( &p->file_log, pbuf, len, (void *) &wr_bytes );
 
-		if( res == FR_OK )
-		{
-			if( wr_bytes < len )
-			{
-				APP_TRACE( "f_write() - len: %d, wr_bytes: %d\n", len, wr_bytes );
-			}
-			else
-			{
-				f_sync( &p->file_log );
-			}
+                if( resp == FR_OK )
+                {
+                        if( wr_bytes < len )
+                        {
+                                APP_TRACE( "f_write() - len: %d, wr_bytes: %d\n", len, wr_bytes );
+                        }
+                        else
+                        {
+                                //f_sync( &p->file_log );
+                        }
 
-			len     -=  wr_bytes;
-			pbuf    +=  wr_bytes;
-		}
-		else
-		{
-			APP_TRACE( "f_write() - " );
-			APP_TRACE_FF_RES( res );
-			APP_TRACE( "pbuf: %0X\n", pbuf );
-			APP_TRACE( "len: %d\n", len );
-			APP_TRACE( "wr_bytes: %d\n", wr_bytes );
+                        len     -=  wr_bytes;
+                        pbuf    +=  wr_bytes;
+                }
+                else
+                {
+                        APP_TRACE_FF( "f_write() = ", resp );
+                        APP_TRACE( "pbuf: %0X\n", pbuf );
+                        APP_TRACE( "len: %d\n", len );
+                        APP_TRACE( "wr_bytes: %d\n", wr_bytes );
+                        break;
+                }
+        }
 
-			break;
-		}
-	}
+        if( resp == FR_OK )
+        {
+                f_sync( &p->file_log );
+        }
 }

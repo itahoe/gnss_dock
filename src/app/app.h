@@ -19,7 +19,8 @@ typedef	union	app_event_u
 		bool            tick_1hz        :    1;
 		bool            ui_key_pwr      :    1;
 		bool            ui_key_func     :    1;
-		bool            log_write       :    1;
+		bool            data0_ready     :    1;
+		bool            data1_ready     :    1;
 		bool                            :    0;
 	};
 } app_event_t;

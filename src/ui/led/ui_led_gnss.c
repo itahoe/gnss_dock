@@ -65,6 +65,10 @@ void ui_led_gnss_toggle( void )
 void ui_led_gnss_set(           const   ui_led_gnss_mode_t      mode )
 {
 	ui_led_sp4t_t * p       =  &ui_led_gnss;
+        bool            rtkflt  =   false;
+        bool            rtkint  =   false;
+        bool            dgps    =   false;
+        bool            gps     =   false;
 
 
 	p->mode         =   mode;
@@ -72,31 +76,31 @@ void ui_led_gnss_set(           const   ui_led_gnss_mode_t      mode )
 	switch( p->mode )
 	{
 		case UI_LED_GNSS_MODE_RTKFLT:
-			p->rtkflt.set(  true  );
+			rtkflt          =   true;
 			break;
 
 		case UI_LED_GNSS_MODE_RTKINT:
-			p->rtkint.set(  true  );
+			rtkint          =   true;
 			break;
 
 		case UI_LED_GNSS_MODE_DGPS:
-			p->dgps.set(    true  );
+			dgps            =   true;
 			break;
 
 		case UI_LED_GNSS_MODE_GPS:
-			p->gps.set(     true  );
+			gps             =   true;
 			break;
 
 		case UI_LED_GNSS_MODE_NONE:
-			p->rtkflt.set(  false );
-			p->rtkint.set(  false );
-			p->dgps.set(    false );
-			p->gps.set(     false );
-			break;
-
 		default:
 			break;
 	}
+
+        p->rtkflt.set(  rtkflt  );
+        p->rtkint.set(  rtkint  );
+        p->dgps.set(    dgps    );
+        p->gps.set(     gps     );
+
 }
 
 /**

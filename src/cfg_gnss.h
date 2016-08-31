@@ -8,7 +8,7 @@
 #define  CFG_GNSS_H
 
 
-//#define CFG_GNSS_BLCK_SIZE_OCT          64
+//#define CFG_GNSS_BLCK_SIZE_OCT          4096
 #define CFG_GNSS_BLCK_SIZE_OCT          4096
 
 #define	CFG_GNSS_MSG_KEY0L              "PNVGCFG,W"

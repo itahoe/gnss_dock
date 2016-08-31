@@ -7,7 +7,7 @@
 #include	"bsp_pmu.h"
 #include	"bsp.h"
 
-
+/*
 static
 void bsp_pmu_sts_init( void )
 {
@@ -27,6 +27,7 @@ void bsp_pmu_sts_init( void )
 	HAL_GPIO_Init( GPIOB, &gpio_sts_charge );
 	HAL_GPIO_Init( GPIOC, &gpio_sts_pgood );
 }
+*/
 
 /**
  * @brief BSP PMU Sens VBAT Initialization.

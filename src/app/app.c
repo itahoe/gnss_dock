@@ -13,17 +13,12 @@
 #include "usbd_cdc.h" 
 #include "usbd_cdc_interface.h"
 
-#define TEST_STR                "test_string "
 
-	USBD_HandleTypeDef      USBD_Device;
-	gnss_t                  gnss;
 	app_t                   app;
 	flog_t                  flog;
-//extern	uint8_t                 gnss_data_recv[];
-extern	uint8_t                 gnss_data_xmit[];
-
 extern	gnss_fifo_t             gnss_data_uart_rx;
-//extern	gnss_fifo_t             gnss_data_uart_tx;
+	gnss_t                  gnss;
+	USBD_HandleTypeDef      husbd;
 
 
 /**
@@ -61,7 +56,8 @@ void	app_clock_config( void )
 
 	osc.HSICalibrationValue =   0x10;
 	osc.PLL.PLLState        =   RCC_PLL_ON;
-	osc.PLL.PLLM            =   16;
+	//osc.PLL.PLLM            =   16;
+	osc.PLL.PLLM            =   32;
 	osc.PLL.PLLN            =   200;
 	osc.PLL.PLLP            =   RCC_PLLP_DIV2;
 	osc.PLL.PLLQ            =   15;
@@ -125,20 +121,19 @@ void	app_clock_config( void )
 void	HAL_UART_RxHalfCpltCallback(    UART_HandleTypeDef *    huart )
 {
 	uint8_t *       data    =   gnss_data_uart_rx.data + 0;
-	size_t          size    =   CFG_GNSS_BLCK_SIZE_OCT / 2;
+	size_t          size    =   CFG_GNSS_BLCK_SIZE_OCT/2;
 
-
-	//usb_cdc_send( data, size );
-
+/*
 	if( flog.sts.enable )
 	{
-		ui_led_sd_flash( UI_LED_FLSH_SHRT_TCKS );
-
+                ui_led_sd_set( false );
 		flog_write( &flog, data, size );
+                ui_led_sd_set( true );
 	}
+*/
+        app.evt.data0_ready     =   true;
 
 	gnss_read( &gnss, data, size );
-
 }
 
 /**
@@ -147,23 +142,21 @@ void	HAL_UART_RxHalfCpltCallback(    UART_HandleTypeDef *    huart )
 void	HAL_UART_RxCpltCallback(        UART_HandleTypeDef *	huart )
 {
 	uint8_t *       data    =   gnss_data_uart_rx.data + CFG_GNSS_BLCK_SIZE_OCT/2;
-	size_t          size    =   CFG_GNSS_BLCK_SIZE_OCT / 2;
+	size_t          size    =   CFG_GNSS_BLCK_SIZE_OCT/2;
 
 
-	//gnss.cdc.overcome       =  true;
         gnss_data_uart_rx.overcome      =   true;
-
-	//usb_cdc_send( data, size );
-
+/*
 	if( flog.sts.enable )
 	{
-		ui_led_sd_flash( UI_LED_FLSH_SHRT_TCKS );
-
+                ui_led_sd_set( false );
 		flog_write( &flog, data, size );
+                ui_led_sd_set( true );
 	}
+*/
+        app.evt.data1_ready     =   true;
 
 	gnss_read( &gnss, data, size );
-
 }
 
 /**
@@ -190,7 +183,7 @@ int main( void )
 	ui_led_pwr_set(         UI_LED_RGB_COLOR_BLACK  );
 
 	pmu_init();
-	pmu_ctl( PMU_CTL_LDO, false );
+	pmu_ctl( PMU_CTL_GNSS_LDO_ON, false );
 
 	__enable_irq();
 
@@ -211,7 +204,6 @@ int main( void )
 	ui_led_usb_flash(       UI_LED_FLSH_LONG_TCKS );
 	ui_led_gnss_flash(      UI_LED_FLSH_LONG_TCKS );
 	ui_led_pwr_set(         UI_LED_RGB_COLOR_WHITE );
-	//ui_led_pwr_set(         UI_LED_RGB_COLOR_BLACK );
 
 	HAL_Delay( CFG_UI_LED_FLSH_LONG_mSEC );
 
@@ -219,12 +211,12 @@ int main( void )
 
 	flog_init( &flog );
 
-	pmu_ctl( PMU_CTL_LDO, true );
+	pmu_ctl( PMU_CTL_GNSS_LDO_ON, true );
 
-	USBD_Init(                      &USBD_Device,   &VCP_Desc,      0); //Init Device Library
-	USBD_RegisterClass(             &USBD_Device,   USBD_CDC_CLASS ); //Add Supported Class
-	USBD_CDC_RegisterInterface(     &USBD_Device,   &USBD_CDC_fops ); //Add CDC Interface Class
-	USBD_Start( &USBD_Device ); //Start Device Process 
+	USBD_Init(                      &husbd, &VCP_Desc,      0);
+	USBD_RegisterClass(             &husbd, USBD_CDC_CLASS );
+	USBD_CDC_RegisterInterface(     &husbd, &USBD_CDC_fops );
+	USBD_Start( &husbd );
 
 	gnss_init( &gnss );
 	gnss_ctl( GNSS_CTL_RECV_START );
@@ -258,25 +250,21 @@ int main( void )
 			switch( ui_key_func_status() )
 			{
 				case UI_KEY_STS_SHORT:
-					//ui_led_pwr_flash( UI_LED_FLSH_SHRT_TCKS );
 					gnss_send( &gnss, CFG_GNSS_MSG_KEY1S );
-					//usb_cdc_send( TEST_STR, sizeof( TEST_STR ) );
-
 					break;
 
 				case UI_KEY_STS_LONG:
 					if( flog.sts.enable )
 					{
-						flog.sts.enable         =  false;
 						flog_close( &flog );
-						ui_led_sd_set( true );
 					}
 					else
 					{
 						flog_open( &flog );
-						flog.sts.enable         =  true;
-						ui_led_sd_set( false );
 					}
+
+					ui_led_sd_set( flog.sts.enable );
+
 					break;
 
 				default:
@@ -287,8 +275,6 @@ int main( void )
 		if( app.evt.tick_1hz )
 		{
 			app.evt.tick_1hz    =   false;
-
-			//ui_led_sd_set( flog.sts.enable ? true : false );
 
 			switch( gnss.nmea.gga.fix )
 			{
@@ -319,11 +305,28 @@ int main( void )
 			//APP_TRACE(	"DAT=%d ", gnss_data_uart_rx.total_data );
 		}
 
-		if( app.evt.log_write )
+		if( app.evt.data0_ready )
 		{
-			app.evt.log_write   =   false;
+			app.evt.data0_ready     =   false;
 
-			//fmng_write( &fmng, fmng.buf_full, CFG_FMNG_BLCK_SIZE_OCT );
+                        if( flog.sts.enable )
+                        {
+                                ui_led_sd_set( false );
+                                flog_write( &flog, gnss_data_uart_rx.data + 0, CFG_GNSS_BLCK_SIZE_OCT/2 );
+                                ui_led_sd_set( true );
+                        }
+		}
+
+		if( app.evt.data1_ready )
+		{
+			app.evt.data1_ready     =   false;
+
+                        if( flog.sts.enable )
+                        {
+                                ui_led_sd_set( false );
+                                flog_write( &flog, gnss_data_uart_rx.data + CFG_GNSS_BLCK_SIZE_OCT/2, CFG_GNSS_BLCK_SIZE_OCT/2 );
+                                ui_led_sd_set( true );
+                        }
 		}
 	}
 }

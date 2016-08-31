@@ -20,6 +20,7 @@ gnss_fifo_t             gnss_data_uart_rx;
 gnss_fifo_t             gnss_data_uart_tx;
 
 
+
 /**
  * @brief GNSS initialization
  */
@@ -110,12 +111,12 @@ bool gnss_recv_hook(                            gnss_t *            gnss,
  * @brief GNSS Recieve 
  */
 void gnss_read(                                 gnss_t *            gnss,
-                                        const   uint8_t *           str,
+                                        const   uint8_t *           data,
                                                 size_t              size )
 {
 	while( size-- )
 	{
-		gnss_recv_hook( gnss, *str++  );
+		gnss_recv_hook( gnss, *data++  );
 	}
 }
 
@@ -136,7 +137,6 @@ void gnss_ctl(                                  gnss_ctl_t          ctl )
 		//case GNSS_CTL_XMIT_START:    HAL_UART_Transmit_DMA( &huart, (uint8_t *) gnss_data_xmit, CFG_GNSS_BLCK_SIZE_OCT );	break;
 		//case GNSS_CTL_RECV_START:    bsp_gnss_recv_start( gnss_data_recv, CFG_GNSS_BLCK_SIZE_OCT ); break;
 		//case GNSS_CTL_XMIT_START:    bsp_gnss_xmit( gnss_data_xmit, CFG_GNSS_BLCK_SIZE_OCT ); break;
-
 	}
 }
 

@@ -13,7 +13,9 @@
  */
 void	bsp_flog_init( void )
 {
+/*
 	EXTI->IMR       |=  BSP_IRQ_EXTI_2;
 	HAL_NVIC_SetPriority( EXTI2_IRQn, BSP_NVIC_PRIO_FLOG, 0 );
 	HAL_NVIC_EnableIRQ( EXTI2_IRQn );
+*/
 }

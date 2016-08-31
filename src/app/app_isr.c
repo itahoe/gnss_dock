@@ -212,45 +212,6 @@ void SysTick_Handler(void)
 }
 
 /**
- * @brief EXTI0 interrupt handler
- */
-void    EXTI0_IRQHandler( void )
-{
-	if( __HAL_GPIO_EXTI_GET_IT( BSP_IRQ_EXTI_0 ) != RESET )
-	{
-		__HAL_GPIO_EXTI_CLEAR_IT( BSP_IRQ_EXTI_0 );
-	}
-}
-
-/**
- * @brief EXTI1 interrupt handler
- */
-void    EXTI1_IRQHandler( void )
-{
-	if( __HAL_GPIO_EXTI_GET_IT( BSP_IRQ_EXTI_1 ) != RESET )
-	{
-		__HAL_GPIO_EXTI_CLEAR_IT( BSP_IRQ_EXTI_1 );
-	}
-}
-
-/**
- * @brief EXTI2 interrupt handler
- */
-void    EXTI2_IRQHandler( void )
-{
-	if( __HAL_GPIO_EXTI_GET_IT( BSP_IRQ_EXTI_2 ) != RESET )
-	{
-		__HAL_GPIO_EXTI_CLEAR_IT( BSP_IRQ_EXTI_2 );
-
-		if( flog.sts.enable )
-		{
-			app.evt.log_write   =   true;
-			flog_write( &flog, flog.buf_ready, CFG_GNSS_BLCK_SIZE_OCT );
-		}
-	}
-}
-
-/**
  * @brief USART1 interrupt handler
  */
 void    USART1_IRQHandler( void )

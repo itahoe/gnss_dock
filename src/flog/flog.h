@@ -18,7 +18,8 @@ typedef	union	flog_sts_u
 	struct
 	{
 		bool                    enable          :    1;
-		bool                    ready           :    1;
+		bool                    ready1          :    1;
+		bool                    ready2          :    1;
 		bool                                    :    0;
 	};
 } flog_sts_t;
@@ -29,9 +30,7 @@ typedef struct  flog_s
 	flog_sts_t      sts;
 	FIL             file_log;
 	char            fname[ _MAX_LFN ];
-
-	char *          buf_ready;
-	char            buf[ 2 ][ CFG_GNSS_BLCK_SIZE_OCT ];
+	uint8_t *       data;
 }	flog_t;
 
 void	flog_init(                      flog_t *                p );

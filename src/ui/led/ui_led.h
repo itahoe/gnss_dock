@@ -33,6 +33,13 @@ typedef	struct	ui_led_s
 	size_t                  tick;
 } ui_led_t;
 
+typedef enum    ui_led_mode_s
+{
+        UI_LED_MODE_OFF,
+        UI_LED_MODE_ON,
+        UI_LED_MODE_FORCE,
+        UI_LED_MODE_RELEASE,
+} ui_led_mode_t;
 
 /**
   * @brief   Single Poll, Four Throw

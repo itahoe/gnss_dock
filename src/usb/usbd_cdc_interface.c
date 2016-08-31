@@ -47,13 +47,13 @@ USBD_CDC_LineCodingTypeDef      LineCoding      =   {	.bitrate        =   115200
 
 	uint8_t                 UserRxBuffer[ APP_RX_DATA_SIZE ]; //Received Data over USB are stored in this buffer
 	uint8_t                 UserTxBuffer[ APP_TX_DATA_SIZE ]; //Received Data over UART (CDC interface) are stored in this buffer
-	uint32_t                BuffLength;
-	uint32_t                UserTxBufPtrIn  =   0; //Increment this pointer or roll it back to start address when data are received over USART
-	uint32_t                UserTxBufPtrOut =   0; //Increment this pointer or roll it back to start address when data are sent over USB
+	//uint32_t                BuffLength;
+	//uint32_t                UserTxBufPtrIn  =   0; //Increment this pointer or roll it back to start address when data are received over USART
+	//uint32_t                UserTxBufPtrOut =   0; //Increment this pointer or roll it back to start address when data are sent over USB
 
 	//UART_HandleTypeDef      UartHandle; //UART handler declaration
 	TIM_HandleTypeDef       htim_cdc; //TIM handler declaration
-extern	USBD_HandleTypeDef	USBD_Device; //USB handler declaration
+extern	USBD_HandleTypeDef	husbd; //USB handler declaration
 extern	UART_HandleTypeDef      huart;
 extern	gnss_fifo_t             gnss_data_uart_tx;
 
@@ -251,8 +251,8 @@ int8_t CDC_Itf_Init(void)
 
 	/*##-5- Set Application Buffers ############################################*/
 
-	USBD_CDC_SetTxBuffer( &USBD_Device, UserTxBuffer, 0 );
-	USBD_CDC_SetRxBuffer( &USBD_Device, UserRxBuffer );
+	USBD_CDC_SetTxBuffer( &husbd, UserTxBuffer, 0 );
+	USBD_CDC_SetRxBuffer( &husbd, UserRxBuffer );
   
 	return( USBD_OK );
 }
@@ -357,12 +357,7 @@ int8_t CDC_Itf_Receive(                 uint8_t *               data,
                                         uint32_t *              size )
 {
 	HAL_UART_Transmit_DMA( &huart, data, *size );
-
         //gnss_xmit( &gnss_data_uart_tx, data, *size );
-
-	//ui_led_usb_flash( 100 );
-
-        //USBD_CDC_ReceivePacket( &USBD_Device );
 
 	return( USBD_OK );
 }
@@ -375,7 +370,7 @@ int8_t CDC_Itf_Receive(                 uint8_t *               data,
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
 	/* Initiate next USB packet transfer once UART completes transfer (transmitting data over Tx line) */
-	USBD_CDC_ReceivePacket( &USBD_Device );
+	USBD_CDC_ReceivePacket( &husbd );
 }
 
 size_t usb_cdc_send(                    uint8_t *               data,
@@ -386,9 +381,9 @@ size_t usb_cdc_send(                    uint8_t *               data,
 
         if( size > 0 )
         {
-                USBD_CDC_SetTxBuffer(   &USBD_Device, data, size );
+                USBD_CDC_SetTxBuffer( &husbd, data, size );
 
-                if( USBD_CDC_TransmitPacket( &USBD_Device ) == USBD_OK )
+                if( USBD_CDC_TransmitPacket( &husbd ) == USBD_OK )
                 {
                         sent            =       size;
                 }

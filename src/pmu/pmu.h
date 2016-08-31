@@ -17,7 +17,7 @@ typedef	enum pmu_sts_s
 
 typedef	enum pmu_ctl_s
 {
-	PMU_CTL_LDO,
+	PMU_CTL_GNSS_LDO_ON,
 	PMU_CTL_MCU_OFF,
 } pmu_ctl_t;
 

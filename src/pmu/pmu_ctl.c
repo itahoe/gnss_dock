@@ -18,7 +18,7 @@ void	pmu_power_off( void )
 
 	HAL_SuspendTick();
 
-	pmu_ctl( PMU_CTL_LDO, false );
+	pmu_ctl( PMU_CTL_GNSS_LDO_ON, false );
 
 	__HAL_RCC_GPIOA_CLK_ENABLE();
 	__HAL_RCC_GPIOB_CLK_ENABLE();
@@ -77,7 +77,6 @@ void	pmu_power_off( void )
 	NVIC_SystemReset();
 }
 
-
 /**
  * @brief PMU Initialization.
  */
@@ -86,8 +85,8 @@ void	pmu_ctl(                    const   pmu_ctl_t           ctl,
 {
 	switch( ctl )
 	{
-		case PMU_CTL_LDO:       bsp_pmu_ldo_enable( bval );     break;
-		case PMU_CTL_MCU_OFF:   pmu_power_off();                break;
-		default:                                                break;
+		case PMU_CTL_GNSS_LDO_ON:       bsp_pmu_ldo_enable( bval );     break;
+		case PMU_CTL_MCU_OFF:           pmu_power_off();                break;
+		default:                                                        break;
 	}
 }
