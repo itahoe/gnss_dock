@@ -27,7 +27,8 @@ DWORD get_fattime( void )
 	struct tm *     p       =   localtime( &timer );
 	DWORD           time    =   0;
 
-	time    =   (( p->tm_year - 1980 ) << 25) |
+	//time    =   (( p->tm_year - 1980 ) << 25) |
+	time    =   (( p->tm_year - 2000 ) << 25) |
 	            (( p->tm_mon + 1)      << 21) |
 	            (( p->tm_mday )        << 16) |
 	            (( p->tm_hour )        << 11) |
