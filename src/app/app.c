@@ -123,15 +123,15 @@ void	HAL_UART_RxHalfCpltCallback(    UART_HandleTypeDef *    huart )
 	uint8_t *       data    =   gnss_data_uart_rx.data + 0;
 	size_t          size    =   CFG_GNSS_BLCK_SIZE_OCT/2;
 
-/*
+
 	if( flog.sts.enable )
 	{
                 ui_led_sd_set( false );
 		flog_write( &flog, data, size );
                 ui_led_sd_set( true );
 	}
-*/
-        app.evt.data0_ready     =   true;
+
+        //app.evt.data0_ready     =   true;
 
 	gnss_read( &gnss, data, size );
 }
@@ -146,15 +146,15 @@ void	HAL_UART_RxCpltCallback(        UART_HandleTypeDef *	huart )
 
 
         gnss_data_uart_rx.overcome      =   true;
-/*
+
 	if( flog.sts.enable )
 	{
                 ui_led_sd_set( false );
 		flog_write( &flog, data, size );
                 ui_led_sd_set( true );
 	}
-*/
-        app.evt.data1_ready     =   true;
+
+        //app.evt.data1_ready     =   true;
 
 	gnss_read( &gnss, data, size );
 }
@@ -305,6 +305,7 @@ int main( void )
 			//APP_TRACE(	"DAT=%d ", gnss_data_uart_rx.total_data );
 		}
 
+/*
 		if( app.evt.data0_ready )
 		{
 			app.evt.data0_ready     =   false;
@@ -328,5 +329,7 @@ int main( void )
                                 ui_led_sd_set( true );
                         }
 		}
+*/
+
 	}
 }
