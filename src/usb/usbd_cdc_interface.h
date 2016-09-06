@@ -73,14 +73,14 @@
 #define USARTx_DMA_TX_IRQn               DMA2_Stream7_IRQn
 */
 /* Definition for TIMx clock resources */
-#define TIMx                             TIM3
-#define TIMx_CLK_ENABLE                  __HAL_RCC_TIM3_CLK_ENABLE
-#define TIMx_FORCE_RESET()               __HAL_RCC_TIM3_FORCE_RESET()
-#define TIMx_RELEASE_RESET()             __HAL_RCC_TIM3_RELEASE_RESET()
+//#define TIMx                             TIM3
+//#define TIMx_CLK_ENABLE                  __HAL_RCC_TIM3_CLK_ENABLE
+//#define TIMx_FORCE_RESET()               __HAL_RCC_TIM3_FORCE_RESET()
+//#define TIMx_RELEASE_RESET()             __HAL_RCC_TIM3_RELEASE_RESET()
 
 /* Definition for TIMx's NVIC */
-#define TIMx_IRQn                        TIM3_IRQn
-#define TIMx_IRQHandler                  TIM3_IRQHandler
+//#define TIMx_IRQn                        TIM3_IRQn
+//#define TIMx_IRQHandler                  TIM3_IRQHandler
 
 /* Periodically, the state of the buffer "UserTxBuffer" is checked.
    The period depends on CDC_POLLING_INTERVAL */
@@ -94,5 +94,3 @@ extern USBD_CDC_ItfTypeDef  USBD_CDC_fops;
 
 size_t usb_cdc_send(                    uint8_t *               data,
                                         size_t                  size );
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

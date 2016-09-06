@@ -4,7 +4,9 @@
   * @author  Igor T. <research.tahoe@gmail.com>
   */
 
+
 #include "ui.h"
+#include "bsp_mcu.h"
 #include "gnss.h"
 #include "app.h"
 #include "flog.h"
@@ -14,11 +16,57 @@
 #include "usbd_cdc_interface.h"
 
 
-	app_t                   app;
-	flog_t                  flog;
-extern	gnss_fifo_t             gnss_data_uart_rx;
-	gnss_t                  gnss;
-	USBD_HandleTypeDef      husbd;
+static  app_t                   app;
+static  flog_t                  flog;
+static  gnss_t                  gnss;
+        time_t                  time_dat        =   0;
+        USBD_HandleTypeDef      husbd;
+        TIM_HandleTypeDef       htim_cdc;
+
+static  uint8_t                 data_uart1_tx[ 2 ][ CFG_GNSS_BLCK_SIZE_OCT/2 ];
+static  uint8_t                 data_uart1_rx[ 2 ][ CFG_GNSS_BLCK_SIZE_OCT/2 ];
+//static  uint8_t                 data_uart2_tx[ 2 ][ CFG_GNSS_BLCK_SIZE_OCT/2 ];
+static  uint8_t                 data_uart2_rx[ 2 ][ CFG_GNSS_BLCK_SIZE_OCT/2 ];
+//static  uint8_t                 data_uart3_tx[ 2 ][ CFG_GNSS_BLCK_SIZE_OCT/2 ];
+static  uint8_t                 data_uart3_rx[ 2 ][ CFG_GNSS_BLCK_SIZE_OCT/2 ];
+
+        gnss_fifo_t             fifo_uart1_tx   =   {   .data     =   data_uart1_tx[0],
+                                                        .size     =   0,
+                                                        .head     =   0,
+                                                        .tile     =   0,
+                                                        .overcome =   false };
+
+        gnss_fifo_t             fifo_uart1_rx   =   {   .data     =   data_uart1_rx[0],
+                                                        .size     =   0,
+                                                        .head     =   0,
+                                                        .tile     =   0,
+                                                        .overcome =   false };
+
+/*
+        gnss_fifo_t             fifo_uart2_tx   =   {   .data     =   data_uart2_tx[0],
+                                                        .size     =   0,
+                                                        .head     =   0,
+                                                        .tile     =   0,
+                                                        .overcome =   false };
+*/
+        gnss_fifo_t             fifo_uart2_rx   =   {   .data     =   data_uart2_rx[0],
+                                                        .size     =   0,
+                                                        .head     =   0,
+                                                        .tile     =   0,
+                                                        .overcome =   false };
+
+/*
+        gnss_fifo_t             fifo_uart3_tx   =   {   .data     =   data_uart3_tx[0],
+                                                        .size     =   0,
+                                                        .head     =   0,
+                                                        .tile     =   0,
+                                                        .overcome =   false };
+*/
+        gnss_fifo_t             fifo_uart3_rx   =   {   .data     =   data_uart3_rx[0],
+                                                        .size     =   0,
+                                                        .head     =   0,
+                                                        .tile     =   0,
+                                                        .overcome =   false };
 
 
 /**
@@ -40,7 +88,7 @@ void	app_error( void )
   * @brief  Switch the PLL source from HSI to HSE bypass, and select the PLL as SYSCLK
   */
 static
-void	app_clock_config( void )
+void app_clock_config( void )
 {
 	RCC_ClkInitTypeDef              clk     =   {0};
 	RCC_OscInitTypeDef              osc     =   {0};
@@ -56,8 +104,7 @@ void	app_clock_config( void )
 
 	osc.HSICalibrationValue =   0x10;
 	osc.PLL.PLLState        =   RCC_PLL_ON;
-	//osc.PLL.PLLM            =   16;
-	osc.PLL.PLLM            =   32;
+	osc.PLL.PLLM            =   16;
 	osc.PLL.PLLN            =   200;
 	osc.PLL.PLLP            =   RCC_PLLP_DIV2;
 	osc.PLL.PLLQ            =   15;
@@ -77,40 +124,17 @@ void	app_clock_config( void )
 	{
 		app_error();
 	}
-/*
-	//Enable HSE Oscillator and activate PLL with HSE as source
-	osc.OscillatorType      =   RCC_OSCILLATORTYPE_HSE;
-	osc.HSEState            =   RCC_HSE_ON;
-	osc.PLL.PLLState        =   RCC_PLL_ON;
-	osc.PLL.PLLSource       =   RCC_PLLSOURCE_HSE;
-	//osc.PLL.PLLM            =   8;
-	osc.PLL.PLLM            =   16;
-	osc.PLL.PLLN            =   360;
-	osc.PLL.PLLP            =   RCC_PLLP_DIV2;
-	osc.PLL.PLLQ            =   7;
-	osc.PLL.PLLR            =   2;
-	HAL_RCC_OscConfig( &osc );
-*/
+
 	/* Activate the OverDrive to reach the 180 MHz Frequency */  
 	HAL_PWREx_EnableOverDrive();
 
 	/* Select PLLSAI output as USB clock source */
-	//PeriphClkInitStruct.PLLSAI.PLLSAIM          =   8;
 	PeriphClkInitStruct.PLLSAI.PLLSAIM          =   16;
 	PeriphClkInitStruct.PLLSAI.PLLSAIN          =   384;
 	PeriphClkInitStruct.PLLSAI.PLLSAIP          =   RCC_PLLSAIP_DIV8;
 	PeriphClkInitStruct.PeriphClockSelection    =   RCC_PERIPHCLK_CK48;
 	PeriphClkInitStruct.Clk48ClockSelection     =   RCC_CK48CLKSOURCE_PLLSAIP;
 	HAL_RCCEx_PeriphCLKConfig( &PeriphClkInitStruct );
-/*
-	//Select PLL as system clock source and configure the HCLK, PCLK1 and PCLK2 clocks dividers
-	clk.ClockType            =   (RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2);
-	clk.SYSCLKSource         =   RCC_SYSCLKSOURCE_PLLCLK;
-	clk.AHBCLKDivider        =   RCC_SYSCLK_DIV1;
-	clk.APB1CLKDivider       =   RCC_HCLK_DIV4;
-	clk.APB2CLKDivider       =   RCC_HCLK_DIV2;
-	HAL_RCC_ClockConfig( &clk, FLASH_LATENCY_5 );
-*/
 
 	SystemCoreClockUpdate();
 }
@@ -118,45 +142,96 @@ void	app_clock_config( void )
 /**
  * @brief
  */
-void	HAL_UART_RxHalfCpltCallback(    UART_HandleTypeDef *    huart )
+void HAL_UART_RxHalfCpltCallback(       UART_HandleTypeDef *    huart )
 {
-	uint8_t *       data    =   gnss_data_uart_rx.data + 0;
-	size_t          size    =   CFG_GNSS_BLCK_SIZE_OCT/2;
+        if(      huart->Instance == USART1 )
+        {
+                uint8_t *       data    =   fifo_uart1_rx.data + 0;
+                size_t          size    =   CFG_GNSS_BLCK_SIZE_OCT/2;
 
+                if( flog.sts.enable )
+                {
+                        ui_led_sd_set( false );
+                        flog_write( &flog, data, size );
+                        ui_led_sd_set( true );
+                }
 
-	if( flog.sts.enable )
-	{
-                ui_led_sd_set( false );
-		flog_write( &flog, data, size );
-                ui_led_sd_set( true );
-	}
-
-        //app.evt.data0_ready     =   true;
-
-	gnss_read( &gnss, data, size );
+                gnss_read( &gnss, data, size );
+        }
+        else if( huart->Instance == USART2 )
+        {
+                bsp_mcu_uart3_xmit_start( data_uart2_rx[0], CFG_GNSS_BLCK_SIZE_OCT/2 );
+        }
+        else if( huart->Instance == USART3 )
+        {
+                bsp_mcu_uart2_xmit_start( data_uart3_rx[0], CFG_GNSS_BLCK_SIZE_OCT/2 );
+        }
 }
 
 /**
  * @brief
  */
-void	HAL_UART_RxCpltCallback(        UART_HandleTypeDef *	huart )
+void HAL_UART_RxCpltCallback(           UART_HandleTypeDef *    huart )
 {
-	uint8_t *       data    =   gnss_data_uart_rx.data + CFG_GNSS_BLCK_SIZE_OCT/2;
-	size_t          size    =   CFG_GNSS_BLCK_SIZE_OCT/2;
 
+        if(      huart->Instance == USART1 )
+        {
+                uint8_t *       data    =   fifo_uart1_rx.data + CFG_GNSS_BLCK_SIZE_OCT/2;
+                size_t          size    =   CFG_GNSS_BLCK_SIZE_OCT/2;
 
-        gnss_data_uart_rx.overcome      =   true;
+                fifo_uart1_rx.overcome  =   true;
 
-	if( flog.sts.enable )
+                if( flog.sts.enable )
+                {
+                        ui_led_sd_set( false );
+                        flog_write( &flog, data, size );
+                        ui_led_sd_set( true );
+                }
+
+                gnss_read( &gnss, data, size );
+        }
+        else if( huart->Instance == USART2 )
+        {
+                bsp_mcu_uart3_xmit_start( data_uart2_rx[1], CFG_GNSS_BLCK_SIZE_OCT/2 );
+        }
+        else if( huart->Instance == USART3 )
+        {
+                bsp_mcu_uart2_xmit_start( data_uart3_rx[1], CFG_GNSS_BLCK_SIZE_OCT/2 );
+        }
+
+}
+
+/**
+ * @brief
+ */
+void HAL_TIM_PeriodElapsedCallback(     TIM_HandleTypeDef *     htim_cdc )
+{
+        gnss_uart_rx_hook( &fifo_uart1_rx );
+        //app_uart2_rx_hook( &fifo_uart2_rx );
+        //app_uart3_rx_hook( &fifo_uart3_rx );
+}
+
+/**
+ * @brief
+ */
+void app_systick_hook( void )
+{
+	app.evt.ui_key_pwr  =    ui_key_pwr_hook() ? true : false;
+	app.evt.ui_key_func =    ui_key_func_hook() ? true : false;
+
+	if( ++(app.tick_1hz) > BSP_SYSTICK_HZ )
 	{
-                ui_led_sd_set( false );
-		flog_write( &flog, data, size );
-                ui_led_sd_set( true );
+		app.tick_1hz        =    0;
+		app.evt.tick_1hz    =    true;
+
+		time_dat++;
+
+		gnss_time_sync( &gnss, &time_dat );
+
+		#ifndef	NDEBUG
+		app.tick_1hz_cnt++;
+		#endif
 	}
-
-        //app.evt.data1_ready     =   true;
-
-	gnss_read( &gnss, data, size );
 }
 
 /**
@@ -219,7 +294,16 @@ int main( void )
 	USBD_Start( &husbd );
 
 	gnss_init( &gnss );
-	gnss_ctl( GNSS_CTL_RECV_START );
+	gnss_recv_start( fifo_uart1_rx.data, CFG_GNSS_BLCK_SIZE_OCT );
+
+
+        bsp_mcu_uart2_init( 115200 );
+        bsp_mcu_uart3_init( 115200 );
+        //bsp_mcu_uart2_xmit_start( data_uart2_tx[0], CFG_GNSS_BLCK_SIZE_OCT );
+        bsp_mcu_uart2_recv_start( data_uart2_rx[0], CFG_GNSS_BLCK_SIZE_OCT );
+        //bsp_mcu_uart3_xmit_start( data_uart3_tx[0], CFG_GNSS_BLCK_SIZE_OCT );
+        bsp_mcu_uart3_recv_start( data_uart3_rx[0], CFG_GNSS_BLCK_SIZE_OCT );
+
 
 	while( true )
 	{
@@ -304,32 +388,6 @@ int main( void )
 			//APP_TRACE(	"OVC=%d ", gnss_data_uart_rx.total_overcomes );
 			//APP_TRACE(	"DAT=%d ", gnss_data_uart_rx.total_data );
 		}
-
-/*
-		if( app.evt.data0_ready )
-		{
-			app.evt.data0_ready     =   false;
-
-                        if( flog.sts.enable )
-                        {
-                                ui_led_sd_set( false );
-                                flog_write( &flog, gnss_data_uart_rx.data + 0, CFG_GNSS_BLCK_SIZE_OCT/2 );
-                                ui_led_sd_set( true );
-                        }
-		}
-
-		if( app.evt.data1_ready )
-		{
-			app.evt.data1_ready     =   false;
-
-                        if( flog.sts.enable )
-                        {
-                                ui_led_sd_set( false );
-                                flog_write( &flog, gnss_data_uart_rx.data + CFG_GNSS_BLCK_SIZE_OCT/2, CFG_GNSS_BLCK_SIZE_OCT/2 );
-                                ui_led_sd_set( true );
-                        }
-		}
-*/
 
 	}
 }

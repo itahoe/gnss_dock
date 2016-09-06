@@ -8,35 +8,22 @@
 #define  GNSS_H
 
 
-#include	"bsp_gnss.h"
 #include	"nmea.h"
 #include	"config.h"
-
-
-typedef	enum gnss_ctl_s
-{
-	GNSS_CTL_RECV_START,
-	GNSS_CTL_RECV_STOP,
-	GNSS_CTL_XMIT_START,
-	GNSS_CTL_XMIT_STOP,
-} gnss_ctl_t;
-
-typedef	uint8_t                 gnss_smbl_t;
 
 typedef	struct	gnss_data_s
 {
 	size_t                  len;
 	size_t                  pingpong;
-	gnss_smbl_t             buf[2][ NMEA_STRLEN_MAX_OCT ];
-	gnss_smbl_t *           str;
+	uint8_t                 buf[2][ NMEA_STRLEN_MAX_OCT ];
+	uint8_t *               str;
 } gnss_data_t;
 
+#pragma pack(4)
 typedef	struct	gnss_fifo_s
 {
-        #pragma pack(4)
-	gnss_smbl_t             data[ CFG_GNSS_BLCK_SIZE_OCT ];
-        #pragma pack()
-
+        //uint8_t                 data[ CFG_GNSS_BLCK_SIZE_OCT ];
+        uint8_t *               data;
 	size_t                  size;
 	size_t                  head;
 	size_t                  tile;
@@ -49,6 +36,7 @@ typedef	struct	gnss_fifo_s
 	#endif //NDEBUG
 
 } gnss_fifo_t;
+#pragma pack()
 
 typedef	struct	gnss_s
 {
@@ -61,7 +49,7 @@ typedef	struct	gnss_s
 void gnss_time_sync(                            gnss_t *        gnss,
                                                 time_t *        time_dat );
 
-void gnss_xmit(                                 gnss_fifo_t *   p,
+void gnss_fifo_write(                           gnss_fifo_t *   p,
                                                 uint8_t *       data,
                                                 size_t          count );
 
@@ -69,7 +57,8 @@ void gnss_ui_set(                               gnss_t *        gnss );
 
 void gnss_init(                                 gnss_t *        gnss );
 
-void gnss_ctl(                                  gnss_ctl_t      ctl );
+void gnss_recv_start(                           uint8_t *       data,
+                                                size_t          size );
 
 void gnss_send(                                 gnss_t *        gnss,
                                         const   char *          str );

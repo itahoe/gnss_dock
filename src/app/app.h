@@ -58,6 +58,9 @@ typedef	struct	app_s
 }	app_t;
 
 
-void	app_error( void );
+void app_error( void );
+
+void app_systick_hook( void );
+
 
 #endif	//APP_H

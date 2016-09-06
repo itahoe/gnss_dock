@@ -31,6 +31,7 @@
 #include "usbd_cdc_interface.h"
 #include "gnss.h"
 #include "bsp_usb.h"
+#include "bsp_mcu.h"
 #include "bsp.h"
 
 /* Private typedef -----------------------------------------------------------*/
@@ -47,14 +48,9 @@ USBD_CDC_LineCodingTypeDef      LineCoding      =   {	.bitrate        =   115200
 
 	uint8_t                 UserRxBuffer[ APP_RX_DATA_SIZE ]; //Received Data over USB are stored in this buffer
 	uint8_t                 UserTxBuffer[ APP_TX_DATA_SIZE ]; //Received Data over UART (CDC interface) are stored in this buffer
-	//uint32_t                BuffLength;
-	//uint32_t                UserTxBufPtrIn  =   0; //Increment this pointer or roll it back to start address when data are received over USART
-	//uint32_t                UserTxBufPtrOut =   0; //Increment this pointer or roll it back to start address when data are sent over USB
 
-	//UART_HandleTypeDef      UartHandle; //UART handler declaration
-	TIM_HandleTypeDef       htim_cdc; //TIM handler declaration
+extern	TIM_HandleTypeDef       htim_cdc; //TIM handler declaration
 extern	USBD_HandleTypeDef	husbd; //USB handler declaration
-extern	UART_HandleTypeDef      huart;
 extern	gnss_fifo_t             gnss_data_uart_tx;
 
 
@@ -177,7 +173,7 @@ static
 void TIM_Config( void )
 {  
 	/* Set TIMx instance */
-	htim_cdc.Instance               =   TIMx;
+	htim_cdc.Instance               =   TIM3;
 
 	//Initialize TIM3 peripheral as follow:
 	//	+ Period = 10000 - 1
@@ -356,9 +352,7 @@ static
 int8_t CDC_Itf_Receive(                 uint8_t *               data,
                                         uint32_t *              size )
 {
-	HAL_UART_Transmit_DMA( &huart, data, *size );
-        //gnss_xmit( &gnss_data_uart_tx, data, *size );
-
+        bsp_mcu_uart1_xmit_start( data, *size );
 	return( USBD_OK );
 }
 

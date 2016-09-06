@@ -1,51 +1,49 @@
 /**
-  * @file    bsp_gnss.c
-  * @brief   Board Support Package - GNSS service
+  * @file    bsp_mcu_uart2.c
+  * @brief   BSP MCU UART2
   * @author  Igor T. <research.tahoe@gmail.com>
   */
 
-#include	<string.h>
-#include	"bsp_gnss.h"
-#include	"bsp.h"
-#include	"config.h"
+
+#include "bsp_mcu.h"
+#include "bsp.h"
 
 
-static	DMA_HandleTypeDef       hdma_tx;
-static	DMA_HandleTypeDef       hdma_rx;
-        UART_HandleTypeDef      huart;
+static  DMA_HandleTypeDef       hdma_tx;
+static  DMA_HandleTypeDef       hdma_rx;
+static  UART_HandleTypeDef      huart;
 
 
 static
-void	bsp_gnss_init_uart_io( void )
+void bsp_mcu_uart_io_init( void )
 {
-	GPIO_InitTypeDef        gpio_rx     =   {    .Pin       =    GPIO_PIN_7,
+	GPIO_InitTypeDef        gpio_tx     =   {    .Pin       =    GPIO_PIN_2,
 	                                             .Mode      =    GPIO_MODE_AF_PP,
 	                                             .Pull      =    GPIO_PULLUP,
 	                                             .Speed     =    GPIO_SPEED_FREQ_LOW,
-	                                             .Alternate =    GPIO_AF7_USART1 };
+	                                             .Alternate =    GPIO_AF7_USART2 };
 
-	GPIO_InitTypeDef        gpio_tx     =   {    .Pin       =    GPIO_PIN_6,
+	GPIO_InitTypeDef        gpio_rx     =   {    .Pin       =    GPIO_PIN_3,
 	                                             .Mode      =    GPIO_MODE_AF_PP,
 	                                             .Pull      =    GPIO_PULLUP,
 	                                             .Speed     =    GPIO_SPEED_FREQ_LOW,
-	                                             .Alternate =    GPIO_AF7_USART1 };
+	                                             .Alternate =    GPIO_AF7_USART2 };
 
-	__HAL_RCC_GPIOB_CLK_ENABLE();
+	__HAL_RCC_GPIOA_CLK_ENABLE();
 
-	HAL_GPIO_Init( GPIOB, &gpio_rx );
-	HAL_GPIO_Init( GPIOB, &gpio_tx );
+	HAL_GPIO_Init( GPIOA, &gpio_rx );
+	HAL_GPIO_Init( GPIOA, &gpio_tx );
 }
 
 static
-int     bsp_gnss_init_uart_dma( void )
+int bsp_mcu_uart_dma_init( void )
 {
 	int                     resp    =   0;
 
 
-	__HAL_RCC_DMA2_CLK_ENABLE();
+	__HAL_RCC_DMA1_CLK_ENABLE();
 
-
-	hdma_tx.Instance                        =   DMA2_Stream7;
+	hdma_tx.Instance                        =   DMA1_Stream6;
 	hdma_tx.Init.Channel                    =   DMA_CHANNEL_4;
 	hdma_tx.Init.Direction                  =   DMA_MEMORY_TO_PERIPH;
 	hdma_tx.Init.PeriphInc                  =   DMA_PINC_DISABLE;
@@ -62,15 +60,13 @@ int     bsp_gnss_init_uart_dma( void )
 	HAL_DMA_Init( &hdma_tx );
 	__HAL_LINKDMA( &huart, hdmatx, hdma_tx );
 
-
-	hdma_rx.Instance                        =   DMA2_Stream2;
+	hdma_rx.Instance                        =   DMA1_Stream5;
 	hdma_rx.Init.Channel                    =   DMA_CHANNEL_4;
 	hdma_rx.Init.Direction                  =   DMA_PERIPH_TO_MEMORY;
 	hdma_rx.Init.PeriphInc                  =   DMA_PINC_DISABLE;
 	hdma_rx.Init.MemInc                     =   DMA_MINC_ENABLE;
 	hdma_rx.Init.PeriphDataAlignment        =   DMA_PDATAALIGN_BYTE;
 	hdma_rx.Init.MemDataAlignment           =   DMA_MDATAALIGN_BYTE;
-	//hdma_rx.Init.Mode                       =   DMA_NORMAL;
 	hdma_rx.Init.Mode                       =   DMA_CIRCULAR;
 	hdma_rx.Init.Priority                   =   DMA_PRIORITY_HIGH;
 	hdma_rx.Init.FIFOMode                   =   DMA_FIFOMODE_DISABLE;
@@ -84,13 +80,13 @@ int     bsp_gnss_init_uart_dma( void )
 	return( resp );
 }
 
-static
-int     bsp_gnss_init_uart( void )
+/**
+ * @brief UART2
+ */
+void bsp_mcu_uart2_init(                const   size_t          baud )
 {
-	int                     resp    =   0;
-
-	huart.Instance           =   USART1;
-	huart.Init.BaudRate      =   CFG_NMEA_UART_BAUDRATE;
+	huart.Instance           =   USART2;
+	huart.Init.BaudRate      =   baud;
 	huart.Init.WordLength    =   UART_WORDLENGTH_8B;
 	huart.Init.StopBits      =   UART_STOPBITS_1;
 	huart.Init.Parity        =   UART_PARITY_NONE;
@@ -99,85 +95,73 @@ int     bsp_gnss_init_uart( void )
 	huart.Init.OverSampling  =   UART_OVERSAMPLING_16;
 
 
-	__HAL_RCC_USART1_CLK_ENABLE();
+	__HAL_RCC_USART2_CLK_ENABLE();
 
-	__HAL_RCC_USART1_FORCE_RESET();
-	__HAL_RCC_USART1_RELEASE_RESET();
+	__HAL_RCC_USART2_FORCE_RESET();
+	__HAL_RCC_USART2_RELEASE_RESET();
 
-	if( HAL_UART_Init( &huart ) != HAL_OK )
-	{
-		resp    =   -1;
-	}
+	HAL_UART_Init( &huart );
 
-	return( resp );
+	bsp_mcu_uart_io_init();
+	bsp_mcu_uart_dma_init();
+
+
+	HAL_NVIC_SetPriority(   DMA1_Stream6_IRQn,      BSP_NVIC_PRIO_GNSS_DMA_TX, 0 ); //DMA TX
+	HAL_NVIC_EnableIRQ(     DMA1_Stream6_IRQn );
+
+	HAL_NVIC_SetPriority(   DMA1_Stream5_IRQn,      BSP_NVIC_PRIO_GNSS_DMA_RX, 0 ); //DMA RX
+	HAL_NVIC_EnableIRQ(     DMA1_Stream5_IRQn );
+
+	HAL_NVIC_SetPriority(   USART2_IRQn,            BSP_NVIC_PRIO_GNSS_RECV_SMBL, 0 );
+	HAL_NVIC_EnableIRQ( USART2_IRQn );
 }
 
 /**
- * @brief BSP GNSS initialization
+ * @brief UART2
  */
-void	bsp_gnss_init( void )
+void bsp_mcu_uart2_isr(                         void )
 {
-	bsp_gnss_init_uart_io();
-	bsp_gnss_init_uart();
-	bsp_gnss_init_uart_dma();
-
-
-	HAL_NVIC_SetPriority(   DMA2_Stream7_IRQn,      BSP_NVIC_PRIO_GNSS_DMA_TX, 0 ); //DMA TX
-	HAL_NVIC_EnableIRQ(     DMA2_Stream7_IRQn );
-
-	HAL_NVIC_SetPriority(   DMA2_Stream2_IRQn,      BSP_NVIC_PRIO_GNSS_DMA_RX, 0 ); //DMA RX
-	HAL_NVIC_EnableIRQ(     DMA2_Stream2_IRQn );
-
-	HAL_NVIC_SetPriority(   USART1_IRQn,            BSP_NVIC_PRIO_GNSS_RECV_SMBL, 0 );
-	HAL_NVIC_EnableIRQ( USART1_IRQn );
+        HAL_UART_IRQHandler( &huart );
 }
 
 /**
- * @brief BSP GNSS recieve enable
+ * @brief UART2
  */
-void bsp_gnss_recv_start(                   uint8_t *           data,
+void bsp_mcu_uart2_dma_tx_isr(                  void )
+{
+        HAL_DMA_IRQHandler( huart.hdmatx );
+}
+
+/**
+ * @brief UART2
+ */
+void bsp_mcu_uart2_dma_rx_isr(                  void )
+{
+        HAL_DMA_IRQHandler( huart.hdmarx );
+}
+
+/**
+ * @brief UART2
+ */
+void bsp_mcu_uart2_xmit_start(              uint8_t *           data,
+                                            size_t              size )
+{
+	HAL_UART_Transmit_DMA( &huart, data, size );
+}
+
+/**
+ * @brief UART2
+ */
+void bsp_mcu_uart2_recv_start(              uint8_t *           data,
                                             size_t              size )
 {
 	HAL_UART_Receive_DMA( &huart, data, size );
 }
 
 /**
- * @brief BSP GNSS recieve disable
+ * @brief UART2
  */
-void bsp_gnss_recv_stop( void )
+uint32_t bsp_mcu_uart2_recv_size_get(           void )
 {
-
-}
-
-/**
- * @brief BSP GNSS xmit block
- */
-void bsp_gnss_xmit(                         uint8_t *           data,
-                                            size_t              size )
-{
-	//HAL_UART_Transmit_DMA( &huart, data, size );
-
-	while( size-- )
-	{
-		while( !(USART1->SR & UART_FLAG_TXE) );
-		USART1->DR      =   *data++;
-	}
-}
-
-/**
- * @brief BSP GNSS xmit disable
- */
-void bsp_gnss_xmit_stop( void )
-{
-
-}
-
-uint32_t bsp_gnss_recv_fifo_head_get( void )
-{
-	return( DMA2_Stream2->M0AR );
-}
-
-uint32_t bsp_gnss_recv_fifo_size_get( void )
-{
-	return( DMA2_Stream2->NDTR );
+	return( DMA1_Stream5->NDTR );
 }

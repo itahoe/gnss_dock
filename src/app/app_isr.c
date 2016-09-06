@@ -4,41 +4,30 @@
   * @author  Igor T. <research.tahoe@gmail.com>
   */
 
-//#include "stm32f1xx_hal.h"
-#include <stdint.h>
-#include <time.h>
 #include "stm32f4xx.h"
-#include "app_trace.h"
 #include "ui.h"
-#include "ff.h"
-#include "gnss.h"
-#include "flog.h"
-#include "pmu.h"
+#include "bsp_mcu.h"
 #include "app.h"
 
-extern	UART_HandleTypeDef      huart;
-extern	TIM_HandleTypeDef       htim_cdc;
-extern	PCD_HandleTypeDef       hpcd;
-extern	app_t                   app;
-extern	flog_t                  flog;
-	time_t                  time_dat        =   0;
-extern	gnss_t                  gnss;
-extern	gnss_fifo_t             gnss_data_uart_rx;
+
+extern TIM_HandleTypeDef        htim_cdc;
+extern PCD_HandleTypeDef        hpcd;
 
 
-void	hard_fault_handler( uint32_t *arg );
-void	NMI_Handler( void );
-void	HardFault_Handler( void );
-void	MemManage_Handler( void );
-void	BusFault_Handler( void );
-void	UsageFault_Handler( void );
-void	WWDG_IRQHandler( void );
-void	SysTick_Handler( void );
-void    EXTI0_IRQHandler( void );
-void	USART1_IRQHandler( void );
-void	DMA2_Stream3_IRQHandler( void );
-void	DMA2_Stream6_IRQHandler( void );
-void	SDIO_IRQHandler( void );
+void hard_fault_handler( uint32_t *arg );
+void NMI_Handler( void );
+void HardFault_Handler( void );
+void MemManage_Handler( void );
+void BusFault_Handler( void );
+void UsageFault_Handler( void );
+void WWDG_IRQHandler( void );
+void SysTick_Handler( void );
+void EXTI0_IRQHandler( void );
+void USART1_IRQHandler( void );
+void DMA2_Stream3_IRQHandler( void );
+void DMA2_Stream6_IRQHandler( void );
+void SDIO_IRQHandler( void );
+
 
 /**
  * @brief Hard Fault handler
@@ -191,22 +180,7 @@ void SysTick_Handler(void)
 	ui_led_pwr_hook();
 	ui_led_gnss_hook();
 
-	app.evt.ui_key_pwr  =    ui_key_pwr_hook() ? true : false;
-	app.evt.ui_key_func =    ui_key_func_hook() ? true : false;
-
-	if( ++(app.tick_1hz) > BSP_SYSTICK_HZ )
-	{
-		app.tick_1hz        =    0;
-		app.evt.tick_1hz    =    true;
-
-		time_dat++;
-
-		gnss_time_sync( &gnss, &time_dat );
-
-		#ifndef	NDEBUG
-		app.tick_1hz_cnt++;
-		#endif
-	}
+        app_systick_hook();
 
 	HAL_IncTick();
 }
@@ -214,12 +188,12 @@ void SysTick_Handler(void)
 /**
  * @brief USART1 interrupt handler
  */
-void    USART1_IRQHandler( void )
+void USART1_IRQHandler( void )
 {
 	//uint32_t        sts                     =   USART1->SR;
 	//uint32_t        data                    =   USART1->DR;
 
-        HAL_UART_IRQHandler( &huart );
+        bsp_mcu_uart1_isr();
 }
 
 /**
@@ -227,7 +201,7 @@ void    USART1_IRQHandler( void )
   */
 void DMA2_Stream7_IRQHandler( void )
 {
-	HAL_DMA_IRQHandler( huart.hdmatx );
+        bsp_mcu_uart1_dma_tx_isr();
 }
 
 /**
@@ -235,7 +209,55 @@ void DMA2_Stream7_IRQHandler( void )
   */
 void DMA2_Stream2_IRQHandler( void )
 {
-	HAL_DMA_IRQHandler( huart.hdmarx );
+        bsp_mcu_uart1_dma_rx_isr();
+}
+
+/**
+ * @brief USART2 interrupt handler
+ */
+void USART2_IRQHandler( void )
+{
+        bsp_mcu_uart2_isr();
+}
+
+/**
+  * @brief  DMA USART2 TX
+  */
+void DMA1_Stream6_IRQHandler( void )
+{
+        bsp_mcu_uart2_dma_tx_isr();
+}
+
+/**
+  * @brief  DMA USART2 RX
+  */
+void DMA1_Stream5_IRQHandler( void )
+{
+        bsp_mcu_uart2_dma_rx_isr();
+}
+
+/**
+ * @brief USART3 interrupt handler
+ */
+void USART3_IRQHandler( void )
+{
+        bsp_mcu_uart3_isr();
+}
+
+/**
+  * @brief  DMA USART6 TX
+  */
+void DMA1_Stream3_IRQHandler( void )
+{
+        bsp_mcu_uart3_dma_tx_isr();
+}
+
+/**
+  * @brief  DMA USART RX
+  */
+void DMA1_Stream1_IRQHandler( void )
+{
+        bsp_mcu_uart3_dma_rx_isr();
 }
 
 /**
@@ -289,6 +311,8 @@ void OTG_HS_IRQHandler(void)
   */
 void TIM3_IRQHandler( void )
 {
+        HAL_TIM_IRQHandler( &htim_cdc );
+/*
 	if( __HAL_TIM_GET_FLAG( &htim_cdc, TIM_FLAG_UPDATE ) != RESET )
 	{
 		if( __HAL_TIM_GET_IT_SOURCE( &htim_cdc, TIM_IT_UPDATE ) !=RESET )
@@ -297,5 +321,5 @@ void TIM3_IRQHandler( void )
 			gnss_uart_rx_hook( &gnss_data_uart_rx );
 		}
 	}
+*/
 }
-
