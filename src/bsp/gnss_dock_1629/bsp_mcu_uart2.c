@@ -72,7 +72,7 @@ int bsp_mcu_uart_dma_init( void )
 	hdma_rx.Init.FIFOMode                   =   DMA_FIFOMODE_DISABLE;
 	hdma_rx.Init.FIFOThreshold              =   DMA_FIFO_THRESHOLD_FULL;
 	hdma_rx.Init.MemBurst                   =   DMA_MBURST_INC4;
-	hdma_rx.Init.PeriphBurst                =   DMA_PBURST_INC4; 
+	hdma_rx.Init.PeriphBurst                =   DMA_PBURST_INC4;
 
 	HAL_DMA_Init( &hdma_rx );
 	__HAL_LINKDMA( &huart, hdmarx, hdma_rx );
@@ -83,7 +83,7 @@ int bsp_mcu_uart_dma_init( void )
 /**
  * @brief UART2
  */
-void bsp_mcu_uart2_init(                const   size_t          baud )
+void bsp_mcu_uart2_init(                const   size_t                  baud )
 {
 	huart.Instance           =   USART2;
 	huart.Init.BaudRate      =   baud;
@@ -143,8 +143,8 @@ void bsp_mcu_uart2_dma_rx_isr(                  void )
 /**
  * @brief UART2
  */
-void bsp_mcu_uart2_xmit_start(              uint8_t *           data,
-                                            size_t              size )
+void bsp_mcu_uart2_xmit_start(                  uint8_t *               data,
+                                                size_t                  size )
 {
 	HAL_UART_Transmit_DMA( &huart, data, size );
 }
@@ -152,8 +152,8 @@ void bsp_mcu_uart2_xmit_start(              uint8_t *           data,
 /**
  * @brief UART2
  */
-void bsp_mcu_uart2_recv_start(              uint8_t *           data,
-                                            size_t              size )
+void bsp_mcu_uart2_recv_start(                  uint8_t *               data,
+                                                size_t                  size )
 {
 	HAL_UART_Receive_DMA( &huart, data, size );
 }
@@ -161,7 +161,7 @@ void bsp_mcu_uart2_recv_start(              uint8_t *           data,
 /**
  * @brief UART2
  */
-uint32_t bsp_mcu_uart2_recv_size_get(           void )
+uint32_t bsp_mcu_uart2_recv_dma_get(            void )
 {
 	return( DMA1_Stream5->NDTR );
 }

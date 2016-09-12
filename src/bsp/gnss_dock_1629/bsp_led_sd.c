@@ -11,6 +11,7 @@
 /**
  * @brief LED0 pin initialization
  */
+
 void	bsp_led_sd_init( void )
 {
 	GPIO_InitTypeDef        gpio_led_sd     =   {    .Pin       =    GPIO_PIN_5,
@@ -22,6 +23,23 @@ void	bsp_led_sd_init( void )
 
 	HAL_GPIO_Init( GPIOA, &gpio_led_sd );
 }
+
+
+/*
+void	bsp_led_sd_init( void )
+{
+	GPIO_InitTypeDef        gpio_led_sd     =   {    .Pin       =    GPIO_PIN_3,
+	                                                 .Mode      =    GPIO_MODE_OUTPUT_PP,
+	                                                 .Pull      =    GPIO_NOPULL,
+	                                                 .Speed     =    GPIO_SPEED_FREQ_LOW };
+
+	__HAL_RCC_GPIOC_CLK_ENABLE();
+
+	HAL_GPIO_Init( GPIOC, &gpio_led_sd );
+	HAL_GPIO_WritePin( GPIOC, GPIO_PIN_3, GPIO_PIN_SET );
+
+}
+*/
 
 /**
  * @brief LED0 state get.

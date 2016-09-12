@@ -11,29 +11,27 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <stdbool.h>
 
 
 typedef	struct	fifo_s
 {
-        uint8_t *       data;
-        size_t          size;
-        size_t          head;
-        size_t          tile;
-}	fifo_t;
+        uint8_t *               data;
+        size_t                  size;
+        size_t                  head;
+        size_t                  tile;
+        bool                    overcome;
 
+        #ifndef NDEBUG
+        size_t                  total_overruns;
+        size_t                  total_overcomes;
+        size_t                  total_data;
+        #endif //NDEBUG
+} fifo_t;
 
-void fifo_init(                                 fifo_t *        p,
-                                                uint8_t *       data,
-                                        const   size_t          size );
-
-void fifo_flush(                                fifo_t *        p );
-
-size_t fifo_read(                               fifo_t *        p,
+void fifo_write(                                fifo_t *        p,
                                                 uint8_t *       data,
                                                 size_t          size );
 
-size_t fifo_write(                              fifo_t *        p,
-                                        const   uint8_t *       data,
-                                                size_t          size );
 
 #endif	//FIFO_H

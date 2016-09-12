@@ -14,13 +14,13 @@
 #include "bsp.h"
 
 
-void bsp_mcu_uart1_init(                const   size_t          baud );
+void bsp_mcu_uart1_init(                const   size_t                  baud );
 
-void bsp_mcu_uart2_init(                const   size_t          baud );
+void bsp_mcu_uart2_init(                const   size_t                  baud );
 
-void bsp_mcu_uart3_init(                const   size_t          baud );
+void bsp_mcu_uart3_init(                const   size_t                  baud );
 
-void bsp_mcu_uart6_init(                const   size_t          baud );
+void bsp_mcu_uart6_init(                const   size_t                  baud );
 
 
 void bsp_mcu_uart1_isr(                         void );
@@ -63,39 +63,39 @@ void bsp_mcu_uart6_xmit_start(                  uint8_t *               data,
                                                 size_t                  size );
 
 
-void bsp_mcu_uart2_xmit_start(                  uint8_t *       data,
-                                                size_t          size );
+void bsp_mcu_uart2_xmit_start(                  uint8_t *               data,
+                                                size_t                  size );
 
-void bsp_mcu_uart3_xmit_start(                  uint8_t *       data,
-                                                size_t          size );
+void bsp_mcu_uart3_xmit_start(                  uint8_t *               data,
+                                                size_t                  size );
 
-void bsp_mcu_uart6_xmit_start(                  uint8_t *       data,
-                                                size_t          size );
-
-
-void bsp_mcu_uart1_recv_start(                  uint8_t *       data,
-                                                size_t          size );
-
-void bsp_mcu_uart2_recv_start(                  uint8_t *       data,
-                                                size_t          size );
-
-void bsp_mcu_uart3_recv_start(                  uint8_t *       data,
-                                                size_t          size );
-
-void bsp_mcu_uart6_recv_start(                  uint8_t *       data,
-                                                size_t          size );
+void bsp_mcu_uart6_xmit_start(                  uint8_t *               data,
+                                                size_t                  size );
 
 
-uint32_t bsp_mcu_uart1_recv_size_get(           void );
+void bsp_mcu_uart1_recv_start(                  uint8_t *               data,
+                                                size_t                  size );
 
-uint32_t bsp_mcu_uart2_recv_size_get(           void );
+void bsp_mcu_uart2_recv_start(                  uint8_t *               data,
+                                                size_t                  size );
 
-uint32_t bsp_mcu_uart3_recv_size_get(           void );
+void bsp_mcu_uart3_recv_start(                  uint8_t *               data,
+                                                size_t                  size );
 
-uint32_t bsp_mcu_uart6_recv_size_get(           void );
+void bsp_mcu_uart6_recv_start(                  uint8_t *               data,
+                                                size_t                  size );
 
 
-void bsp_mcu_uart2_init(                const   size_t          baud );
+uint32_t bsp_mcu_uart1_recv_dma_get(            void );
+
+uint32_t bsp_mcu_uart2_recv_dma_get(            void );
+
+uint32_t bsp_mcu_uart3_recv_dma_get(            void );
+
+uint32_t bsp_mcu_uart6_recv_dma_get(            void );
+
+
+void bsp_mcu_uart2_init(                const   size_t                  baud );
 
 
 #endif	//BSP_MCU_H

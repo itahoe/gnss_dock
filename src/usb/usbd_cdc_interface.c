@@ -16,8 +16,8 @@
   *
   *        http://www.st.com/software_license_agreement_liberty_v2
   *
-  * Unless required by applicable law or agreed to in writing, software 
-  * distributed under the License is distributed on an "AS IS" BASIS, 
+  * Unless required by applicable law or agreed to in writing, software
+  * distributed under the License is distributed on an "AS IS" BASIS,
   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   * See the License for the specific language governing permissions and
   * limitations under the License.
@@ -27,7 +27,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "usbd_desc.h"
-#include "usbd_cdc.h" 
+#include "usbd_cdc.h"
 #include "usbd_cdc_interface.h"
 #include "gnss.h"
 #include "bsp_usb.h"
@@ -49,9 +49,9 @@ USBD_CDC_LineCodingTypeDef      LineCoding      =   {	.bitrate        =   115200
 	uint8_t                 UserRxBuffer[ APP_RX_DATA_SIZE ]; //Received Data over USB are stored in this buffer
 	uint8_t                 UserTxBuffer[ APP_TX_DATA_SIZE ]; //Received Data over UART (CDC interface) are stored in this buffer
 
-extern	TIM_HandleTypeDef       htim_cdc; //TIM handler declaration
+//extern	TIM_HandleTypeDef       htim_cdc; //TIM handler declaration
 extern	USBD_HandleTypeDef	husbd; //USB handler declaration
-extern	gnss_fifo_t             gnss_data_uart_tx;
+extern	fifo_t                  gnss_data_uart_tx;
 
 
 /* Private function prototypes -----------------------------------------------*/
@@ -60,7 +60,7 @@ static	int8_t CDC_Itf_DeInit( void );
 static	int8_t CDC_Itf_Control(uint8_t cmd, uint8_t* pbuf, uint16_t length);
 static	int8_t CDC_Itf_Receive(uint8_t* pbuf, uint32_t *Len);
 
-USBD_CDC_ItfTypeDef USBD_CDC_fops = 
+USBD_CDC_ItfTypeDef USBD_CDC_fops =
 {
 	CDC_Itf_Init,
 	CDC_Itf_DeInit,
@@ -133,7 +133,7 @@ void ComPort_Config(void)
 			{
 				UartHandle.Init.WordLength = UART_WORDLENGTH_8B;
 			}
-			else 
+			else
 			{
 				UartHandle.Init.WordLength = UART_WORDLENGTH_9B;
 			}
@@ -162,37 +162,6 @@ void ComPort_Config(void)
 /*
 	HAL_UART_Receive_IT( &UartHandle, (uint8_t *)(UserTxBuffer + UserTxBufPtrIn), 1 );
 */
-}
-
-/**
-  * @brief  TIM_Config: Configure TIMx timer
-  * @param  None.
-  * @retval None
-  */
-static
-void TIM_Config( void )
-{  
-	/* Set TIMx instance */
-	htim_cdc.Instance               =   TIM3;
-
-	//Initialize TIM3 peripheral as follow:
-	//	+ Period = 10000 - 1
-	//	+ Prescaler = ((SystemCoreClock/2)/10000) - 1
-	//	+ ClockDivision = 0
-	//	+ Counter direction = Up
-
-	htim_cdc.Init.Period            =   (CDC_POLLING_INTERVAL * 1000) - 1;
-	//htim_cdc.Init.Prescaler         =   84-1;
-	htim_cdc.Init.Prescaler         =   ( (SystemCoreClock / 2) / 10000 ) - 1;
-	htim_cdc.Init.ClockDivision     =   0;
-	htim_cdc.Init.CounterMode       =   TIM_COUNTERMODE_UP;
-
-	bsp_usb_cdc_init();
-
-	if( HAL_TIM_Base_Init( &htim_cdc ) != HAL_OK )
-	{
-		Error_Handler();
-	}
 }
 
 /**
@@ -236,20 +205,21 @@ int8_t CDC_Itf_Init(void)
 	}
 */
 	/*##-3- Configure the TIM Base generation  #################################*/
-	TIM_Config();
+	//TIM_Config();
 
 	/*##-4- Start the TIM Base generation in interrupt mode ####################*/
 	/* Start Channel1 */
+/*
 	if(HAL_TIM_Base_Start_IT( &htim_cdc ) != HAL_OK)
 	{
 		Error_Handler();
 	}
-
+*/
 	/*##-5- Set Application Buffers ############################################*/
 
 	USBD_CDC_SetTxBuffer( &husbd, UserTxBuffer, 0 );
 	USBD_CDC_SetRxBuffer( &husbd, UserRxBuffer );
-  
+
 	return( USBD_OK );
 }
 
@@ -274,14 +244,14 @@ int8_t CDC_Itf_DeInit(void)
 /**
   * @brief  CDC_Itf_Control
   *         Manage the CDC class requests
-  * @param  Cmd: Command code            
+  * @param  Cmd: Command code
   * @param  Buf: Buffer containing command data (request parameters)
   * @param  Len: Number of data to be sent (in bytes)
   * @retval Result of the operation: USBD_OK if all operations are OK else USBD_FAIL
   */
 static
 int8_t CDC_Itf_Control (uint8_t cmd, uint8_t* pbuf, uint16_t length)
-{ 
+{
 	switch( cmd )
 	{
 		case CDC_SEND_ENCAPSULATED_COMMAND:
@@ -310,7 +280,7 @@ int8_t CDC_Itf_Control (uint8_t cmd, uint8_t* pbuf, uint16_t length)
 			LineCoding.format       =   pbuf[4];
 			LineCoding.paritytype   =   pbuf[5];
 			LineCoding.datatype     =   pbuf[6];
-    
+
 			/* Set the new configuration */
 			ComPort_Config();
 			break;
@@ -322,7 +292,7 @@ int8_t CDC_Itf_Control (uint8_t cmd, uint8_t* pbuf, uint16_t length)
 			pbuf[3] = (uint8_t)(LineCoding.bitrate  >> 24 );
 			pbuf[4] = LineCoding.format;
 			pbuf[5] = LineCoding.paritytype;
-			pbuf[6] = LineCoding.datatype;     
+			pbuf[6] = LineCoding.datatype;
 			break;
 
 		case CDC_SET_CONTROL_LINE_STATE:
@@ -331,18 +301,18 @@ int8_t CDC_Itf_Control (uint8_t cmd, uint8_t* pbuf, uint16_t length)
 
 		case CDC_SEND_BREAK:
 			/* Add your code here */
-			break;    
-    
+			break;
+
 		default:
 			break;
 	}
-  
+
 	return( USBD_OK );
 }
 
 /**
   * @brief  CDC_Itf_DataRx
-  *         Data received over USB OUT endpoint are sent over CDC interface 
+  *         Data received over USB OUT endpoint are sent over CDC interface
   *         through this function.
   * @param  Buf: Buffer of data to be transmitted
   * @param  Len: Number of data received (in bytes)

@@ -13,7 +13,7 @@
 #include "gnss.h"
 
 
-extern	gnss_fifo_t             fifo_uart1_tx;
+extern	fifo_t                  fifo_uart1_tx;
 
 
 /**
@@ -24,24 +24,6 @@ void gnss_init(                             gnss_t *            p )
 	bsp_mcu_uart1_init( CFG_NMEA_UART_BAUDRATE );
 
 	memset( p, 0, sizeof( gnss_t ) );
-}
-
-/**
- * @brief GNSS xmit
- */
-void gnss_fifo_write(                           gnss_fifo_t *   p,
-                                                uint8_t *       data,
-                                                size_t          count )
-{
-	while( count-- )
-	{
-		p->data[ p->head++ ]    =   *data++;
-
-		if( p->head >= CFG_GNSS_BLCK_SIZE_OCT )
-		{
-			p->head                 =   0;
-		}
-	}
 }
 
 /**
@@ -63,7 +45,7 @@ void gnss_send(                             gnss_t *            gnss,
 	sprintf( (char *) &xmit_buf[len], "%02X\r\n", chksum );
 	len             +=  4;
 
-	gnss_fifo_write( &fifo_uart1_tx, xmit_buf, len );
+	fifo_write( &fifo_uart1_tx, xmit_buf, len );
 }
 
 /**
@@ -102,11 +84,11 @@ bool gnss_recv_hook(                            gnss_t *            gnss,
 }
 
 /**
- * @brief GNSS Recieve 
+ * @brief GNSS Recieve
  */
-void gnss_read(                                 gnss_t *            gnss,
-                                        const   uint8_t *           data,
-                                                size_t              size )
+void gnss_read(                                 gnss_t *        gnss,
+                                        const   uint8_t *       data,
+                                                size_t          size )
 {
 	while( size-- )
 	{
@@ -123,11 +105,12 @@ void gnss_recv_start(                           uint8_t *       data,
 /**
  * @brief GNSS UART recieve hook
  */
-void gnss_uart_rx_hook(                      gnss_fifo_t *            p )
+void gnss_uart_rx_hook(                         fifo_t *        p )
 {
         size_t                  tile    =   p->tile;
-        size_t                  size    =   bsp_mcu_uart1_recv_size_get();
-        size_t                  head    =   CFG_GNSS_BLCK_SIZE_OCT - size;
+        size_t                  size    =   bsp_mcu_uart1_recv_dma_get();
+        //size_t                  head    =   CFG_GNSS_BLCK_SIZE_OCT - size;
+        size_t                  head    =   p->size - size;
 
 
 	if( head > tile )
@@ -140,7 +123,8 @@ void gnss_uart_rx_hook(                      gnss_fifo_t *            p )
 		if( p->overcome )
 		{
 			p->overcome     = false;
-			size            =   CFG_GNSS_BLCK_SIZE_OCT - tile;
+			//size            =   CFG_GNSS_BLCK_SIZE_OCT - tile;
+			size            =   p->size - tile;
 			usb_cdc_send( p->data + tile, size );
 	                p->tile         =   0;
 

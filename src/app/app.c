@@ -12,7 +12,7 @@
 #include "flog.h"
 #include "pmu.h"
 #include "usbd_desc.h"
-#include "usbd_cdc.h" 
+#include "usbd_cdc.h"
 #include "usbd_cdc_interface.h"
 
 
@@ -25,49 +25,32 @@ static  gnss_t                  gnss;
 
 static  uint8_t                 data_uart1_tx[ 2 ][ CFG_GNSS_BLCK_SIZE_OCT/2 ];
 static  uint8_t                 data_uart1_rx[ 2 ][ CFG_GNSS_BLCK_SIZE_OCT/2 ];
-//static  uint8_t                 data_uart2_tx[ 2 ][ CFG_GNSS_BLCK_SIZE_OCT/2 ];
-static  uint8_t                 data_uart2_rx[ 2 ][ CFG_GNSS_BLCK_SIZE_OCT/2 ];
-//static  uint8_t                 data_uart3_tx[ 2 ][ CFG_GNSS_BLCK_SIZE_OCT/2 ];
-static  uint8_t                 data_uart3_rx[ 2 ][ CFG_GNSS_BLCK_SIZE_OCT/2 ];
+static  uint8_t                 data_uart2_rx[ 2 ][ CFG_GNSS_UART2_BLCK_SIZE_OCT/2 ];
+static  uint8_t                 data_uart3_rx[ 2 ][ CFG_GNSS_UART3_BLCK_SIZE_OCT/2 ];
 
-        gnss_fifo_t             fifo_uart1_tx   =   {   .data     =   data_uart1_tx[0],
+        fifo_t                  fifo_uart1_tx   =   {   .data     =   data_uart1_tx[0],
                                                         .size     =   0,
                                                         .head     =   0,
                                                         .tile     =   0,
                                                         .overcome =   false };
 
-        gnss_fifo_t             fifo_uart1_rx   =   {   .data     =   data_uart1_rx[0],
-                                                        .size     =   0,
+        fifo_t                  fifo_uart1_rx   =   {   .data     =   data_uart1_rx[0],
+                                                        .size     =   CFG_GNSS_BLCK_SIZE_OCT,
                                                         .head     =   0,
                                                         .tile     =   0,
                                                         .overcome =   false };
 
-/*
-        gnss_fifo_t             fifo_uart2_tx   =   {   .data     =   data_uart2_tx[0],
-                                                        .size     =   0,
-                                                        .head     =   0,
-                                                        .tile     =   0,
-                                                        .overcome =   false };
-*/
-        gnss_fifo_t             fifo_uart2_rx   =   {   .data     =   data_uart2_rx[0],
-                                                        .size     =   0,
+        fifo_t                  fifo_uart2_rx   =   {   .data     =   data_uart2_rx[0],
+                                                        .size     =   CFG_GNSS_UART2_BLCK_SIZE_OCT,
                                                         .head     =   0,
                                                         .tile     =   0,
                                                         .overcome =   false };
 
-/*
-        gnss_fifo_t             fifo_uart3_tx   =   {   .data     =   data_uart3_tx[0],
-                                                        .size     =   0,
+        fifo_t                  fifo_uart3_rx   =   {   .data     =   data_uart3_rx[0],
+                                                        .size     =   CFG_GNSS_UART3_BLCK_SIZE_OCT,
                                                         .head     =   0,
                                                         .tile     =   0,
                                                         .overcome =   false };
-*/
-        gnss_fifo_t             fifo_uart3_rx   =   {   .data     =   data_uart3_rx[0],
-                                                        .size     =   0,
-                                                        .head     =   0,
-                                                        .tile     =   0,
-                                                        .overcome =   false };
-
 
 /**
   * @brief  This function is executed in case of error occurrence.
@@ -105,7 +88,8 @@ void app_clock_config( void )
 	osc.HSICalibrationValue =   0x10;
 	osc.PLL.PLLState        =   RCC_PLL_ON;
 	osc.PLL.PLLM            =   16;
-	osc.PLL.PLLN            =   200;
+	//osc.PLL.PLLN            =   200;
+	osc.PLL.PLLN            =   192;
 	osc.PLL.PLLP            =   RCC_PLLP_DIV2;
 	osc.PLL.PLLQ            =   15;
 
@@ -125,7 +109,7 @@ void app_clock_config( void )
 		app_error();
 	}
 
-	/* Activate the OverDrive to reach the 180 MHz Frequency */  
+	/* Activate the OverDrive to reach the 180 MHz Frequency */
 	HAL_PWREx_EnableOverDrive();
 
 	/* Select PLLSAI output as USB clock source */
@@ -140,9 +124,41 @@ void app_clock_config( void )
 }
 
 /**
+  * @brief  TIM_Config: Configure TIMx timer
+  * @param  None.
+  * @retval None
+  */
+static
+void TIM_Config( void )
+{
+	/* Set TIMx instance */
+	htim_cdc.Instance               =   TIM3;
+
+	//Initialize TIM3 peripheral as follow:
+	//	+ Period = 10000 - 1
+	//	+ Prescaler = ((SystemCoreClock/2)/10000) - 1
+	//	+ ClockDivision = 0
+	//	+ Counter direction = Up
+
+	//htim_cdc.Init.Period            =   (CDC_POLLING_INTERVAL * 1000) - 1;
+	htim_cdc.Init.Period            =   5000;
+	//htim_cdc.Init.Prescaler         =   84-1;
+	htim_cdc.Init.Prescaler         =   ( (SystemCoreClock / 2) / 10000 ) - 1;
+	htim_cdc.Init.ClockDivision     =   0;
+	htim_cdc.Init.CounterMode       =   TIM_COUNTERMODE_UP;
+
+	bsp_usb_cdc_init();
+
+	if( HAL_TIM_Base_Init( &htim_cdc ) != HAL_OK )
+	{
+		app_error();
+	}
+}
+
+/**
  * @brief
  */
-void HAL_UART_RxHalfCpltCallback(       UART_HandleTypeDef *    huart )
+void HAL_UART_RxHalfCpltCallback(               UART_HandleTypeDef *    huart )
 {
         if(      huart->Instance == USART1 )
         {
@@ -160,18 +176,18 @@ void HAL_UART_RxHalfCpltCallback(       UART_HandleTypeDef *    huart )
         }
         else if( huart->Instance == USART2 )
         {
-                bsp_mcu_uart3_xmit_start( data_uart2_rx[0], CFG_GNSS_BLCK_SIZE_OCT/2 );
+                //bsp_mcu_uart3_xmit_start( data_uart2_rx[0], CFG_GNSS_UART2_BLCK_SIZE_OCT/2 );
         }
         else if( huart->Instance == USART3 )
         {
-                bsp_mcu_uart2_xmit_start( data_uart3_rx[0], CFG_GNSS_BLCK_SIZE_OCT/2 );
+                //bsp_mcu_uart2_xmit_start( data_uart3_rx[0], CFG_GNSS_UART3_BLCK_SIZE_OCT/2 );
         }
 }
 
 /**
  * @brief
  */
-void HAL_UART_RxCpltCallback(           UART_HandleTypeDef *    huart )
+void HAL_UART_RxCpltCallback(                   UART_HandleTypeDef *    huart )
 {
 
         if(      huart->Instance == USART1 )
@@ -192,23 +208,106 @@ void HAL_UART_RxCpltCallback(           UART_HandleTypeDef *    huart )
         }
         else if( huart->Instance == USART2 )
         {
-                bsp_mcu_uart3_xmit_start( data_uart2_rx[1], CFG_GNSS_BLCK_SIZE_OCT/2 );
+                fifo_uart2_rx.overcome  =   true;
+                //bsp_mcu_uart3_xmit_start( data_uart2_rx[1], CFG_GNSS_UART2_BLCK_SIZE_OCT/2 );
         }
         else if( huart->Instance == USART3 )
         {
-                bsp_mcu_uart2_xmit_start( data_uart3_rx[1], CFG_GNSS_BLCK_SIZE_OCT/2 );
+                fifo_uart3_rx.overcome  =   true;
+                //bsp_mcu_uart2_xmit_start( data_uart3_rx[1], CFG_GNSS_UART3_BLCK_SIZE_OCT/2 );
         }
+
+}
+
+static
+void app_uart2_rx_hook(                         fifo_t *        p )
+{
+        size_t                  tile    =   p->tile;
+        size_t                  size    =   bsp_mcu_uart2_recv_dma_get();
+        size_t                  head    =   p->size - size;
+
+
+        if( head > tile )
+        {
+                size            =   head - tile;
+                bsp_mcu_uart3_xmit_start( p->data + tile, size );
+                p->tile         +=  size;
+        }
+        else if( head < tile )
+        {
+                if( p->overcome )
+                {
+                        p->overcome     = false;
+                        size            =   p->size - tile;
+                        bsp_mcu_uart3_xmit_start( p->data + tile, size );
+                        p->tile         =   0;
+
+                        #ifndef  NDEBUG
+                        p->total_overcomes++;
+                        #endif //NDEBUG
+                }
+                else
+                {
+                        #ifndef  NDEBUG
+                        p->total_overruns++;
+                        #endif //NDEBUG
+                }
+        }
+
+        #ifndef  NDEBUG
+        p->total_data           +=   size;
+        #endif //NDEBUG
+}
+
+static
+void app_uart3_rx_hook(                         fifo_t *                p )
+{
+        size_t                  tile    =   p->tile;
+        size_t                  size    =   bsp_mcu_uart3_recv_dma_get();
+        size_t                  head    =   p->size - size;
+
+
+        if( head > tile )
+        {
+                size            =   head - tile;
+                bsp_mcu_uart2_xmit_start( p->data + tile, size );
+                p->tile         +=  size;
+        }
+        else if( head < tile )
+        {
+                if( p->overcome )
+                {
+                        p->overcome     = false;
+                        size            =   p->size - tile;
+                        bsp_mcu_uart2_xmit_start( p->data + tile, size );
+                        p->tile         =   0;
+
+                        #ifndef  NDEBUG
+                        p->total_overcomes++;
+                        #endif //NDEBUG
+                }
+                else
+                {
+                        #ifndef  NDEBUG
+                        p->total_overruns++;
+                        #endif //NDEBUG
+                }
+        }
+
+        #ifndef  NDEBUG
+        p->total_data           +=   size;
+        #endif //NDEBUG
 
 }
 
 /**
  * @brief
  */
-void HAL_TIM_PeriodElapsedCallback(     TIM_HandleTypeDef *     htim_cdc )
+void HAL_TIM_PeriodElapsedCallback(             TIM_HandleTypeDef *     htim )
 {
         gnss_uart_rx_hook( &fifo_uart1_rx );
-        //app_uart2_rx_hook( &fifo_uart2_rx );
-        //app_uart3_rx_hook( &fifo_uart3_rx );
+        app_uart2_rx_hook( &fifo_uart2_rx );
+        app_uart3_rx_hook( &fifo_uart3_rx );
 }
 
 /**
@@ -253,6 +352,7 @@ int main( void )
 
 	ui_init();
 	ui_led_sd_set(          false                   );
+//ui_led_sd_set(          true                    );
 	ui_led_usb_set(         false                   );
 	ui_led_gnss_set(        UI_LED_GNSS_MODE_NONE   );
 	ui_led_pwr_set(         UI_LED_RGB_COLOR_BLACK  );
@@ -284,6 +384,15 @@ int main( void )
 
 	ui_key_pwr_reset();
 
+
+	TIM_Config();
+
+	if( HAL_TIM_Base_Start_IT( &htim_cdc ) != HAL_OK )
+	{
+		app_error();
+	}
+
+
 	flog_init( &flog );
 
 	pmu_ctl( PMU_CTL_GNSS_LDO_ON, true );
@@ -296,13 +405,16 @@ int main( void )
 	gnss_init( &gnss );
 	gnss_recv_start( fifo_uart1_rx.data, CFG_GNSS_BLCK_SIZE_OCT );
 
+//while( 1 );
 
-        bsp_mcu_uart2_init( 115200 );
-        bsp_mcu_uart3_init( 115200 );
-        //bsp_mcu_uart2_xmit_start( data_uart2_tx[0], CFG_GNSS_BLCK_SIZE_OCT );
-        bsp_mcu_uart2_recv_start( data_uart2_rx[0], CFG_GNSS_BLCK_SIZE_OCT );
-        //bsp_mcu_uart3_xmit_start( data_uart3_tx[0], CFG_GNSS_BLCK_SIZE_OCT );
-        bsp_mcu_uart3_recv_start( data_uart3_rx[0], CFG_GNSS_BLCK_SIZE_OCT );
+    bsp_mcu_uart2_init( 115200 );
+    bsp_mcu_uart3_init( 115200 );
+    //bsp_mcu_uart3_init( 9600 );
+
+    //bsp_mcu_uart2_xmit_start( data_uart2_tx[0], CFG_GNSS_BLCK_SIZE_OCT );
+    bsp_mcu_uart2_recv_start( data_uart2_rx[0], CFG_GNSS_UART2_BLCK_SIZE_OCT );
+    //bsp_mcu_uart3_xmit_start( data_uart3_tx[0], CFG_GNSS_BLCK_SIZE_OCT );
+    bsp_mcu_uart3_recv_start( data_uart3_rx[0], CFG_GNSS_UART3_BLCK_SIZE_OCT );
 
 
 	while( true )
