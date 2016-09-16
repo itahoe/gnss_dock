@@ -227,6 +227,11 @@ void app_uart2_rx_hook(                         fifo_t *        p )
         size_t                  head    =   p->size - size;
 
 
+        if( head >= p->size )
+        {
+                head            =   0;
+        }
+
         if( head > tile )
         {
                 size            =   head - tile;
@@ -262,24 +267,28 @@ void app_uart2_rx_hook(                         fifo_t *        p )
 static
 void app_uart3_rx_hook(                         fifo_t *                p )
 {
-        size_t                  tile    =   p->tile;
+        //size_t                  tile    =   p->tile;
         size_t                  size    =   bsp_mcu_uart3_recv_dma_get();
         size_t                  head    =   p->size - size;
 
-
-        if( head > tile )
+        if( head >= p->size )
         {
-                size            =   head - tile;
-                bsp_mcu_uart2_xmit_start( p->data + tile, size );
+                head            =   0;
+        }
+
+        if( head > p->tile )
+        {
+                size            =   head - p->tile;
+                bsp_mcu_uart2_xmit_start( p->data + p->tile, size );
                 p->tile         +=  size;
         }
-        else if( head < tile )
+        else if( head < p->tile )
         {
                 if( p->overcome )
                 {
                         p->overcome     = false;
-                        size            =   p->size - tile;
-                        bsp_mcu_uart2_xmit_start( p->data + tile, size );
+                        size            =   p->size - p->tile;
+                        bsp_mcu_uart2_xmit_start( p->data + p->tile, size );
                         p->tile         =   0;
 
                         #ifndef  NDEBUG
@@ -405,16 +414,12 @@ int main( void )
 	gnss_init( &gnss );
 	gnss_recv_start( fifo_uart1_rx.data, CFG_GNSS_BLCK_SIZE_OCT );
 
-//while( 1 );
 
-    bsp_mcu_uart2_init( 115200 );
-    bsp_mcu_uart3_init( 115200 );
-    //bsp_mcu_uart3_init( 9600 );
+        bsp_mcu_uart2_init( 115200 );
+        bsp_mcu_uart3_init( 115200 );
 
-    //bsp_mcu_uart2_xmit_start( data_uart2_tx[0], CFG_GNSS_BLCK_SIZE_OCT );
-    bsp_mcu_uart2_recv_start( data_uart2_rx[0], CFG_GNSS_UART2_BLCK_SIZE_OCT );
-    //bsp_mcu_uart3_xmit_start( data_uart3_tx[0], CFG_GNSS_BLCK_SIZE_OCT );
-    bsp_mcu_uart3_recv_start( data_uart3_rx[0], CFG_GNSS_UART3_BLCK_SIZE_OCT );
+        bsp_mcu_uart2_recv_start( data_uart2_rx[0], CFG_GNSS_UART2_BLCK_SIZE_OCT );
+        bsp_mcu_uart3_recv_start( data_uart3_rx[0], CFG_GNSS_UART3_BLCK_SIZE_OCT );
 
 
 	while( true )

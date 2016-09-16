@@ -11,7 +11,7 @@
 
 static  DMA_HandleTypeDef       hdma_tx;
 static  DMA_HandleTypeDef       hdma_rx;
-static  UART_HandleTypeDef      huart;
+static  UART_HandleTypeDef      huart3;
 
 
 static
@@ -59,7 +59,7 @@ int bsp_mcu_uart_dma_init( void )
 	hdma_tx.Init.PeriphBurst                =   DMA_PBURST_INC4;
 
 	HAL_DMA_Init( &hdma_tx );
-	__HAL_LINKDMA( &huart, hdmatx, hdma_tx );
+	__HAL_LINKDMA( &huart3, hdmatx, hdma_tx );
 
 	hdma_rx.Instance                        =   DMA1_Stream1;
 	hdma_rx.Init.Channel                    =   DMA_CHANNEL_4;
@@ -76,7 +76,7 @@ int bsp_mcu_uart_dma_init( void )
 	hdma_rx.Init.PeriphBurst                =   DMA_PBURST_INC4;
 
 	HAL_DMA_Init( &hdma_rx );
-	__HAL_LINKDMA( &huart, hdmarx, hdma_rx );
+	__HAL_LINKDMA( &huart3, hdmarx, hdma_rx );
 
 	return( resp );
 }
@@ -86,14 +86,14 @@ int bsp_mcu_uart_dma_init( void )
  */
 void bsp_mcu_uart3_init(                const   size_t          baud )
 {
-	huart.Instance           =   USART3;
-	huart.Init.BaudRate      =   baud;
-	huart.Init.WordLength    =   UART_WORDLENGTH_8B;
-	huart.Init.StopBits      =   UART_STOPBITS_1;
-	huart.Init.Parity        =   UART_PARITY_NONE;
-	huart.Init.Mode          =   UART_MODE_TX_RX;
-	huart.Init.HwFlowCtl     =   UART_HWCONTROL_NONE;
-	huart.Init.OverSampling  =   UART_OVERSAMPLING_16;
+	huart3.Instance          =   USART3;
+	huart3.Init.BaudRate     =   baud;
+	huart3.Init.WordLength   =   UART_WORDLENGTH_8B;
+	huart3.Init.StopBits     =   UART_STOPBITS_1;
+	huart3.Init.Parity       =   UART_PARITY_NONE;
+	huart3.Init.Mode         =   UART_MODE_TX_RX;
+	huart3.Init.HwFlowCtl    =   UART_HWCONTROL_NONE;
+	huart3.Init.OverSampling =   UART_OVERSAMPLING_16;
 
 
 	__HAL_RCC_USART3_CLK_ENABLE();
@@ -101,16 +101,16 @@ void bsp_mcu_uart3_init(                const   size_t          baud )
 	__HAL_RCC_USART3_FORCE_RESET();
 	__HAL_RCC_USART3_RELEASE_RESET();
 
-	HAL_UART_Init( &huart );
+	HAL_UART_Init( &huart3 );
 
 	bsp_mcu_uart_io_init();
 	bsp_mcu_uart_dma_init();
 
 
-	HAL_NVIC_SetPriority(   DMA1_Stream3_IRQn,      BSP_NVIC_PRIO_GNSS_DMA_TX, 0 ); //DMA TX
+	HAL_NVIC_SetPriority(   DMA1_Stream3_IRQn,      BSP_NVIC_PRIO_GNSS_DMA_TX, 0 );
 	HAL_NVIC_EnableIRQ(     DMA1_Stream3_IRQn );
 
-	HAL_NVIC_SetPriority(   DMA1_Stream1_IRQn,      BSP_NVIC_PRIO_GNSS_DMA_RX, 0 ); //DMA RX
+	HAL_NVIC_SetPriority(   DMA1_Stream1_IRQn,      BSP_NVIC_PRIO_GNSS_DMA_RX, 0 );
 	HAL_NVIC_EnableIRQ(     DMA1_Stream1_IRQn );
 
 	HAL_NVIC_SetPriority(   USART3_IRQn,            BSP_NVIC_PRIO_GNSS_RECV_SMBL, 0 );
@@ -122,7 +122,7 @@ void bsp_mcu_uart3_init(                const   size_t          baud )
  */
 void bsp_mcu_uart3_isr(                         void )
 {
-        HAL_UART_IRQHandler( &huart );
+        HAL_UART_IRQHandler( &huart3 );
 }
 
 /**
@@ -130,7 +130,7 @@ void bsp_mcu_uart3_isr(                         void )
  */
 void bsp_mcu_uart3_dma_tx_isr(                  void )
 {
-        HAL_DMA_IRQHandler( huart.hdmatx );
+        HAL_DMA_IRQHandler( huart3.hdmatx );
 }
 
 /**
@@ -138,7 +138,7 @@ void bsp_mcu_uart3_dma_tx_isr(                  void )
  */
 void bsp_mcu_uart3_dma_rx_isr(                  void )
 {
-        HAL_DMA_IRQHandler( huart.hdmarx );
+        HAL_DMA_IRQHandler( huart3.hdmarx );
 }
 
 /**
@@ -147,7 +147,7 @@ void bsp_mcu_uart3_dma_rx_isr(                  void )
 void bsp_mcu_uart3_xmit_start(              uint8_t *           data,
                                             size_t              size )
 {
-	HAL_UART_Transmit_DMA( &huart, data, size );
+	HAL_UART_Transmit_DMA( &huart3, data, size );
 }
 
 /**
@@ -156,7 +156,7 @@ void bsp_mcu_uart3_xmit_start(              uint8_t *           data,
 void bsp_mcu_uart3_recv_start(              uint8_t *           data,
                                             size_t              size )
 {
-	HAL_UART_Receive_DMA( &huart, data, size );
+	HAL_UART_Receive_DMA( &huart3, data, size );
 }
 
 /**

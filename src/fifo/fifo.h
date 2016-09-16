@@ -20,6 +20,7 @@ typedef	struct	fifo_s
         size_t                  size;
         size_t                  head;
         size_t                  tile;
+        size_t                  ndtr;
         bool                    overcome;
 
         #ifndef NDEBUG
