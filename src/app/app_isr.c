@@ -10,7 +10,7 @@
 #include "app.h"
 
 
-extern TIM_HandleTypeDef        htim_cdc;
+//extern TIM_HandleTypeDef        htim_cdc;
 extern PCD_HandleTypeDef        hpcd;
 
 
@@ -179,9 +179,7 @@ void SysTick_Handler(void)
 	ui_led_usb_hook();
 	ui_led_pwr_hook();
 	ui_led_gnss_hook();
-
         app_systick_hook();
-
 	HAL_IncTick();
 }
 
@@ -287,7 +285,7 @@ void DMA2_Stream3_IRQHandler(void)
   */
 void DMA2_Stream6_IRQHandler(void)
 {
-	BSP_SD_DMA_Tx_IRQHandler(); 
+	BSP_SD_DMA_Tx_IRQHandler();
 }
 
 /**
@@ -309,17 +307,9 @@ void OTG_HS_IRQHandler(void)
   * @param  None
   * @retval None
   */
+/*
 void TIM3_IRQHandler( void )
 {
         HAL_TIM_IRQHandler( &htim_cdc );
-/*
-	if( __HAL_TIM_GET_FLAG( &htim_cdc, TIM_FLAG_UPDATE ) != RESET )
-	{
-		if( __HAL_TIM_GET_IT_SOURCE( &htim_cdc, TIM_IT_UPDATE ) !=RESET )
-		{
-			__HAL_TIM_CLEAR_IT( &htim_cdc, TIM_IT_UPDATE );
-			gnss_uart_rx_hook( &gnss_data_uart_rx );
-		}
-	}
-*/
 }
+*/

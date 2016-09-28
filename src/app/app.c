@@ -21,7 +21,7 @@ static  flog_t                  flog;
 static  gnss_t                  gnss;
         time_t                  time_dat        =   0;
         USBD_HandleTypeDef      husbd;
-        TIM_HandleTypeDef       htim_cdc;
+        //TIM_HandleTypeDef       htim_cdc;
 
 static  uint8_t                 data_uart1_tx[ 2 ][ CFG_GNSS_BLCK_SIZE_OCT/2 ];
 static  uint8_t                 data_uart1_rx[ 2 ][ CFG_GNSS_BLCK_SIZE_OCT/2 ];
@@ -128,10 +128,11 @@ void app_clock_config( void )
   * @param  None.
   * @retval None
   */
+/*
 static
 void TIM_Config( void )
 {
-	/* Set TIMx instance */
+	//Set TIMx instance
 	htim_cdc.Instance               =   TIM3;
 
 	//Initialize TIM3 peripheral as follow:
@@ -154,6 +155,7 @@ void TIM_Config( void )
 		app_error();
 	}
 }
+*/
 
 /**
  * @brief
@@ -312,12 +314,14 @@ void app_uart3_rx_hook(                         fifo_t *                p )
 /**
  * @brief
  */
+/*
 void HAL_TIM_PeriodElapsedCallback(             TIM_HandleTypeDef *     htim )
 {
-        gnss_uart_rx_hook( &fifo_uart1_rx );
-        app_uart2_rx_hook( &fifo_uart2_rx );
-        app_uart3_rx_hook( &fifo_uart3_rx );
+        //gnss_uart_rx_hook( &fifo_uart1_rx );
+        //app_uart2_rx_hook( &fifo_uart2_rx );
+        //app_uart3_rx_hook( &fifo_uart3_rx );
 }
+*/
 
 /**
  * @brief
@@ -339,6 +343,15 @@ void app_systick_hook( void )
 		#ifndef	NDEBUG
 		app.tick_1hz_cnt++;
 		#endif
+	}
+
+	if( ++(app.cdc_tick) > (CFG_USB_CDC_TICK_mSEC * BSP_SYSTICK_HZ)/1000 )
+	{
+		app.cdc_tick        =    0;
+
+                gnss_uart_rx_hook( &fifo_uart1_rx );
+                app_uart2_rx_hook( &fifo_uart2_rx );
+                app_uart3_rx_hook( &fifo_uart3_rx );
 	}
 }
 
@@ -393,14 +406,14 @@ int main( void )
 
 	ui_key_pwr_reset();
 
-
+/*
 	TIM_Config();
 
 	if( HAL_TIM_Base_Start_IT( &htim_cdc ) != HAL_OK )
 	{
 		app_error();
 	}
-
+*/
 
 	flog_init( &flog );
 

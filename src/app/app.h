@@ -48,6 +48,7 @@ typedef	struct	app_s
 	app_event_t     evt;
 	app_status_t    sts;
 	size_t          tick_1hz;
+	size_t          cdc_tick;
 
 	#ifndef NDEBUG
 	size_t          ism_pckts_sent;
