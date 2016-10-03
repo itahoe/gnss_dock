@@ -16,12 +16,11 @@
 #include "usbd_cdc_interface.h"
 
 
+        time_t                  time_dat        =   0;
 static  app_t                   app;
 static  flog_t                  flog;
 static  gnss_t                  gnss;
-        time_t                  time_dat        =   0;
         USBD_HandleTypeDef      husbd;
-        //TIM_HandleTypeDef       htim_cdc;
 
 static  uint8_t                 data_uart1_tx[ 2 ][ CFG_GNSS_BLCK_SIZE_OCT/2 ];
 static  uint8_t                 data_uart1_rx[ 2 ][ CFG_GNSS_BLCK_SIZE_OCT/2 ];
@@ -40,13 +39,13 @@ static  uint8_t                 data_uart3_rx[ 2 ][ CFG_GNSS_UART3_BLCK_SIZE_OCT
                                                         .tile     =   0,
                                                         .overcome =   false };
 
-        fifo_t                  fifo_uart2_rx   =   {   .data     =   data_uart2_rx[0],
+static  fifo_t                  fifo_uart2_rx   =   {   .data     =   data_uart2_rx[0],
                                                         .size     =   CFG_GNSS_UART2_BLCK_SIZE_OCT,
                                                         .head     =   0,
                                                         .tile     =   0,
                                                         .overcome =   false };
 
-        fifo_t                  fifo_uart3_rx   =   {   .data     =   data_uart3_rx[0],
+static  fifo_t                  fifo_uart3_rx   =   {   .data     =   data_uart3_rx[0],
                                                         .size     =   CFG_GNSS_UART3_BLCK_SIZE_OCT,
                                                         .head     =   0,
                                                         .tile     =   0,
@@ -124,40 +123,6 @@ void app_clock_config( void )
 }
 
 /**
-  * @brief  TIM_Config: Configure TIMx timer
-  * @param  None.
-  * @retval None
-  */
-/*
-static
-void TIM_Config( void )
-{
-	//Set TIMx instance
-	htim_cdc.Instance               =   TIM3;
-
-	//Initialize TIM3 peripheral as follow:
-	//	+ Period = 10000 - 1
-	//	+ Prescaler = ((SystemCoreClock/2)/10000) - 1
-	//	+ ClockDivision = 0
-	//	+ Counter direction = Up
-
-	//htim_cdc.Init.Period            =   (CDC_POLLING_INTERVAL * 1000) - 1;
-	htim_cdc.Init.Period            =   5000;
-	//htim_cdc.Init.Prescaler         =   84-1;
-	htim_cdc.Init.Prescaler         =   ( (SystemCoreClock / 2) / 10000 ) - 1;
-	htim_cdc.Init.ClockDivision     =   0;
-	htim_cdc.Init.CounterMode       =   TIM_COUNTERMODE_UP;
-
-	bsp_usb_cdc_init();
-
-	if( HAL_TIM_Base_Init( &htim_cdc ) != HAL_OK )
-	{
-		app_error();
-	}
-}
-*/
-
-/**
  * @brief
  */
 void HAL_UART_RxHalfCpltCallback(               UART_HandleTypeDef *    huart )
@@ -171,18 +136,20 @@ void HAL_UART_RxHalfCpltCallback(               UART_HandleTypeDef *    huart )
                 {
                         ui_led_sd_set( false );
                         flog_write( &flog, data, size );
-                        ui_led_sd_set( true );
+
+                        if( flog_sts_get( &flog ) == FR_OK )
+                        {
+                                ui_led_sd_set( true );
+                        }
                 }
 
                 gnss_read( &gnss, data, size );
         }
         else if( huart->Instance == USART2 )
         {
-                //bsp_mcu_uart3_xmit_start( data_uart2_rx[0], CFG_GNSS_UART2_BLCK_SIZE_OCT/2 );
         }
         else if( huart->Instance == USART3 )
         {
-                //bsp_mcu_uart2_xmit_start( data_uart3_rx[0], CFG_GNSS_UART3_BLCK_SIZE_OCT/2 );
         }
 }
 
@@ -203,7 +170,11 @@ void HAL_UART_RxCpltCallback(                   UART_HandleTypeDef *    huart )
                 {
                         ui_led_sd_set( false );
                         flog_write( &flog, data, size );
-                        ui_led_sd_set( true );
+
+                        if( flog_sts_get( &flog ) == FR_OK )
+                        {
+                                ui_led_sd_set( true );
+                        }
                 }
 
                 gnss_read( &gnss, data, size );
@@ -314,18 +285,6 @@ void app_uart3_rx_hook(                         fifo_t *                p )
 /**
  * @brief
  */
-/*
-void HAL_TIM_PeriodElapsedCallback(             TIM_HandleTypeDef *     htim )
-{
-        //gnss_uart_rx_hook( &fifo_uart1_rx );
-        //app_uart2_rx_hook( &fifo_uart2_rx );
-        //app_uart3_rx_hook( &fifo_uart3_rx );
-}
-*/
-
-/**
- * @brief
- */
 void app_systick_hook( void )
 {
 	app.evt.ui_key_pwr  =    ui_key_pwr_hook() ? true : false;
@@ -374,7 +333,6 @@ int main( void )
 
 	ui_init();
 	ui_led_sd_set(          false                   );
-//ui_led_sd_set(          true                    );
 	ui_led_usb_set(         false                   );
 	ui_led_gnss_set(        UI_LED_GNSS_MODE_NONE   );
 	ui_led_pwr_set(         UI_LED_RGB_COLOR_BLACK  );
@@ -406,15 +364,6 @@ int main( void )
 
 	ui_key_pwr_reset();
 
-/*
-	TIM_Config();
-
-	if( HAL_TIM_Base_Start_IT( &htim_cdc ) != HAL_OK )
-	{
-		app_error();
-	}
-*/
-
 	flog_init( &flog );
 
 	pmu_ctl( PMU_CTL_GNSS_LDO_ON, true );
@@ -426,7 +375,6 @@ int main( void )
 
 	gnss_init( &gnss );
 	gnss_recv_start( fifo_uart1_rx.data, CFG_GNSS_BLCK_SIZE_OCT );
-
 
         bsp_mcu_uart2_init( 115200 );
         bsp_mcu_uart3_init( 115200 );
@@ -464,10 +412,6 @@ int main( void )
 			switch( ui_key_func_status() )
 			{
 				case UI_KEY_STS_SHORT:
-					gnss_send( &gnss, CFG_GNSS_MSG_KEY1S );
-					break;
-
-				case UI_KEY_STS_LONG:
 					if( flog.sts.enable )
 					{
 						flog_close( &flog );
@@ -477,8 +421,18 @@ int main( void )
 						flog_open( &flog );
 					}
 
-					ui_led_sd_set( flog.sts.enable );
+                                        ui_led_sd_set( flog.sts.enable );
 
+                                        if( flog_sts_get( &flog ) != FR_OK )
+                                        {
+                                                ui_led_sd_flash( UI_LED_FLSH_SHRT_TCKS );
+                                        }
+
+                                        //ui_led_pwr_flash( UI_LED_FLSH_SHRT_TCKS );
+					break;
+
+				case UI_KEY_STS_LONG:
+					gnss_send( &gnss, CFG_GNSS_MSG_KEY1S );
 					break;
 
 				default:
@@ -510,13 +464,7 @@ int main( void )
 				default:                ui_led_pwr_set( UI_LED_RGB_COLOR_WHITE   ); break;
 			}
 
-			ui_led_pwr_flash( UI_LED_FLSH_SHRT_TCKS );
-
-			//APP_TRACE(	"\n" );
-			//APP_TRACE(	"FLOG=%c ", flog.sts.enable ? '1' : '0' );
-			//APP_TRACE(	"OVR=%d ", gnss_data_uart_rx.total_overruns );
-			//APP_TRACE(	"OVC=%d ", gnss_data_uart_rx.total_overcomes );
-			//APP_TRACE(	"DAT=%d ", gnss_data_uart_rx.total_data );
+			//ui_led_pwr_flash( UI_LED_FLSH_SHRT_TCKS );
 		}
 
 	}

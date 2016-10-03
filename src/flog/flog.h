@@ -31,24 +31,27 @@ typedef struct  flog_s
 	FIL             file_log;
 	char            fname[ _MAX_LFN ];
 	uint8_t *       data;
+	FRESULT         fresult;
 }	flog_t;
 
-void	flog_init(                      flog_t *                p );
+void	flog_init(                              flog_t *                p );
 
-bool	flog_save_hook(                 flog_t *                p,
-	                                char                    c );
+bool	flog_save_hook(                         flog_t *                p,
+                                                char                    c );
 
-void	flog_close(                     flog_t *                p );
+void flog_close(                                flog_t *                p );
 
-void	flog_open(                      flog_t *                p );
+void flog_open(                                 flog_t *                p );
 
-void	flog_write(                     flog_t *                p,
-	                        const   uint8_t *               data,
-	                                size_t                  len );
+void flog_write(                                flog_t *                p,
+                                        const   uint8_t *               pbuf,
+                                                size_t                  len );
 
-int	flog_name_compose(              char *                  str,
-	                        const   char *			ext,
-	                                size_t                  len_max );
+int flog_name_compose(                          char *                  str,
+                                        const   char *			ext,
+                                                size_t                  max_len );
+
+FRESULT flog_sts_get(                           flog_t *                p );
 
 
 #endif	//FLOG_H
