@@ -382,6 +382,7 @@ int main( void )
         bsp_mcu_uart2_recv_start( data_uart2_rx[0], CFG_GNSS_UART2_BLCK_SIZE_OCT );
         bsp_mcu_uart3_recv_start( data_uart3_rx[0], CFG_GNSS_UART3_BLCK_SIZE_OCT );
 
+        APP_TRACE( "sizeof(GGA) = %d\n", sizeof("GGA") );
 
 	while( true )
 	{
@@ -392,7 +393,7 @@ int main( void )
 			switch( ui_key_pwr_status() )
 			{
 				case UI_KEY_STS_SHORT:
-					//ui_led_pwr_flash( UI_LED_FLSH_SHRT_TCKS );
+					ui_led_pwr_flash( UI_LED_FLSH_SHRT_TCKS );
 					//gnss_send( &gnss, CFG_GNSS_MSG_KEY0S );
 					break;
 
@@ -412,6 +413,9 @@ int main( void )
 			switch( ui_key_func_status() )
 			{
 				case UI_KEY_STS_SHORT:
+
+					ui_led_pwr_flash( UI_LED_FLSH_SHRT_TCKS );
+
 					if( flog.sts.enable )
 					{
 						flog_close( &flog );
@@ -428,10 +432,10 @@ int main( void )
                                                 ui_led_sd_flash( UI_LED_FLSH_SHRT_TCKS );
                                         }
 
-                                        //ui_led_pwr_flash( UI_LED_FLSH_SHRT_TCKS );
 					break;
 
 				case UI_KEY_STS_LONG:
+					ui_led_pwr_flash( UI_LED_FLSH_LONG_TCKS );
 					gnss_send( &gnss, CFG_GNSS_MSG_KEY1S );
 					break;
 

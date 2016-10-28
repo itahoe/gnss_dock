@@ -16,8 +16,6 @@ bool nmea_recv_gsa(                         nmea_gsa_t *        gsa,
 	size_t          sat_id_sizeof   =   sizeof( gsa->sat_id ) / sizeof( int );
 
 
-	while( *str++ != ',' );
-
 	switch( *str++ )
 	{
 		case 'A':   gsa->sel_mode       =   NMEA_SEL_MODE_AUTO;     break;

@@ -42,21 +42,21 @@ bool nmea_recv(                             nmea_t *            nmea,
 			default:        nmea->nsid  =   NMEA_NSID_INVALID;      break;
 		}
 
-		if(         strncmp( &str[2], "GGA", 3) == 0 )
+		if(         strncmp( str+2, "GGA,", sizeof("GGA") ) == 0 )
 		{
-			resp    =   nmea_recv_gga( &nmea->gga, &str[5] );
+			resp    =   nmea_recv_gga( &nmea->gga, str+6 );
 		}
-		else if(    strncmp( &str[2], "GSA", 3) == 0 )
+		else if(    strncmp( str+2, "GSA,", sizeof("GSA") ) == 0 )
 		{
-			resp    =   nmea_recv_gsa( &nmea->gsa, &str[5] );
+			resp    =   nmea_recv_gsa( &nmea->gsa, str+6 );
 		}
-		else if(    strncmp( &str[2], "GSV", 3) == 0 )
+		else if(    strncmp( str+2, "GSV,", sizeof("GSV") ) == 0 )
 		{
-			resp    =   nmea_recv_gsv( &nmea->gsv, &str[5] );
+			resp    =   nmea_recv_gsv( &nmea->gsv, str+6 );
 		}
-		else if(    strncmp( &str[2], "RMC", 3) == 0 )
+		else if(    strncmp( str+2, "RMC,", sizeof("RMC") ) == 0 )
 		{
-			resp    =   nmea_recv_rmc( &nmea->rmc, &str[5] );
+			resp    =   nmea_recv_rmc( &nmea->rmc, str+6 );
 		}
 		else
 		{
@@ -65,10 +65,11 @@ bool nmea_recv(                             nmea_t *            nmea,
 	}
 	else if(    str[0] == 'P' ) //sentence type: proprietary
 	{
-		resp    =   true;
+		resp    =   nmea_recv_x( &nmea->ext, str+6 );
 	}
-	else                        //sentence type: unsupported
+	else
 	{
+		resp    =   false; //sentence type: unsupported
 	}
 
 	return( resp );

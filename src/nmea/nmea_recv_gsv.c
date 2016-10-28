@@ -16,8 +16,6 @@ bool nmea_recv_gsv(                         nmea_gsv_t *        gsv,
 	int             msg_num;
 
 
-	while( *str++ != ',' );
-
 	nmea_str2int( &gsv->msgs_total, str );
 
 	while( *str++ != ',' );

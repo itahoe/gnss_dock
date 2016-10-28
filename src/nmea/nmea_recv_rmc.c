@@ -15,8 +15,6 @@ bool nmea_recv_rmc(                         nmea_rmc_t *        rmc,
 	bool            resp            =   true;
 
 
-	while( *str++ != ',' );
-
 	nmea_str2time( &rmc->tm_dat, str );
 
 	while( *str++ != ',' );

@@ -15,8 +15,6 @@ bool nmea_recv_gga(                         nmea_gga_t *        gga,
 	bool            resp            =   true;
 
 
-	while( *str++ != ',' );
-
 	nmea_str2time( &gga->tm_dat, str );
 
 	while( *str++ != ',' );

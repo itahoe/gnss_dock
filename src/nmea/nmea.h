@@ -13,6 +13,7 @@
 #include	<string.h>
 #include	<time.h>
 #include	"config.h"
+#include	"nmea_x.h"
 
 #define	NMEA_STRLEN_MAX_OCT             (80 + CFG_NMEA_STRLEN_EXTRA_OCT)
 
@@ -64,7 +65,6 @@ typedef	enum nmea_sts_s
 typedef	struct	nmea_gga_s
 {
 	struct tm	        tm_dat;
-	//uint32_t                timestamp;
 	float                   latitude;
 	float                   longitude;
 	nmea_fix_t              fix;
@@ -119,6 +119,7 @@ typedef	struct	nmea_s
 	nmea_gsa_t              gsa;
 	nmea_gsv_t              gsv;
 	nmea_rmc_t              rmc;
+        nmea_ext_t              ext;
 } nmea_t;
 
 
@@ -126,7 +127,6 @@ static
 void nmea_str2int(                          int *               i,
                                     const   char *              str )
 {
-	//*i      =   atoi( str );
 	*i      =   strtol( str, NULL, 10 );
 }
 
@@ -134,7 +134,6 @@ static
 void nmea_str2flt(                          float *             f,
                                     const   char *              str )
 {
-	//*f      =   atof( str );
 	*f      =   strtof( str, NULL );
 }
 
@@ -166,17 +165,17 @@ void nmea_str2date(                         struct tm *         p,
 	p->tm_year  +=  ( *str++ - '0' ) * 1;
 }
 
-void	nmea_init(     nmea_t * nmea );
+void nmea_init(     nmea_t * nmea );
 
-size_t  nmea_chksum( uint8_t *chksum, const char *str, const char eol );
+size_t nmea_chksum( uint8_t *chksum, const char *str, const char eol );
 
-bool	nmea_recv( nmea_t * nmea, const char * str );
+bool nmea_recv( nmea_t * nmea, const char * str );
 
-bool	nmea_recv_char( nmea_t * nmea, const char c );
+bool nmea_recv_char( nmea_t * nmea, const char c );
 
-bool	nmea_recv_gga( nmea_gga_t * gga, const char * str );
-bool	nmea_recv_gsa( nmea_gsa_t * gsa, const char * str );
-bool	nmea_recv_gsv( nmea_gsv_t * gsv, const char * str );
-bool	nmea_recv_rmc( nmea_rmc_t * rmc, const char * str );
+bool nmea_recv_gga( nmea_gga_t * gga, const char * str );
+bool nmea_recv_gsa( nmea_gsa_t * gsa, const char * str );
+bool nmea_recv_gsv( nmea_gsv_t * gsv, const char * str );
+bool nmea_recv_rmc( nmea_rmc_t * rmc, const char * str );
 
 #endif	//GNSS_H
