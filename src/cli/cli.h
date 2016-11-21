@@ -17,26 +17,14 @@ typedef char cli_str_t;
 
 typedef enum    cli_cmd_id_e
 {
-	CLI_CMD_ID_HELP = 0,
-	CLI_CMD_ID_H,
-	CLI_CMD_ID_SPEED,
-	CLI_CMD_ID_S,
-	CLI_CMD_ID_TORQUE,
-	CLI_CMD_ID_T,
-	CLI_CMD_ID_POWER,
-	CLI_CMD_ID_P,
-	CLI_CMD_ID_STAT,
-	CLI_CMD_ID_C,
-	CLI_CMD_ID_COCAL,
-	CLI_CMD_ID_ID,
-	CLI_CMD_ID_LOAD,
-	CLI_CMD_ID_INVALID,
+	CLI_CMD_ID_NVGLOG = 0,
 } cli_cmd_id_t;
 
 typedef enum    cli_state_e
 {
 	CLI_STATE_CMD = 0,
-	CLI_STATE_ARG,
+	CLI_STATE_ARG1,
+	CLI_STATE_ARG2,
 } cli_state_t;
 
 typedef struct  cli_struct_s

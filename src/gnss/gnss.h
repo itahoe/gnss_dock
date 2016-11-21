@@ -28,24 +28,25 @@ typedef	struct	gnss_s
 } gnss_t;
 
 
-void gnss_time_sync(                            gnss_t *        gnss,
-                                                time_t *        time_dat );
+void gnss_time_sync(                            gnss_t *                gnss,
+                                                time_t *                time_dat );
 
-void gnss_ui_set(                               gnss_t *        gnss );
+void gnss_ui_set(                               gnss_t *                gnss );
 
-void gnss_init(                                 gnss_t *        gnss );
+void gnss_init(                                 gnss_t *                gnss );
 
-void gnss_recv_start(                           uint8_t *       data,
-                                                size_t          size );
+void gnss_recv_start(                           uint8_t *               data,
+                                                size_t                  size );
 
-void gnss_send(                                 gnss_t *        gnss,
-                                        const   char *          str );
+void gnss_send(                                 gnss_t *                gnss,
+                                        const   char *                  str );
 
-void gnss_read(                                 gnss_t *        gnss,
-                                        const   uint8_t *       str,
-                                                size_t          size );
+void gnss_read(                                 gnss_t *                gnss,
+                                        const   uint8_t *               str,
+                                                size_t                  size );
 
-void gnss_uart_rx_hook(                         fifo_t *        p );
+void gnss_uart_rx_hook(                         fifo_t *                p,
+                                                size_t                  size );
 
 
 #endif	//GNSS_H

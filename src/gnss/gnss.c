@@ -105,11 +105,10 @@ void gnss_recv_start(                           uint8_t *       data,
 /**
  * @brief GNSS UART recieve hook
  */
-void gnss_uart_rx_hook(                         fifo_t *        p )
+void gnss_uart_rx_hook(                         fifo_t *                p,
+                                                size_t                  size )
 {
         size_t                  tile    =   p->tile;
-        size_t                  size    =   bsp_mcu_uart1_recv_dma_get();
-        //size_t                  head    =   CFG_GNSS_BLCK_SIZE_OCT - size;
         size_t                  head    =   p->size - size;
 
 
@@ -127,20 +126,13 @@ void gnss_uart_rx_hook(                         fifo_t *        p )
 			size            =   p->size - tile;
 			usb_cdc_send( p->data + tile, size );
 	                p->tile         =   0;
-
-			#ifndef  NDEBUG
-			p->total_overcomes++;
-			#endif //NDEBUG
+                        fifo_dbg_overcome_increment( p );
 		}
 		else
 		{
-			#ifndef  NDEBUG
-			p->total_overruns++;
-			#endif //NDEBUG
+                        fifo_dbg_overrun_increment( p );
 		}
 	}
 
-        #ifndef  NDEBUG
-        p->total_data           +=   size;
-        #endif //NDEBUG
+        fifo_dbg_datablcks_increment( p, size );
 }

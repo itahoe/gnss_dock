@@ -9,15 +9,7 @@
 
 static const cli_cmd_t cli_cmd[] =
 {
-	{ CLI_CMD_ID_HELP,      "help",    }, { CLI_CMD_ID_H,   "h",       },
-	{ CLI_CMD_ID_SPEED,     "speed",   }, { CLI_CMD_ID_S,   "s",       },
-	{ CLI_CMD_ID_TORQUE,    "torque",  }, { CLI_CMD_ID_T,   "t",       },
-	{ CLI_CMD_ID_POWER,     "power",   }, { CLI_CMD_ID_P,   "p",       },
-	{ CLI_CMD_ID_COCAL,     "cocal",   }, { CLI_CMD_ID_C,   "c",       },
-	{ CLI_CMD_ID_STAT,      "stat",    },
-	{ CLI_CMD_ID_ID,        "id",      },
-	{ CLI_CMD_ID_LOAD,      "load",    },
-	{ CLI_CMD_ID_INVALID,   "invalid", },
+	{ CLI_CMD_ID_NVGLOG,    "NVGLOG",  },
 };
 
 /**
@@ -42,7 +34,7 @@ bool cli_hook_cmd( cli_t *p )
 
 		p->cmd_id       =    (cli_cmd_id_t) id;
 		p->len          =    0;
-		p->state        =    CLI_STATE_ARG;
+		p->state        =    CLI_STATE_ARG1;
 	}
 
 	return resp;
@@ -57,23 +49,21 @@ bool cli_hook_arg( cli_t *p )
 	bool resp;
 
 
-	switch (p->state) {
-	case CLI_STATE_ARG: {
-		p->arg  =    atoi( p->buf );
-		resp    =    true;
-		break;
-	}
+	switch( p->state )
+        {
+                case CLI_STATE_ARG1:
+                        p->arg  =    atoi( p->buf );
+                        resp    =    true;
+                        break;
 
-	case CLI_STATE_CMD: {
-		cli_hook_cmd( p );
-		resp    =    true;
-		break;
-	}
+                case CLI_STATE_CMD:
+                        cli_hook_cmd( p );
+                        resp    =    true;
+                        break;
 
-	default: {
-		resp    =    false;
-		break;
-	}
+                default:
+                        resp    =    false;
+                        break;
 	}
 
 	p->state =    CLI_STATE_CMD;
@@ -91,30 +81,72 @@ bool cli_hook( cli_t *p, char c )
 	const size_t buf_size = sizeof(p->buf) / sizeof(cli_str_t);
 
 
-	switch (c) {
-	case    ' ':
-	case    '=': {
-		*(p->buf + p->len) = '\0';
-		resp = cli_hook_cmd(p);
-		break;
-	}
+	switch( c )
+        {
+                case    ',':
+                        *(p->buf + p->len) = '\0';
+                        resp = cli_hook_cmd(p);
+                        break;
 
-	case    '\r':
-	case    '\n': {
-		// TODO: p->arg may still containe previous arg value
-		*(p->buf + p->len) = '\0';
-		resp = cli_hook_arg(p);
-		break;
-	}
+                case    '\r':
+                case    '\n':
+                        // TODO: p->arg may still containe previous arg value
+                        *(p->buf + p->len) = '\0';
+                        resp = cli_hook_arg(p);
+                        break;
 
-	default: {
-		if (p->len < buf_size) {
-			*(p->buf + p->len++) = c;
-		}
-		resp = false;
-		break;
-	}
+                default:
+                        if (p->len < buf_size)
+                        {
+                                *(p->buf + p->len++) = c;
+                        }
+                        resp = false;
+                        break;
 	}
 
 	return resp;
+
+
+
+
+
+/*
+		case    '\n':
+			resp            =   nmea_recv( &gnss->nmea, (char *) recv_buf );
+
+
+
+
+	bool            resp        =   false;
+	gnss_data_t *   recv        =   &gnss->recv;
+	uint8_t *       recv_buf    =   recv->buf[ 0 ];
+
+
+	switch( c )
+	{
+		case    '$':
+			recv->len       =   0;
+			break;
+
+		case    '\n':
+			resp            =   nmea_recv( &gnss->nmea, (char *) recv_buf );
+			break;
+
+		case    '\r':
+			break;
+
+		default:
+			if( recv->len < NMEA_STRLEN_MAX_OCT-1 )
+			{
+				*(recv_buf + recv->len++)   =   c;
+			}
+			break;
+	}
+
+	return( resp );
+*/
+
+
+
+
 }

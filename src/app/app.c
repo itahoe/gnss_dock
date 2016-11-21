@@ -132,6 +132,8 @@ void HAL_UART_RxHalfCpltCallback(               UART_HandleTypeDef *    huart )
                 uint8_t *       data    =   fifo_uart1_rx.data + 0;
                 size_t          size    =   CFG_GNSS_BLCK_SIZE_OCT/2;
 
+                gnss_read( &gnss, data, size );
+
                 if( flog.sts.enable )
                 {
                         ui_led_sd_set( false );
@@ -142,8 +144,6 @@ void HAL_UART_RxHalfCpltCallback(               UART_HandleTypeDef *    huart )
                                 ui_led_sd_set( true );
                         }
                 }
-
-                gnss_read( &gnss, data, size );
         }
         else if( huart->Instance == USART2 )
         {
@@ -165,6 +165,7 @@ void HAL_UART_RxCpltCallback(                   UART_HandleTypeDef *    huart )
                 size_t          size    =   CFG_GNSS_BLCK_SIZE_OCT/2;
 
                 fifo_uart1_rx.overcome  =   true;
+                gnss_read( &gnss, data, size );
 
                 if( flog.sts.enable )
                 {
@@ -176,27 +177,21 @@ void HAL_UART_RxCpltCallback(                   UART_HandleTypeDef *    huart )
                                 ui_led_sd_set( true );
                         }
                 }
-
-                gnss_read( &gnss, data, size );
         }
         else if( huart->Instance == USART2 )
         {
                 fifo_uart2_rx.overcome  =   true;
-                //bsp_mcu_uart3_xmit_start( data_uart2_rx[1], CFG_GNSS_UART2_BLCK_SIZE_OCT/2 );
         }
         else if( huart->Instance == USART3 )
         {
                 fifo_uart3_rx.overcome  =   true;
-                //bsp_mcu_uart2_xmit_start( data_uart3_rx[1], CFG_GNSS_UART3_BLCK_SIZE_OCT/2 );
         }
-
 }
 
 static
-void app_uart2_rx_hook(                         fifo_t *        p )
+void app_uart2_rx_hook(                         fifo_t *                p,
+                                                size_t                  size )
 {
-        size_t                  tile    =   p->tile;
-        size_t                  size    =   bsp_mcu_uart2_recv_dma_get();
         size_t                  head    =   p->size - size;
 
 
@@ -205,43 +200,35 @@ void app_uart2_rx_hook(                         fifo_t *        p )
                 head            =   0;
         }
 
-        if( head > tile )
+        if( head > p->tile )
         {
-                size            =   head - tile;
-                bsp_mcu_uart3_xmit_start( p->data + tile, size );
+                size            =   head - p->tile;
+                bsp_mcu_uart3_xmit_start( p->data + p->tile, size );
                 p->tile         +=  size;
         }
-        else if( head < tile )
+        else if( head < p->tile )
         {
                 if( p->overcome )
                 {
                         p->overcome     = false;
-                        size            =   p->size - tile;
-                        bsp_mcu_uart3_xmit_start( p->data + tile, size );
+                        size            =   p->size - p->tile;
+                        bsp_mcu_uart3_xmit_start( p->data + p->tile, size );
                         p->tile         =   0;
-
-                        #ifndef  NDEBUG
-                        p->total_overcomes++;
-                        #endif //NDEBUG
+                        fifo_dbg_overcome_increment( p );
                 }
                 else
                 {
-                        #ifndef  NDEBUG
-                        p->total_overruns++;
-                        #endif //NDEBUG
+                        fifo_dbg_overrun_increment( p );
                 }
         }
 
-        #ifndef  NDEBUG
-        p->total_data           +=   size;
-        #endif //NDEBUG
+        fifo_dbg_datablcks_increment( p, size );
 }
 
 static
-void app_uart3_rx_hook(                         fifo_t *                p )
+void app_uart3_rx_hook(                         fifo_t *                p,
+                                                size_t                  size )
 {
-        //size_t                  tile    =   p->tile;
-        size_t                  size    =   bsp_mcu_uart3_recv_dma_get();
         size_t                  head    =   p->size - size;
 
         if( head >= p->size )
@@ -263,23 +250,15 @@ void app_uart3_rx_hook(                         fifo_t *                p )
                         size            =   p->size - p->tile;
                         bsp_mcu_uart2_xmit_start( p->data + p->tile, size );
                         p->tile         =   0;
-
-                        #ifndef  NDEBUG
-                        p->total_overcomes++;
-                        #endif //NDEBUG
+                        fifo_dbg_overcome_increment( p );
                 }
                 else
                 {
-                        #ifndef  NDEBUG
-                        p->total_overruns++;
-                        #endif //NDEBUG
+                        fifo_dbg_overrun_increment( p );
                 }
         }
 
-        #ifndef  NDEBUG
-        p->total_data           +=   size;
-        #endif //NDEBUG
-
+        fifo_dbg_datablcks_increment( p, size );
 }
 
 /**
@@ -308,9 +287,9 @@ void app_systick_hook( void )
 	{
 		app.cdc_tick        =    0;
 
-                gnss_uart_rx_hook( &fifo_uart1_rx );
-                app_uart2_rx_hook( &fifo_uart2_rx );
-                app_uart3_rx_hook( &fifo_uart3_rx );
+                gnss_uart_rx_hook( &fifo_uart1_rx, bsp_mcu_uart1_recv_dma_get() );
+                app_uart2_rx_hook( &fifo_uart2_rx, bsp_mcu_uart2_recv_dma_get() );
+                app_uart3_rx_hook( &fifo_uart3_rx, bsp_mcu_uart3_recv_dma_get() );
 	}
 }
 
@@ -381,8 +360,6 @@ int main( void )
 
         bsp_mcu_uart2_recv_start( data_uart2_rx[0], CFG_GNSS_UART2_BLCK_SIZE_OCT );
         bsp_mcu_uart3_recv_start( data_uart3_rx[0], CFG_GNSS_UART3_BLCK_SIZE_OCT );
-
-        APP_TRACE( "sizeof(GGA) = %d\n", sizeof("GGA") );
 
 	while( true )
 	{
