@@ -13,12 +13,13 @@
 #include	"config.h"
 #include	"bsp.h"
 
-#define	UI_SYSTICK_HZ                           BSP_SYSTICK_HZ
+//#define	UI_SYSTICK_HZ                           BSP_SYSTICK_HZ
+//#define UI_SYSTICK_HZ                           100
 
-#define	UI_KEY_DEBOUNCE_TCKS                    ( ((uint32_t) CFG_UI_KEY_DEBOUNCE_mSEC * UI_SYSTICK_HZ) / 1000 )
-#define	UI_KEY_SHRT_TCKS                        ( ((uint32_t) CFG_UI_KEY_SHRT_MAX_mSEC * UI_SYSTICK_HZ) / 1000 )
-#define	UI_KEY_LONG_TCKS                        ( ((uint32_t) CFG_UI_KEY_LONG_MAX_mSEC * UI_SYSTICK_HZ) / 1000 )
-#define	UI_KEY_REPEAT_TCKS                      ( ((uint32_t) CFG_UI_KEY_REPEAT_MAX_mSEC * UI_SYSTICK_HZ) / 1000 )
+//#define	UI_KEY_DEBOUNCE_TCKS                    ( ((uint32_t) CFG_UI_KEY_DEBOUNCE_mSEC * UI_SYSTICK_HZ) / 1000 )
+//#define	UI_KEY_SHRT_TCKS                        ( ((uint32_t) CFG_UI_KEY_SHRT_MAX_mSEC * UI_SYSTICK_HZ) / 1000 )
+//#define	UI_KEY_LONG_TCKS                        ( ((uint32_t) CFG_UI_KEY_LONG_MAX_mSEC * UI_SYSTICK_HZ) / 1000 )
+//#define	UI_KEY_REPEAT_TCKS                      ( ((uint32_t) CFG_UI_KEY_REPEAT_MAX_mSEC * UI_SYSTICK_HZ) / 1000 )
 
 typedef	enum	ui_key_sts_e
 {

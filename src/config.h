@@ -11,6 +11,7 @@
 
 #include "cfg_board.h"
 #include "cfg_cli.h"
+#include "FreeRTOSConfig.h"
 #include "cfg_gnss.h"
 #include "cfg_log.h"
 #include "cfg_nmea.h"

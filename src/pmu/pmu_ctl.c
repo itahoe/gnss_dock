@@ -11,6 +11,8 @@
 static
 void	pmu_power_off( void )
 {
+        #if defined( NDEBUG )
+
 	GPIO_InitTypeDef GPIO_InitStruct;
 
 
@@ -35,16 +37,16 @@ void	pmu_power_off( void )
 	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 	HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 	HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
-	HAL_GPIO_Init(GPIOH, &GPIO_InitStruct); 
+	HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);
 	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct); 
+	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 /*
 	__HAL_GPIO_EXTI_CLEAR_IT( BSP_IRQ_EXTI_2 );
 
 	GPIO_InitStruct.Pin     =   GPIO_PIN_2;
 	GPIO_InitStruct.Pull    =   GPIO_PULLDOWN;
-	GPIO_InitStruct.Mode    =   GPIO_MODE_IT_RISING; 
+	GPIO_InitStruct.Mode    =   GPIO_MODE_IT_RISING;
 	HAL_GPIO_Init( GPIOB, &GPIO_InitStruct );
 
 	HAL_NVIC_SetPriority( EXTI2_IRQn, 0x00, 0 );
@@ -55,7 +57,7 @@ void	pmu_power_off( void )
 
 	GPIO_InitStruct.Pin     =   GPIO_PIN_0;
 	GPIO_InitStruct.Pull    =   GPIO_PULLDOWN;
-	GPIO_InitStruct.Mode    =   GPIO_MODE_IT_RISING; 
+	GPIO_InitStruct.Mode    =   GPIO_MODE_IT_RISING;
 	HAL_GPIO_Init( GPIOA, &GPIO_InitStruct );
 
 	HAL_NVIC_SetPriority( EXTI0_IRQn, 0x00, 0 );
@@ -75,6 +77,8 @@ void	pmu_power_off( void )
 	HAL_PWR_EnterSTOPMode( PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFI ); //Enter Stop Mode
 
 	NVIC_SystemReset();
+
+        #endif //NDEBUG
 }
 
 /**

@@ -9,10 +9,11 @@
 /**
  * @brief GPS DOP and active satellites
  */
-bool nmea_recv_gsa(                         nmea_gsa_t *        gsa,
-                                    const   char *              str )
+nmea_pckt_type_t        nmea_recv_gsa(          nmea_gsa_t *        gsa,
+                                        const   char *              str )
 {
-	bool            resp            =   true;
+	nmea_pckt_type_t        pckt_type       =   NMEA_PCKT_TYPE_GSA;
+	//bool            resp            =   true;
 	size_t          sat_id_sizeof   =   sizeof( gsa->sat_id ) / sizeof( int );
 
 
@@ -51,5 +52,5 @@ bool nmea_recv_gsa(                         nmea_gsa_t *        gsa,
 
 	nmea_str2flt( &gsa->vdop, str );
 
-	return( resp );
+	return( pckt_type );
 }

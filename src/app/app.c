@@ -1,303 +1,321 @@
 /**
-  * @file    app.c
-  * @brief   App
+  * @file    app.h
+  * @brief   main app
   * @author  Igor T. <research.tahoe@gmail.com>
   */
 
 
-#include "ui.h"
+#include "stm32f4xx_hal.h"
+#include "cmsis_os.h"
+
+
 #include "bsp_mcu.h"
 #include "gnss.h"
 #include "app.h"
-#include "flog.h"
+#include "storage.h"
+#include "ui.h"
 #include "pmu.h"
 #include "usbd_desc.h"
 #include "usbd_cdc.h"
 #include "usbd_cdc_interface.h"
 
 
+        app_t                   app;
+        app_fifo_t              ser1_recv;
+        app_fifo_t              ser2_recv;
+        app_fifo_t              ser3_recv;
         time_t                  time_dat        =   0;
-static  app_t                   app;
-static  flog_t                  flog;
-static  gnss_t                  gnss;
-        USBD_HandleTypeDef      husbd;
+extern  USBD_HandleTypeDef      husbd;
 
-static  uint8_t                 data_uart1_tx[ 2 ][ CFG_GNSS_BLCK_SIZE_OCT/2 ];
-static  uint8_t                 data_uart1_rx[ 2 ][ CFG_GNSS_BLCK_SIZE_OCT/2 ];
-static  uint8_t                 data_uart2_rx[ 2 ][ CFG_GNSS_UART2_BLCK_SIZE_OCT/2 ];
-static  uint8_t                 data_uart3_rx[ 2 ][ CFG_GNSS_UART3_BLCK_SIZE_OCT/2 ];
 
-        fifo_t                  fifo_uart1_tx   =   {   .data     =   data_uart1_tx[0],
-                                                        .size     =   0,
-                                                        .head     =   0,
-                                                        .tile     =   0,
-                                                        .overcome =   false };
+        QueueHandle_t           app_que_usb_cdc_hndl;
+        uint8_t                 app_que_usb_cdc_alloc[  APP_QUE_SIZE_USB_CDC_WRDS * sizeof( app_stream_t ) ];
+        StaticQueue_t           app_que_usb_cdc;
 
-        fifo_t                  fifo_uart1_rx   =   {   .data     =   data_uart1_rx[0],
-                                                        .size     =   CFG_GNSS_BLCK_SIZE_OCT,
-                                                        .head     =   0,
-                                                        .tile     =   0,
-                                                        .overcome =   false };
+        QueueHandle_t           app_que_cli_hndl;
+        uint8_t                 app_que_cli_alloc[      APP_QUE_SIZE_CLI_WRDS * sizeof( app_stream_t ) ];
+        StaticQueue_t           app_que_cli;
 
-static  fifo_t                  fifo_uart2_rx   =   {   .data     =   data_uart2_rx[0],
-                                                        .size     =   CFG_GNSS_UART2_BLCK_SIZE_OCT,
-                                                        .head     =   0,
-                                                        .tile     =   0,
-                                                        .overcome =   false };
+        QueueHandle_t           app_que_storage_hndl;
+        uint8_t                 app_que_storage_alloc[  APP_QUE_SIZE_STORAGE_WRDS * sizeof( app_stream_t ) ];
+        StaticQueue_t           app_que_storage;
 
-static  fifo_t                  fifo_uart3_rx   =   {   .data     =   data_uart3_rx[0],
-                                                        .size     =   CFG_GNSS_UART3_BLCK_SIZE_OCT,
-                                                        .head     =   0,
-                                                        .tile     =   0,
-                                                        .overcome =   false };
+        QueueHandle_t           app_que_gnss_hndl;
+        uint8_t                 app_que_gnss_alloc[     APP_QUE_SIZE_GNSS_WRDS * sizeof( app_stream_t ) ];
+        StaticQueue_t           app_que_gnss;
+
+
+        StackType_t             task_main_stack[        APP_TASK_STACK_SIZE_MAIN_WRDS ];
+        StaticTask_t            task_main_tcb;
+        TaskHandle_t            task_main;
+
+        StackType_t             task_ui_stack[          APP_TASK_STACK_SIZE_UI_WRDS   ];
+        StaticTask_t            task_ui_tcb;
+        TaskHandle_t            task_ui;
+
+        StackType_t             task_gnss_stack[        APP_TASK_STACK_SIZE_GNSS_WRDS ];
+        StaticTask_t            task_gnss_tcb;
+        TaskHandle_t            task_gnss;
+
+        StackType_t             task_dspl_stack[        APP_TASK_STACK_SIZE_DSPL_WRDS  ];
+        StaticTask_t            task_dspl_tcb;
+        TaskHandle_t            task_dspl;
+
+        StackType_t             task_usb_stack[         APP_TASK_STACK_SIZE_USB_WRDS  ];
+        StaticTask_t            task_usb_tcb;
+        TaskHandle_t            task_usb;
+
+        StackType_t             task_storage_stack[     APP_TASK_STACK_SIZE_STORAGE_WRDS ];
+        StaticTask_t            task_storage_tcb;
+        TaskHandle_t            task_storage;
+
+        StackType_t             task_cli_stack[         APP_TASK_STACK_SIZE_CLI_WRDS ];
+        StaticTask_t            task_cli_tcb;
+        TaskHandle_t            task_cli;
+
+void app_irq_cnt_uart3( void )
+{
+	#ifndef NDEBUG
+        app.irq_cnt_uart3++;
+        #endif
+}
+
+void app_irq_cnt_uart2( void )
+{
+	#ifndef NDEBUG
+        app.irq_cnt_uart2++;
+        #endif
+}
+
+void app_irq_cnt_uart1( void )
+{
+	#ifndef NDEBUG
+        app.irq_cnt_uart1++;
+        #endif
+}
+
+
+void app_irq_cnt_uart3_dma_rx( void )
+{
+	#ifndef NDEBUG
+        app.irq_cnt_uart3_dma_rx++;
+        #endif
+}
+
+void app_irq_cnt_uart2_dma_rx( void )
+{
+	#ifndef NDEBUG
+        app.irq_cnt_uart2_dma_rx++;
+        #endif
+}
+
+void app_irq_cnt_uart1_dma_rx( void )
+{
+	#ifndef NDEBUG
+        app.irq_cnt_uart1_dma_rx++;
+        #endif
+}
+
+
+void app_irq_cnt_uart3_dma_tx( void )
+{
+	#ifndef NDEBUG
+        app.irq_cnt_uart3_dma_tx++;
+        #endif
+}
+
+void app_irq_cnt_uart2_dma_tx( void )
+{
+	#ifndef NDEBUG
+        app.irq_cnt_uart2_dma_tx++;
+        #endif
+}
+
+void app_irq_cnt_uart1_dma_tx( void )
+{
+	#ifndef NDEBUG
+        app.irq_cnt_uart1_dma_tx++;
+        #endif
+}
+
+
+
+
+void app_ser1_recv_idle_isr(                    uint32_t                cnt )
+{
+        bool            resp;
+
+
+        ser1_recv.head          =  (ser1_recv.data + CFG_GNSS_BLCK_SIZE_OCT) - cnt;
+
+        xTaskNotifyFromISR(     task_dspl,
+                                APP_GNSS_DATA_TYPE_STREAM,
+                                eSetValueWithOverwrite,
+                                pdFALSE );
+
+        app_stream_t    stream  =       {       .type   =   APP_MSG_TYPE_SER1_RECV,
+                                                .data   =   ser1_recv.data,
+                                                .head   =   ser1_recv.head,
+                                                .tile   =   ser1_recv.tile,
+                                                .size   =   cnt };
+
+        resp    =   xQueueSendFromISR( app_que_usb_cdc_hndl, &stream, NULL );
+
+        if( resp != pdTRUE )
+        {
+                //APP_TRACE( "app_ser1_recv_idle_isr() :: xQueueSendFromISR( app_que_usb_cdc_hndl ) == != pdTRUE\n" );
+        }
+/*
+        resp            =   xQueueSendFromISR( app_que_gnss_hndl, &stream, NULL );
+
+        if( resp != pdTRUE )
+        {
+                APP_TRACE( "app_ser1_recv_idle_isr() :: xQueueSendFromISR( app_que_gnss_hndl ) == != pdTRUE\n" );
+        }
+*/
+        ser1_recv.tile  =   ser1_recv.head;
+}
+
+
+void app_ser1_recv_half_isr( void )
+{
+        app_stream_t    stream  =       {       .type   =   APP_MSG_TYPE_SER1_RECV,
+                                                .data   =   ser1_recv.data,
+                                                .head   =   ser1_recv.head,
+                                                .tile   =   ser1_recv.tile,
+                                                .size   =   CFG_GNSS_BLCK_SIZE_OCT / 2};
+
+        xQueueSendFromISR( app_que_storage_hndl, &stream, NULL );
+}
+
+
+void app_ser1_recv_full_isr( void )
+{
+        app_stream_t    stream  =       {       .type   =   APP_MSG_TYPE_SER1_RECV,
+                                                .data   =   ser1_recv.data + CFG_GNSS_BLCK_SIZE_OCT / 2,
+                                                .head   =   ser1_recv.head,
+                                                .tile   =   ser1_recv.tile,
+                                                .size   =   CFG_GNSS_BLCK_SIZE_OCT / 2};
+
+        xQueueSendFromISR( app_que_storage_hndl, &stream, NULL );
+}
+
+
+void app_ser1_xmit_full_isr( void )
+{
+	//Initiate next USB packet transfer once UART completes transfer (transmitting data over Tx line)
+	USBD_CDC_ReceivePacket( &husbd );
+}
+
+
+void app_ser2_recv_half_isr( void )
+{
+        app_stream_t    stream  =       {       .type   =   APP_MSG_TYPE_SER2_RECV,
+                                                .data   =   ser2_recv.data,
+                                                .head   =   ser2_recv.head,
+                                                .tile   =   ser2_recv.tile,
+                                                .size   =   CFG_GNSS_BLCK_SIZE_OCT / 2};
+
+        xQueueSendFromISR( app_que_storage_hndl, &stream, NULL );
+}
+
+
+void app_ser2_recv_full_isr( void )
+{
+        app_stream_t    stream  =       {       .type   =   APP_MSG_TYPE_SER2_RECV,
+                                                .data   =   ser2_recv.data + CFG_GNSS_BLCK_SIZE_OCT / 2,
+                                                .head   =   ser2_recv.head,
+                                                .tile   =   ser2_recv.tile,
+                                                .size   =   CFG_GNSS_BLCK_SIZE_OCT / 2};
+
+        xQueueSendFromISR( app_que_storage_hndl, &stream, NULL );
+}
+
+
+void app_ser2_recv_idle_isr(                    uint32_t                cnt )
+{
+        bool            resp;
+
+
+        ser2_recv.head  =  (ser2_recv.data + CFG_GNSS_BLCK_SIZE_OCT) - cnt;
+
+        app_stream_t    stream  =       {       .type   =   APP_MSG_TYPE_SER2_RECV,
+                                                .data   =   ser2_recv.data,
+                                                .head   =   ser2_recv.head,
+                                                .tile   =   ser2_recv.tile,
+                                                .size   =   cnt };
+
+        resp            =   xQueueSendFromISR( app_que_gnss_hndl, &stream, NULL );
+
+        if( resp != pdTRUE )
+        {
+                //queue send error
+        }
+
+        ser2_recv.tile  =   ser2_recv.head;
+}
+
+
+void app_ser2_xmit_full_isr( void )
+{
+}
+
+
+void app_ser3_recv_idle_isr(                    uint32_t                cnt )
+{
+        bool            resp;
+
+
+        ser3_recv.head  =  (ser3_recv.data + CFG_GNSS_BLCK_SIZE_OCT) - cnt;
+
+        app_stream_t    stream  =       {       .type   =   APP_MSG_TYPE_SER3_RECV,
+                                                .data   =   ser3_recv.data,
+                                                .head   =   ser3_recv.head,
+                                                .tile   =   ser3_recv.tile,
+                                                .size   =   cnt };
+
+        resp            =   xQueueSendFromISR( app_que_gnss_hndl, &stream, NULL );
+
+        if( resp != pdTRUE )
+        {
+                APP_TRACE( "app_ser3_recv_idle_isr() :: xQueueSendFromISR( app_que_gnss_hndl) == != pdTRUE\n" );
+        }
+
+        ser3_recv.tile  =   ser3_recv.head;
+}
+
+
+void app_ser3_recv_half_isr( void )
+{
+}
+
+
+void app_ser3_recv_full_isr( void )
+{
+}
+
+
+void app_ser3_xmit_full_isr( void )
+{
+}
+
 
 /**
-  * @brief  This function is executed in case of error occurrence.
+  * @brief  Main program
+  * @param  None
+  * @retval None
   */
-void	app_error( void )
-{
-	uint32_t        delay_msec  =   1000;
-
-	while( true )
-	{
-		ui_led_sd_toggle();
-		ui_led_usb_toggle();
-		HAL_Delay( delay_msec );
-	}
-}
-
-/**
-  * @brief  Switch the PLL source from HSI to HSE bypass, and select the PLL as SYSCLK
-  */
-static
-void app_clock_config( void )
-{
-	RCC_ClkInitTypeDef              clk     =   {0};
-	RCC_OscInitTypeDef              osc     =   {0};
-	RCC_PeriphCLKInitTypeDef        PeriphClkInitStruct;
-
-
-	__HAL_RCC_PWR_CLK_ENABLE();
-	__HAL_PWR_VOLTAGESCALING_CONFIG( PWR_REGULATOR_VOLTAGE_SCALE2 );
-
-	osc.OscillatorType      =   RCC_OSCILLATORTYPE_HSE;
-	osc.HSEState            =   RCC_HSE_ON;
-	osc.PLL.PLLSource       =   RCC_PLLSOURCE_HSE;
-
-	osc.HSICalibrationValue =   0x10;
-	osc.PLL.PLLState        =   RCC_PLL_ON;
-	osc.PLL.PLLM            =   16;
-	//osc.PLL.PLLN            =   200;
-	osc.PLL.PLLN            =   192;
-	osc.PLL.PLLP            =   RCC_PLLP_DIV2;
-	osc.PLL.PLLQ            =   15;
-
-	if( HAL_RCC_OscConfig( &osc ) != HAL_OK )
-	{
-		app_error();
-	}
-
-	clk.ClockType           =   (RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2);
-	clk.SYSCLKSource        =   RCC_SYSCLKSOURCE_PLLCLK;
-	clk.AHBCLKDivider       =   RCC_SYSCLK_DIV1;
-	clk.APB1CLKDivider      =   RCC_HCLK_DIV2;
-	clk.APB2CLKDivider      =   RCC_HCLK_DIV1;
-
-	if( HAL_RCC_ClockConfig( &clk, FLASH_LATENCY_3 ) != HAL_OK )
-	{
-		app_error();
-	}
-
-	/* Activate the OverDrive to reach the 180 MHz Frequency */
-	HAL_PWREx_EnableOverDrive();
-
-	/* Select PLLSAI output as USB clock source */
-	PeriphClkInitStruct.PLLSAI.PLLSAIM          =   16;
-	PeriphClkInitStruct.PLLSAI.PLLSAIN          =   384;
-	PeriphClkInitStruct.PLLSAI.PLLSAIP          =   RCC_PLLSAIP_DIV8;
-	PeriphClkInitStruct.PeriphClockSelection    =   RCC_PERIPHCLK_CK48;
-	PeriphClkInitStruct.Clk48ClockSelection     =   RCC_CK48CLKSOURCE_PLLSAIP;
-	HAL_RCCEx_PeriphCLKConfig( &PeriphClkInitStruct );
-
-	SystemCoreClockUpdate();
-}
-
-/**
- * @brief
- */
-void HAL_UART_RxHalfCpltCallback(               UART_HandleTypeDef *    huart )
-{
-        if(      huart->Instance == USART1 )
-        {
-                uint8_t *       data    =   fifo_uart1_rx.data + 0;
-                size_t          size    =   CFG_GNSS_BLCK_SIZE_OCT/2;
-
-                gnss_read( &gnss, data, size );
-
-                if( flog.sts.enable )
-                {
-                        ui_led_sd_set( false );
-                        flog_write( &flog, data, size );
-
-                        if( flog_sts_get( &flog ) == FR_OK )
-                        {
-                                ui_led_sd_set( true );
-                        }
-                }
-        }
-        else if( huart->Instance == USART2 )
-        {
-        }
-        else if( huart->Instance == USART3 )
-        {
-        }
-}
-
-/**
- * @brief
- */
-void HAL_UART_RxCpltCallback(                   UART_HandleTypeDef *    huart )
-{
-
-        if(      huart->Instance == USART1 )
-        {
-                uint8_t *       data    =   fifo_uart1_rx.data + CFG_GNSS_BLCK_SIZE_OCT/2;
-                size_t          size    =   CFG_GNSS_BLCK_SIZE_OCT/2;
-
-                fifo_uart1_rx.overcome  =   true;
-                gnss_read( &gnss, data, size );
-
-                if( flog.sts.enable )
-                {
-                        ui_led_sd_set( false );
-                        flog_write( &flog, data, size );
-
-                        if( flog_sts_get( &flog ) == FR_OK )
-                        {
-                                ui_led_sd_set( true );
-                        }
-                }
-        }
-        else if( huart->Instance == USART2 )
-        {
-                fifo_uart2_rx.overcome  =   true;
-        }
-        else if( huart->Instance == USART3 )
-        {
-                fifo_uart3_rx.overcome  =   true;
-        }
-}
-
-static
-void app_uart2_rx_hook(                         fifo_t *                p,
-                                                size_t                  size )
-{
-        size_t                  head    =   p->size - size;
-
-
-        if( head >= p->size )
-        {
-                head            =   0;
-        }
-
-        if( head > p->tile )
-        {
-                size            =   head - p->tile;
-                bsp_mcu_uart3_xmit_start( p->data + p->tile, size );
-                p->tile         +=  size;
-        }
-        else if( head < p->tile )
-        {
-                if( p->overcome )
-                {
-                        p->overcome     = false;
-                        size            =   p->size - p->tile;
-                        bsp_mcu_uart3_xmit_start( p->data + p->tile, size );
-                        p->tile         =   0;
-                        fifo_dbg_overcome_increment( p );
-                }
-                else
-                {
-                        fifo_dbg_overrun_increment( p );
-                }
-        }
-
-        fifo_dbg_datablcks_increment( p, size );
-}
-
-static
-void app_uart3_rx_hook(                         fifo_t *                p,
-                                                size_t                  size )
-{
-        size_t                  head    =   p->size - size;
-
-        if( head >= p->size )
-        {
-                head            =   0;
-        }
-
-        if( head > p->tile )
-        {
-                size            =   head - p->tile;
-                bsp_mcu_uart2_xmit_start( p->data + p->tile, size );
-                p->tile         +=  size;
-        }
-        else if( head < p->tile )
-        {
-                if( p->overcome )
-                {
-                        p->overcome     = false;
-                        size            =   p->size - p->tile;
-                        bsp_mcu_uart2_xmit_start( p->data + p->tile, size );
-                        p->tile         =   0;
-                        fifo_dbg_overcome_increment( p );
-                }
-                else
-                {
-                        fifo_dbg_overrun_increment( p );
-                }
-        }
-
-        fifo_dbg_datablcks_increment( p, size );
-}
-
-/**
- * @brief
- */
-void app_systick_hook( void )
-{
-	app.evt.ui_key_pwr  =    ui_key_pwr_hook() ? true : false;
-	app.evt.ui_key_func =    ui_key_func_hook() ? true : false;
-
-	if( ++(app.tick_1hz) > BSP_SYSTICK_HZ )
-	{
-		app.tick_1hz        =    0;
-		app.evt.tick_1hz    =    true;
-
-		time_dat++;
-
-		gnss_time_sync( &gnss, &time_dat );
-
-		#ifndef	NDEBUG
-		app.tick_1hz_cnt++;
-		#endif
-	}
-
-	if( ++(app.cdc_tick) > (CFG_USB_CDC_TICK_mSEC * BSP_SYSTICK_HZ)/1000 )
-	{
-		app.cdc_tick        =    0;
-
-                gnss_uart_rx_hook( &fifo_uart1_rx, bsp_mcu_uart1_recv_dma_get() );
-                app_uart2_rx_hook( &fifo_uart2_rx, bsp_mcu_uart2_recv_dma_get() );
-                app_uart3_rx_hook( &fifo_uart3_rx, bsp_mcu_uart3_recv_dma_get() );
-	}
-}
-
-/**
- * @brief App entry
- */
 int main( void )
 {
+        int             task_main_parameter             =  1;
+        int             task_ui_parameter               =  1;
+        int             task_gnss_parameter             =  1;
+        int             task_dspl_parameter             =  1;
+        int             task_usb_parameter              =  1;
+        int             task_storage_parameter          =  1;
+        int             task_cli_parameter              =  1;
+
+
 	#if defined( NDEBUG )
 	//skip debugger setup
 	#else
@@ -306,147 +324,115 @@ int main( void )
 	HAL_DBGMCU_EnableDBGStandbyMode();
 	#endif
 
-	app_clock_config();
-	SysTick_Config(SystemCoreClock / BSP_SYSTICK_HZ);
-	HAL_Init();
+        app_clk_init();
 
+        app_cfg_init();
+        app.cfg.log_mode        =   app_cfg_read( RTC_BKP_DR0 );
+
+        APP_TRACE( "GNSS_DOCK Start\n" );
+
+        HAL_Init();
 	ui_init();
-	ui_led_sd_set(          false                   );
-	ui_led_usb_set(         false                   );
-	ui_led_gnss_set(        UI_LED_GNSS_MODE_NONE   );
-	ui_led_pwr_set(         UI_LED_RGB_COLOR_BLACK  );
+        ui_led_pwr_set( UI_LED_RGB_COLOR_BLACK );
 
 	pmu_init();
-	pmu_ctl( PMU_CTL_GNSS_LDO_ON, false );
 
-	__enable_irq();
+	HAL_Delay( CFG_UI_KEY_LONG_MAX_mSEC );
 
-	HAL_Delay( UI_KEY_LONG_TCKS );
-
-	if( ui_key_pwr_forced() )
+	if( !ui_key_pwr_forced() )
 	{
-		//while( ui.key[0].get() == true );
-	}
-	else
-	{
-		#if defined( NDEBUG )
 		pmu_ctl( PMU_CTL_MCU_OFF, false );
-		#endif
 	}
-
-	ui_led_sd_flash(        UI_LED_FLSH_LONG_TCKS );
-	ui_led_usb_flash(       UI_LED_FLSH_LONG_TCKS );
-	ui_led_gnss_flash(      UI_LED_FLSH_LONG_TCKS );
-	ui_led_pwr_set(         UI_LED_RGB_COLOR_WHITE );
 
 	HAL_Delay( CFG_UI_LED_FLSH_LONG_mSEC );
 
-	ui_key_pwr_reset();
+        ui_key_pwr_reset();
 
-	flog_init( &flog );
+        pmu_ctl( PMU_CTL_GNSS_LDO_ON, true );
 
-	pmu_ctl( PMU_CTL_GNSS_LDO_ON, true );
 
-	USBD_Init(                      &husbd, &VCP_Desc,      0);
-	USBD_RegisterClass(             &husbd, USBD_CDC_CLASS );
-	USBD_CDC_RegisterInterface(     &husbd, &USBD_CDC_fops );
-	USBD_Start( &husbd );
+        app_que_usb_cdc_hndl    =   xQueueCreateStatic( APP_QUE_SIZE_USB_CDC_WRDS,
+                                                        sizeof( app_stream_t ),
+                                                        app_que_usb_cdc_alloc,
+                                                        &app_que_usb_cdc );
 
-	gnss_init( &gnss );
-	gnss_recv_start( fifo_uart1_rx.data, CFG_GNSS_BLCK_SIZE_OCT );
+        app_que_cli_hndl        =   xQueueCreateStatic( APP_QUE_SIZE_CLI_WRDS,
+                                                        sizeof( app_stream_t ),
+                                                        app_que_cli_alloc,
+                                                        &app_que_cli );
 
-        bsp_mcu_uart2_init( 115200 );
-        bsp_mcu_uart3_init( 115200 );
+        app_que_storage_hndl    =   xQueueCreateStatic( APP_QUE_SIZE_STORAGE_WRDS,
+                                                        sizeof( app_stream_t ),
+                                                        app_que_storage_alloc,
+                                                        &app_que_storage );
 
-        bsp_mcu_uart2_recv_start( data_uart2_rx[0], CFG_GNSS_UART2_BLCK_SIZE_OCT );
-        bsp_mcu_uart3_recv_start( data_uart3_rx[0], CFG_GNSS_UART3_BLCK_SIZE_OCT );
+        app_que_gnss_hndl       =   xQueueCreateStatic( APP_QUE_SIZE_GNSS_WRDS,
+                                                        sizeof( app_stream_t ),
+                                                        app_que_gnss_alloc,
+                                                        &app_que_gnss );
 
-	while( true )
-	{
-		if( app.evt.ui_key_pwr )
-		{
-			app.evt.ui_key_pwr      =    false;
 
-			switch( ui_key_pwr_status() )
-			{
-				case UI_KEY_STS_SHORT:
-					ui_led_pwr_flash( UI_LED_FLSH_SHRT_TCKS );
-					//gnss_send( &gnss, CFG_GNSS_MSG_KEY0S );
-					break;
+        task_main               =   xTaskCreateStatic(  app_task_main,
+                                                        "MAIN",
+                                                        APP_TASK_STACK_SIZE_MAIN_WRDS,
+                                                        (void *) task_main_parameter,
+                                                        osPriorityNormal,
+                                                        task_main_stack,
+                                                        &task_main_tcb );
 
-				case UI_KEY_STS_LONG:
-					pmu_ctl( PMU_CTL_MCU_OFF, false );
-					break;
+        task_ui                 =   xTaskCreateStatic(  app_task_ui,
+                                                        "UI",
+                                                        APP_TASK_STACK_SIZE_UI_WRDS,
+                                                        (void *) task_ui_parameter,
+                                                        osPriorityNormal,
+                                                        task_ui_stack,
+                                                        &task_ui_tcb );
 
-				default:
-					break;
-			}
-		}
+        task_gnss               =   xTaskCreateStatic(  app_task_gnss,
+                                                        "GNSS",
+                                                        APP_TASK_STACK_SIZE_GNSS_WRDS,
+                                                        (void *) task_gnss_parameter,
+                                                        osPriorityNormal,
+                                                        task_gnss_stack,
+                                                        &task_gnss_tcb );
 
-		if( app.evt.ui_key_func )
-		{
-			app.evt.ui_key_func     =    false;
+        task_dspl               =   xTaskCreateStatic(  app_task_dspl,
+                                                        "DSPL",
+                                                        APP_TASK_STACK_SIZE_DSPL_WRDS,
+                                                        (void *) task_dspl_parameter,
+                                                        osPriorityNormal,
+                                                        task_dspl_stack,
+                                                        &task_dspl_tcb );
 
-			switch( ui_key_func_status() )
-			{
-				case UI_KEY_STS_SHORT:
+        task_usb                =   xTaskCreateStatic(  app_task_usb,
+                                                        "USB",
+                                                        APP_TASK_STACK_SIZE_USB_WRDS,
+                                                        (void *) task_usb_parameter,
+                                                        osPriorityNormal,
+                                                        task_usb_stack,
+                                                        &task_usb_tcb );
 
-					ui_led_pwr_flash( UI_LED_FLSH_SHRT_TCKS );
+        task_storage            =   xTaskCreateStatic(  app_task_storage,
+                                                        "STORAGE",
+                                                        APP_TASK_STACK_SIZE_STORAGE_WRDS,
+                                                        (void *) task_storage_parameter,
+                                                        osPriorityNormal,
+                                                        task_storage_stack,
+                                                        &task_storage_tcb );
 
-					if( flog.sts.enable )
-					{
-						flog_close( &flog );
-					}
-					else
-					{
-						flog_open( &flog );
-					}
+        task_cli                =   xTaskCreateStatic(  app_task_cli,
+                                                        "CLI",
+                                                        APP_TASK_STACK_SIZE_CLI_WRDS,
+                                                        (void *) task_cli_parameter,
+                                                        osPriorityNormal,
+                                                        task_cli_stack,
+                                                        &task_cli_tcb );
 
-                                        ui_led_sd_set( flog.sts.enable );
+        osKernelStart();
 
-                                        if( flog_sts_get( &flog ) != FR_OK )
-                                        {
-                                                ui_led_sd_flash( UI_LED_FLSH_SHRT_TCKS );
-                                        }
-
-					break;
-
-				case UI_KEY_STS_LONG:
-					ui_led_pwr_flash( UI_LED_FLSH_LONG_TCKS );
-					gnss_send( &gnss, CFG_GNSS_MSG_KEY1S );
-					break;
-
-				default:
-					break;
-			}
-		}
-
-		if( app.evt.tick_1hz )
-		{
-			app.evt.tick_1hz    =   false;
-
-			switch( gnss.nmea.gga.fix )
-			{
-				case NMEA_FIX_RTK_FLT:	ui_led_gnss_set( UI_LED_GNSS_MODE_RTKFLT ); break;
-				case NMEA_FIX_RTK_INT:  ui_led_gnss_set( UI_LED_GNSS_MODE_RTKINT ); break;
-				case NMEA_FIX_PPS:      ui_led_gnss_set( UI_LED_GNSS_MODE_DGPS   ); break;
-				case NMEA_FIX_DGPS:     ui_led_gnss_set( UI_LED_GNSS_MODE_DGPS   ); break;
-				case NMEA_FIX_SPS:      ui_led_gnss_set( UI_LED_GNSS_MODE_GPS    ); break;
-				case NMEA_FIX_NONE:     ui_led_gnss_set( UI_LED_GNSS_MODE_NONE   ); break;
-				default:                ui_led_gnss_set( UI_LED_GNSS_MODE_NONE   ); break;
-			}
-
-			switch( pmu_sts_get() )
-			{
-				case PMU_STS_VBUS:      ui_led_pwr_set( UI_LED_RGB_COLOR_YELLOW  ); break;
-				case PMU_STS_CHRG:      ui_led_pwr_set( UI_LED_RGB_COLOR_BLUE    ); break;
-				case PMU_STS_BATT_FULL: ui_led_pwr_set( UI_LED_RGB_COLOR_GREEN   ); break;
-				case PMU_STS_BATT_LOW:  ui_led_pwr_set( UI_LED_RGB_COLOR_RED     ); break;
-				default:                ui_led_pwr_set( UI_LED_RGB_COLOR_WHITE   ); break;
-			}
-
-			//ui_led_pwr_flash( UI_LED_FLSH_SHRT_TCKS );
-		}
-
-	}
+        #if defined( NDEBUG )
+        NVIC_SystemReset();
+        #else
+        while( true );
+	#endif
 }

@@ -9,10 +9,11 @@
 /**
  * @brief Recommended Minimum Navigation Information
  */
-bool nmea_recv_rmc(                         nmea_rmc_t *        rmc,
-                                    const   char *              str )
+nmea_pckt_type_t        nmea_recv_rmc(          nmea_rmc_t *        rmc,
+                                        const   char *              str )
 {
-	bool            resp            =   true;
+	nmea_pckt_type_t        pckt_type       =   NMEA_PCKT_TYPE_RMC;
+	//bool            resp            =   true;
 
 
 	nmea_str2time( &rmc->tm_dat, str );
@@ -64,5 +65,5 @@ bool nmea_recv_rmc(                         nmea_rmc_t *        rmc,
 
 	nmea_str2flt( &rmc->magnetic_variation, str );
 
-	return( resp );
+	return( pckt_type );
 }

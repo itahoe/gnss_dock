@@ -9,10 +9,10 @@
 /**
  * @brief Global Positioning System Fix Data. Time, Position and fix related data for a GPS receiver
  */
-bool nmea_recv_gga(                         nmea_gga_t *        gga,
-                                    const   char *              str )
+nmea_pckt_type_t        nmea_recv_gga(          nmea_gga_t *        gga,
+                                        const   char *              str )
 {
-	bool            resp            =   true;
+	nmea_pckt_type_t        pckt_type       =   NMEA_PCKT_TYPE_GGA;
 
 
 	nmea_str2time( &gga->tm_dat, str );
@@ -83,5 +83,5 @@ bool nmea_recv_gga(                         nmea_gga_t *        gga,
 
 	nmea_str2int( &gga->dgps_station_id, str );
 
-	return( resp );
+	return( pckt_type );
 }

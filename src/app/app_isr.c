@@ -8,10 +8,13 @@
 #include "ui.h"
 #include "bsp_mcu.h"
 #include "app.h"
+#include "cmsis_os.h"
 
+volatile        int     uart1_irq_cnt   = 0;
+volatile        int     uart2_irq_cnt   = 0;
+volatile        int     uart3_irq_cnt   = 0;
 
-//extern TIM_HandleTypeDef        htim_cdc;
-extern PCD_HandleTypeDef        hpcd;
+extern  PCD_HandleTypeDef       hpcd;
 
 
 void hard_fault_handler( uint32_t *arg );
@@ -27,6 +30,16 @@ void USART1_IRQHandler( void );
 void DMA2_Stream3_IRQHandler( void );
 void DMA2_Stream6_IRQHandler( void );
 void SDIO_IRQHandler( void );
+
+void DMA2_Stream7_IRQHandler( void );
+void DMA2_Stream2_IRQHandler( void );
+void DMA1_Stream6_IRQHandler( void );
+void DMA1_Stream5_IRQHandler( void );
+void DMA1_Stream3_IRQHandler( void );
+void DMA1_Stream1_IRQHandler( void );
+void USART2_IRQHandler( void );
+void USART3_IRQHandler( void );
+void OTG_FS_IRQHandler( void );
 
 
 /**
@@ -99,6 +112,9 @@ void NMI_Handler(void)
  */
 void HardFault_Handler(void)
 {
+	#ifdef  NDEBUG
+	NVIC_SystemReset();
+	#else
 	asm volatile
 	(
 	        "TST	LR,		#4			\n"
@@ -107,6 +123,8 @@ void HardFault_Handler(void)
 	        "MRSNE	R0,		PSP			\n"
 	        "B		hard_fault_handler"
 	);
+	#endif //NDEBUG
+
 }
 
 /**
@@ -175,88 +193,217 @@ void WWDG_IRQHandler(void)
  */
 void SysTick_Handler(void)
 {
-	ui_led_sd_hook();
-	ui_led_usb_hook();
-	ui_led_pwr_hook();
-	ui_led_gnss_hook();
-        app_systick_hook();
-	HAL_IncTick();
+    osSystickHandler();
 }
 
-/**
- * @brief USART1 interrupt handler
+
+/** @brief USART1
  */
 void USART1_IRQHandler( void )
 {
-	//uint32_t        sts                     =   USART1->SR;
-	//uint32_t        data                    =   USART1->DR;
+/*
+        bsp_mcu_uart1_isr();
+
+        if( bsp_mcu_uart3_sts_idle() )
+        {
+                uint32_t        dma_cnt_wrds    =   bsp_mcu_uart1_recv_dma_head_get();
+                app_ser1_recv_idle_isr( dma_cnt_wrds );
+        }
+
+        volatile        uint32_t        sts     =   USART1->SR;
+        volatile        uint32_t        data    =   USART1->DR;
+*/
+
+        if( USART1->SR &  USART_SR_IDLE )
+        {
+                uint32_t        dma_cnt_wrds    =   bsp_mcu_uart1_recv_dma_head_get();
+                app_ser1_recv_idle_isr( dma_cnt_wrds );
+        }
 
         bsp_mcu_uart1_isr();
+
+        volatile        uint32_t        sts     =   USART1->SR;
+        volatile        uint32_t        data    =   USART1->DR;
+
+        app_irq_cnt_uart1();
 }
 
-/**
-  * @brief  DMA USART1 TX
+
+/** @brief USART1 DMA TX
   */
 void DMA2_Stream7_IRQHandler( void )
 {
         bsp_mcu_uart1_dma_tx_isr();
+
+        app_irq_cnt_uart1_dma_tx();
 }
 
-/**
-  * @brief  DMA USART1 RX
+
+/** @brief USART1 DMA RX
   */
 void DMA2_Stream2_IRQHandler( void )
 {
         bsp_mcu_uart1_dma_rx_isr();
+        app_irq_cnt_uart1_dma_rx();
+
 }
 
-/**
- * @brief USART2 interrupt handler
+
+/** @brief USART2
  */
 void USART2_IRQHandler( void )
 {
+/*
         bsp_mcu_uart2_isr();
+
+        if( bsp_mcu_uart2_sts_idle() )
+        {
+                uint32_t        dma_cnt_wrds    =   bsp_mcu_uart2_recv_dma_head_get();
+                app_ser2_recv_idle_isr( dma_cnt_wrds );
+        }
+
+	volatile        uint32_t        sts     =   USART2->SR;
+	volatile        uint32_t        data    =   USART2->DR;
+*/
+
+        if( USART2->SR & USART_SR_IDLE )
+        {
+                uint32_t        dma_cnt_wrds    =   bsp_mcu_uart2_recv_dma_head_get();
+                app_ser2_recv_idle_isr( dma_cnt_wrds );
+
+        }
+
+        volatile        uint32_t        sts     =   USART2->SR;
+        volatile        uint32_t        data    =   USART2->DR;
+
+        //bsp_mcu_uart2_isr();
+
+        app_irq_cnt_uart2();
 }
 
-/**
-  * @brief  DMA USART2 TX
+
+/** @brief USART2 DMA TX
   */
 void DMA1_Stream6_IRQHandler( void )
 {
         bsp_mcu_uart2_dma_tx_isr();
+        app_irq_cnt_uart2_dma_tx();
+
 }
 
-/**
-  * @brief  DMA USART2 RX
+
+/** @brief USART2 DMA RX
   */
 void DMA1_Stream5_IRQHandler( void )
 {
         bsp_mcu_uart2_dma_rx_isr();
+        app_irq_cnt_uart2_dma_rx();
+
 }
 
-/**
- * @brief USART3 interrupt handler
+
+/** @brief USART3
  */
 void USART3_IRQHandler( void )
 {
+/*
+	volatile        uint32_t        sts     =   USART3->SR;
+
         bsp_mcu_uart3_isr();
+
+        //if( bsp_mcu_uart3_sts_idle() )
+        if( sts &  USART_SR_IDLE )
+        {
+                uint32_t        dma_cnt_wrds    =   bsp_mcu_uart3_recv_dma_head_get();
+                app_ser3_recv_idle_isr( dma_cnt_wrds );
+        }
+
+	//volatile        uint32_t        sts     =   USART3->SR;
+	//volatile        uint32_t        data    =   USART3->DR;
+*/
+
+        if( USART3->SR &  USART_SR_IDLE )
+        {
+                uint32_t        dma_cnt_wrds    =   bsp_mcu_uart3_recv_dma_head_get();
+                app_ser3_recv_idle_isr( dma_cnt_wrds );
+        }
+
+        bsp_mcu_uart3_isr();
+
+	volatile        uint32_t        sts     =   USART3->SR;
+        volatile        uint32_t        data    =   USART3->DR;
+
+        app_irq_cnt_uart3();
 }
 
-/**
-  * @brief  DMA USART6 TX
+
+/** @brief USART3 DMA TX
   */
 void DMA1_Stream3_IRQHandler( void )
 {
         bsp_mcu_uart3_dma_tx_isr();
+        app_irq_cnt_uart3_dma_tx();
 }
 
-/**
-  * @brief  DMA USART RX
+
+/** @brief USART3 DMA RX
   */
 void DMA1_Stream1_IRQHandler( void )
 {
         bsp_mcu_uart3_dma_rx_isr();
+        app_irq_cnt_uart3_dma_rx();
+
 }
+
+
+void HAL_UART_RxHalfCpltCallback(               UART_HandleTypeDef *    huart )
+{
+        if(      huart->Instance == USART1 )
+        {
+                app_ser1_recv_half_isr();
+        }
+        else if( huart->Instance == USART2 )
+        {
+                app_ser2_recv_half_isr();
+        }
+        else if( huart->Instance == USART3 )
+        {
+        }
+}
+
+void HAL_UART_RxCpltCallback(                   UART_HandleTypeDef *    huart )
+{
+        if(      huart->Instance == USART1 )
+        {
+                app_ser1_recv_full_isr();
+        }
+        else if( huart->Instance == USART2 )
+        {
+                app_ser2_recv_full_isr();
+        }
+        else if( huart->Instance == USART3 )
+        {
+                app_ser3_recv_full_isr();
+        }
+}
+
+
+void HAL_UART_TxCpltCallback(                   UART_HandleTypeDef *    huart )
+{
+        if(      huart->Instance == USART1 )
+        {
+                app_ser1_xmit_full_isr();
+        }
+        else if( huart->Instance == USART2 )
+        {
+                app_ser2_xmit_full_isr();
+        }
+        else if( huart->Instance == USART3 )
+        {
+                app_ser3_xmit_full_isr();
+        }
+}
+
 
 /**
   * @brief  This function handles SDIO interrupt request.

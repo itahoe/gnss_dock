@@ -7,15 +7,16 @@
 #ifndef  UI_LED_H
 #define  UI_LED_H
 
+
 #include	<stdbool.h>
 #include	<string.h>
 #include	"config.h"
 #include	"bsp.h"
 
-#define	UI_SYSTICK_HZ                   BSP_SYSTICK_HZ
 
 #define	UI_LED_FLSH_SHRT_TCKS           ( ((uint32_t) CFG_UI_LED_FLSH_SHRT_mSEC * UI_SYSTICK_HZ) / 1000 )
 #define	UI_LED_FLSH_LONG_TCKS           ( ((uint32_t) CFG_UI_LED_FLSH_LONG_mSEC * UI_SYSTICK_HZ) / 1000 )
+
 
 /**
   * @brief   Single LED

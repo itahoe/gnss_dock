@@ -22,8 +22,6 @@ void gnss_time_sync(                        gnss_t *            gnss,
 	orig.tm_mday    =   gnss->nmea.rmc.tm_dat.tm_mday;
 	orig.tm_mon     =   gnss->nmea.rmc.tm_dat.tm_mon - 1;
 	orig.tm_year    =   gnss->nmea.rmc.tm_dat.tm_year + 100;
-	//orig.tm_wday    =   5;
-	//orig.tm_yday    =   19;
 	orig.tm_isdst   =   -1;
 
 	*time_dat       =   mktime( &orig );

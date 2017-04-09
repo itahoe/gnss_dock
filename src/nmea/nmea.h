@@ -110,16 +110,35 @@ typedef	struct	nmea_rmc_s
 	struct tm	        tm_dat;
 } nmea_rmc_t;
 
+typedef enum    nmea_pckt_type_s
+{
+        NMEA_PCKT_TYPE_NONE,
+        NMEA_PCKT_TYPE_GGA,
+        NMEA_PCKT_TYPE_GSA,
+        NMEA_PCKT_TYPE_GSV,
+        NMEA_PCKT_TYPE_RMC,
+        NMEA_PCKT_TYPE_X,
+} nmea_pckt_type_t;
+
+typedef	enum nmea_state_s
+{
+	NMEA_STATE_IDLE,
+	NMEA_STATE_RECV,
+	NMEA_STATE_CHKSUM,
+} nmea_state_t;
+
 typedef	struct	nmea_s
 {
+        uint8_t                 chksum;
 	size_t                  chksum_errors;
+        nmea_state_t            state;
 	size_t                  recv_total;
 	nmea_nsid_t             nsid;
 	nmea_gga_t              gga;
 	nmea_gsa_t              gsa;
 	nmea_gsv_t              gsv;
 	nmea_rmc_t              rmc;
-        nmea_ext_t              ext;
+        nmea_x_t                x;
 } nmea_t;
 
 
@@ -169,13 +188,15 @@ void nmea_init(     nmea_t * nmea );
 
 size_t nmea_chksum( uint8_t *chksum, const char *str, const char eol );
 
-bool nmea_recv( nmea_t * nmea, const char * str );
+bool    nmea_recv(                              nmea_t *        nmea,
+                                        const   char *          str );
 
-bool nmea_recv_char( nmea_t * nmea, const char c );
+nmea_pckt_type_t        nmea_recv_gga( nmea_gga_t * gga, const char * str );
+nmea_pckt_type_t        nmea_recv_gsa( nmea_gsa_t * gsa, const char * str );
+nmea_pckt_type_t        nmea_recv_gsv( nmea_gsv_t * gsv, const char * str );
+nmea_pckt_type_t        nmea_recv_rmc( nmea_rmc_t * rmc, const char * str );
 
-bool nmea_recv_gga( nmea_gga_t * gga, const char * str );
-bool nmea_recv_gsa( nmea_gsa_t * gsa, const char * str );
-bool nmea_recv_gsv( nmea_gsv_t * gsv, const char * str );
-bool nmea_recv_rmc( nmea_rmc_t * rmc, const char * str );
+nmea_pckt_type_t        nmea_getc(     nmea_t *            p,
+                                       char                c );
 
-#endif	//GNSS_H
+#endif	//NMEA_H

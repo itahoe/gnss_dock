@@ -1,8 +1,8 @@
-;/******************** (C) COPYRIGHT 2015 STMicroelectronics ********************
+;/******************** (C) COPYRIGHT 2016 STMicroelectronics ********************
 ;* File Name          : startup_stm32f446xx.s
 ;* Author             : MCD Application Team
-;* Version            : V1.2.2
-;* Date               : 13-November-2015
+;* Version            : V1.2.5
+;* Date               : 03-June-2016
 ;* Description        : STM32F446xx devices vector table for EWARM toolchain.
 ;*                      This module performs:
 ;*                      - Set the initial SP
@@ -182,8 +182,8 @@ __vector_table
         DCD     QUADSPI_IRQHandler                ; QuadSPI
         DCD     CEC_IRQHandler                    ; CEC
         DCD     SPDIF_RX_IRQHandler               ; SPDIF RX
-        DCD     I2C4_Event_IRQHandler             ; I2C 4 Event
-        DCD     I2C4_Error_IRQHandler             ; I2C 4 Error
+        DCD     FMPI2C1_Event_IRQHandler          ; FMPI2C1 Event
+        DCD     FMPI2C1_Error_IRQHandler          ; FMPI2C1 Error
 		;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; Default interrupt handlers.
@@ -663,15 +663,15 @@ CEC_IRQHandler
 SPDIF_RX_IRQHandler 
         B SPDIF_RX_IRQHandler  
         
-        PUBWEAK I2C4_Event_IRQHandler
+        PUBWEAK FMPI2C1_Event_IRQHandler
         SECTION .text:CODE:REORDER:NOROOT(1) 
-I2C4_Event_IRQHandler 
-        B I2C4_Event_IRQHandler    
+FMPI2C1_Event_IRQHandler 
+        B FMPI2C1_Event_IRQHandler    
         
-        PUBWEAK I2C4_Error_IRQHandler
+        PUBWEAK FMPI2C1_Error_IRQHandler
         SECTION .text:CODE:REORDER:NOROOT(1) 
-I2C4_Error_IRQHandler 
-        B I2C4_Error_IRQHandler                 
+FMPI2C1_Error_IRQHandler 
+        B FMPI2C1_Error_IRQHandler                 
 
 
         END

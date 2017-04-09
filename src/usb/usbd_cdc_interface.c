@@ -1,4 +1,4 @@
-/**
+ /**
   ******************************************************************************
   * @file    USB_Device/CDC_Standalone/Src/usbd_cdc_interface.c
   * @author  MCD Application Team
@@ -30,9 +30,10 @@
 #include "usbd_cdc.h"
 #include "usbd_cdc_interface.h"
 #include "gnss.h"
-#include "bsp_usb.h"
+//#include "bsp_usb.h"
 #include "bsp_mcu.h"
 #include "bsp.h"
+#include "ui.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -238,6 +239,7 @@ int8_t CDC_Itf_DeInit(void)
 		Error_Handler();
 	}
 */
+
 	return( USBD_OK );
 }
 
@@ -322,8 +324,9 @@ static
 int8_t CDC_Itf_Receive(                 uint8_t *               data,
                                         uint32_t *              size )
 {
-        bsp_mcu_uart1_xmit_start( data, *size );
-	return( USBD_OK );
+        //bsp_mcu_uart1_xmit_start( data, *size );
+        usb_cdc_recv( data, *size );
+        return( USBD_OK );
 }
 
 /**
@@ -331,26 +334,53 @@ int8_t CDC_Itf_Receive(                 uint8_t *               data,
   * @param  huart: UART handle
   * @retval None
   */
+/*
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
-	/* Initiate next USB packet transfer once UART completes transfer (transmitting data over Tx line) */
+	//Initiate next USB packet transfer once UART completes transfer (transmitting data over Tx line)
 	USBD_CDC_ReceivePacket( &husbd );
 }
+*/
+size_t usb_cdc_recv(                    uint8_t *               data,
+                                        size_t                  size )
+{
+        size_t          resp    =   0;
 
-size_t usb_cdc_send(                    uint8_t *               data,
+
+        usb_cdc_recv_hook( data, size );
+        bsp_mcu_uart1_xmit_start( data, size );
+
+        return( resp );
+}
+
+size_t usb_cdc_xmit(                    uint8_t *               data,
                                         size_t                  size )
 {
         size_t          sent    =   0;
+        uint8_t         resp;
 
 
         if( size > 0 )
         {
                 USBD_CDC_SetTxBuffer( &husbd, data, size );
 
-                if( USBD_CDC_TransmitPacket( &husbd ) == USBD_OK )
+                do
                 {
+                        resp    =   USBD_CDC_TransmitPacket( &husbd );
+
+                        if( resp == USBD_FAIL )
+                        {
+                                APP_TRACE( "usb_cdc_xmit() = USBD_FAIL\n" );
+                                break;
+                        }
+                        else if( resp == USBD_BUSY )
+                        {
+                                //APP_TRACE( "usb_cdc_xmit() = USBD_BUSY\n" );
+                        }
+
                         sent            =       size;
-                }
+
+                } while( resp != USBD_OK );
         }
 
         return( sent );

@@ -8,17 +8,16 @@
 #define  NMEA_X_H
 
 
-#include	<stdbool.h>
-#include	<string.h>
-#include	"config.h"
+#include "nmea_nvg.h"
 
 
-typedef	struct	nmea_ext_s
+typedef	struct	nmea_x_s
 {
-        size_t                  reserved;
-} nmea_ext_t;
+        nmea_nvg_t      nvg;
+} nmea_x_t;
 
 
-bool nmea_recv_x( nmea_ext_t * ext, const char * str );
+bool nmea_x_recv( nmea_x_t * x, const char * str );
+
 
 #endif	//NMEA_X_H

@@ -9,10 +9,10 @@
 /**
  * @brief Satellites in view
  */
-bool nmea_recv_gsv(                         nmea_gsv_t *        gsv,
-                                    const   char *              str )
+nmea_pckt_type_t        nmea_recv_gsv(          nmea_gsv_t *        gsv,
+                                        const   char *              str )
 {
-	bool            resp            =   true;
+	nmea_pckt_type_t        pckt_type       =   NMEA_PCKT_TYPE_GSV;
 	int             msg_num;
 
 
@@ -30,5 +30,5 @@ bool nmea_recv_gsv(                         nmea_gsv_t *        gsv,
 	{
 	}
 
-	return( resp );
+	return( pckt_type );
 }

@@ -1,0 +1,21 @@
+/**
+  * @file    app_cfg_write.c
+  * @brief   Config Write
+  * @author  Igor T. <research.tahoe@gmail.com>
+  */
+
+
+#include <stdio.h>
+#include "app.h"
+
+
+bool app_cfg_write( void )
+{
+        bool            resp    =   false;
+
+        HAL_RTCEx_BKUPWrite( &RtcHandle, aBKPDataReg[index], 0xDF59 + (index * 0x5A));
+
+
+        return( resp );
+}
+

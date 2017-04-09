@@ -65,7 +65,7 @@ bool nmea_recv(                             nmea_t *            nmea,
 	}
 	else if(    str[0] == 'P' ) //sentence type: proprietary
 	{
-		resp    =   nmea_recv_x( &nmea->ext, str+6 );
+                resp    =   nmea_x_recv( &nmea->x, str+6 );
 	}
 	else
 	{

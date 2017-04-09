@@ -1,0 +1,24 @@
+/**
+  * @file    app_cfg_init.c
+  * @brief   Config Read
+  * @author  Igor T. <research.tahoe@gmail.com>
+  */
+
+
+#include <stdio.h>
+#include "app.h"
+
+
+bool app_cfg_init( void )
+{
+        bool            resp    =   false;
+
+        __HAL_RCC_PWR_CLK_ENABLE();
+        HAL_PWR_EnableBkUpAccess();
+        //__HAL_RCC_RTC_ENABLE();
+
+RTC_BKP_DR0
+
+        return( resp );
+}
+

@@ -24,7 +24,6 @@ void ui_led_pwr_color_decomp(           bool *                  r,
 		case UI_LED_RGB_COLOR_GREEN:    *r = false; *g = true;  *b = false; break;
 		case UI_LED_RGB_COLOR_RED:      *r = true;  *g = false; *b = false; break;
 		case UI_LED_RGB_COLOR_BLACK:    *r = false; *g = false; *b = false; break;
-		//case UI_LED_RGB_COLOR_BLACK:    *r = true;  *g = true;  *b = true;  break;
 		default:                        *r = false; *g = false; *b = false; break;
 	}
 }
