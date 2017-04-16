@@ -17,74 +17,76 @@ static  UART_HandleTypeDef      huart1;
 static
 void bsp_mcu_uart1_io_init( void )
 {
-	GPIO_InitTypeDef        gpio_tx     =   {    .Pin       =    GPIO_PIN_6,
+        GPIO_InitTypeDef    gpio_tx     =   {    .Pin       =    GPIO_PIN_6,
 	                                             .Mode      =    GPIO_MODE_AF_PP,
 	                                             .Pull      =    GPIO_PULLUP,
 	                                             .Speed     =    GPIO_SPEED_FREQ_LOW,
 	                                             .Alternate =    GPIO_AF7_USART1 };
 
-	GPIO_InitTypeDef        gpio_rx     =   {    .Pin       =    GPIO_PIN_7,
+        GPIO_InitTypeDef    gpio_rx     =   {    .Pin       =    GPIO_PIN_7,
 	                                             .Mode      =    GPIO_MODE_AF_PP,
 	                                             .Pull      =    GPIO_PULLUP,
 	                                             .Speed     =    GPIO_SPEED_FREQ_LOW,
 	                                             .Alternate =    GPIO_AF7_USART1 };
 
-	__HAL_RCC_GPIOB_CLK_ENABLE();
+        __HAL_RCC_GPIOB_CLK_ENABLE();
 
-	HAL_GPIO_Init( GPIOB, &gpio_rx );
-	HAL_GPIO_Init( GPIOB, &gpio_tx );
+
+        HAL_GPIO_Init( GPIOB, &gpio_tx );
+        HAL_GPIO_Init( GPIOB, &gpio_rx );
 }
+
 
 static
 int bsp_mcu_uart1_dma_init( void )
 {
-	int                     resp    =   0;
+        int                     resp    =   0;
 
 
-	__HAL_RCC_DMA2_CLK_ENABLE();
+        __HAL_RCC_DMA2_CLK_ENABLE();
 
-	huart1_dma_tx.Instance                  =   DMA2_Stream7;
-	huart1_dma_tx.Init.Channel              =   DMA_CHANNEL_4;
-	huart1_dma_tx.Init.Direction            =   DMA_MEMORY_TO_PERIPH;
-	huart1_dma_tx.Init.PeriphInc            =   DMA_PINC_DISABLE;
-	huart1_dma_tx.Init.MemInc               =   DMA_MINC_ENABLE;
-	huart1_dma_tx.Init.PeriphDataAlignment  =   DMA_PDATAALIGN_BYTE;
-	huart1_dma_tx.Init.MemDataAlignment     =   DMA_MDATAALIGN_BYTE;
-	huart1_dma_tx.Init.Mode                 =   DMA_NORMAL;
-	huart1_dma_tx.Init.Priority             =   DMA_PRIORITY_LOW;
-	huart1_dma_tx.Init.FIFOMode             =   DMA_FIFOMODE_DISABLE;
-	huart1_dma_tx.Init.FIFOThreshold        =   DMA_FIFO_THRESHOLD_FULL;
-	huart1_dma_tx.Init.MemBurst             =   DMA_MBURST_INC4;
-	huart1_dma_tx.Init.PeriphBurst          =   DMA_PBURST_INC4;
+        huart1_dma_tx.Instance                  =   DMA2_Stream7;
+        huart1_dma_tx.Init.Channel              =   DMA_CHANNEL_4;
+        huart1_dma_tx.Init.Direction            =   DMA_MEMORY_TO_PERIPH;
+        huart1_dma_tx.Init.PeriphInc            =   DMA_PINC_DISABLE;
+        huart1_dma_tx.Init.MemInc               =   DMA_MINC_ENABLE;
+        huart1_dma_tx.Init.PeriphDataAlignment  =   DMA_PDATAALIGN_BYTE;
+        huart1_dma_tx.Init.MemDataAlignment     =   DMA_MDATAALIGN_BYTE;
+        huart1_dma_tx.Init.Mode                 =   DMA_NORMAL;
+        huart1_dma_tx.Init.Priority             =   DMA_PRIORITY_LOW;
+        huart1_dma_tx.Init.FIFOMode             =   DMA_FIFOMODE_DISABLE;
+        huart1_dma_tx.Init.FIFOThreshold        =   DMA_FIFO_THRESHOLD_FULL;
+        huart1_dma_tx.Init.MemBurst             =   DMA_MBURST_INC4;
+        huart1_dma_tx.Init.PeriphBurst          =   DMA_PBURST_INC4;
 
-	HAL_DMA_Init( &huart1_dma_tx );
-	__HAL_LINKDMA( &huart1, hdmatx, huart1_dma_tx );
+        HAL_DMA_Init( &huart1_dma_tx );
+        __HAL_LINKDMA( &huart1, hdmatx, huart1_dma_tx );
 
-	huart1_dma_rx.Instance                  =   DMA2_Stream2;
-	huart1_dma_rx.Init.Channel              =   DMA_CHANNEL_4;
-	huart1_dma_rx.Init.Direction            =   DMA_PERIPH_TO_MEMORY;
-	huart1_dma_rx.Init.PeriphInc            =   DMA_PINC_DISABLE;
-	huart1_dma_rx.Init.MemInc               =   DMA_MINC_ENABLE;
-	huart1_dma_rx.Init.PeriphDataAlignment  =   DMA_PDATAALIGN_BYTE;
-	huart1_dma_rx.Init.MemDataAlignment     =   DMA_MDATAALIGN_BYTE;
-	huart1_dma_rx.Init.Mode                 =   DMA_CIRCULAR;
-	huart1_dma_rx.Init.Priority             =   DMA_PRIORITY_HIGH;
-	huart1_dma_rx.Init.FIFOMode             =   DMA_FIFOMODE_DISABLE;
-	huart1_dma_rx.Init.FIFOThreshold        =   DMA_FIFO_THRESHOLD_FULL;
-	huart1_dma_rx.Init.MemBurst             =   DMA_MBURST_INC4;
-	huart1_dma_rx.Init.PeriphBurst          =   DMA_PBURST_INC4;
+        huart1_dma_rx.Instance                  =   DMA2_Stream2;
+        huart1_dma_rx.Init.Channel              =   DMA_CHANNEL_4;
+        huart1_dma_rx.Init.Direction            =   DMA_PERIPH_TO_MEMORY;
+        huart1_dma_rx.Init.PeriphInc            =   DMA_PINC_DISABLE;
+        huart1_dma_rx.Init.MemInc               =   DMA_MINC_ENABLE;
+        huart1_dma_rx.Init.PeriphDataAlignment  =   DMA_PDATAALIGN_BYTE;
+        huart1_dma_rx.Init.MemDataAlignment     =   DMA_MDATAALIGN_BYTE;
+        huart1_dma_rx.Init.Mode                 =   DMA_CIRCULAR;
+        huart1_dma_rx.Init.Priority             =   DMA_PRIORITY_HIGH;
+        huart1_dma_rx.Init.FIFOMode             =   DMA_FIFOMODE_DISABLE;
+        huart1_dma_rx.Init.FIFOThreshold        =   DMA_FIFO_THRESHOLD_FULL;
+        huart1_dma_rx.Init.MemBurst             =   DMA_MBURST_INC4;
+        huart1_dma_rx.Init.PeriphBurst          =   DMA_PBURST_INC4;
 
-	HAL_DMA_Init( &huart1_dma_rx );
-	__HAL_LINKDMA( &huart1, hdmarx, huart1_dma_rx );
+        HAL_DMA_Init( &huart1_dma_rx );
+        __HAL_LINKDMA( &huart1, hdmarx, huart1_dma_rx );
 
-	return( resp );
+        return( resp );
 }
 
-/**
- * @brief
- */
-void bsp_mcu_uart1_init(                const   size_t                  baud )
+
+bool bsp_mcu_uart1_init(                const   size_t                  baud )
 {
+        bool        resp    =   false;
+
         huart1.Instance                         =   USART1;
         huart1.Init.BaudRate                    =   baud;
         huart1.Init.WordLength                  =   UART_WORDLENGTH_8B;
@@ -103,84 +105,78 @@ void bsp_mcu_uart1_init(                const   size_t                  baud )
         bsp_mcu_uart1_io_init();
         bsp_mcu_uart1_dma_init();
 
-        HAL_NVIC_SetPriority(   DMA2_Stream7_IRQn,      BSP_NVIC_PRIO_GNSS_DMA_TX, 0 ); //DMA TX
+        HAL_NVIC_SetPriority(   DMA2_Stream7_IRQn,      BSP_NVIC_PRIO_GNSS_DMA_TX, 0 );
         HAL_NVIC_EnableIRQ(     DMA2_Stream7_IRQn );
 
-        HAL_NVIC_SetPriority(   DMA2_Stream2_IRQn,      BSP_NVIC_PRIO_GNSS_DMA_RX, 0 ); //DMA RX
+        HAL_NVIC_SetPriority(   DMA2_Stream2_IRQn,      BSP_NVIC_PRIO_GNSS_DMA_RX, 0 );
         HAL_NVIC_EnableIRQ(     DMA2_Stream2_IRQn );
 
         HAL_NVIC_SetPriority(   USART1_IRQn,            BSP_NVIC_PRIO_GNSS_RECV_SMBL, 0 );
         HAL_NVIC_EnableIRQ( USART1_IRQn );
+
+        return( resp );
 }
 
-/**
- * @brief UART1
- */
+
 void bsp_mcu_uart1_isr(                         void )
 {
         HAL_UART_IRQHandler( &huart1 );
 }
 
-/**
- * @brief UART1
- */
-void bsp_mcu_uart1_recv_start(              uint8_t *           data,
+
+bool bsp_mcu_uart1_recv_start(              uint8_t *           data,
                                             size_t              size )
 {
+        bool        resp    =   false;
+
         HAL_UART_Receive_DMA( &huart1, data, size );
 
-        SET_BIT( huart1.Instance->CR1,  USART_CR1_IDLEIE        );
+        //SET_BIT( huart1.Instance->CR1,  USART_CR1_IDLEIE        );
+
+        return( resp );
 }
 
-/**
- * @brief UART1
- */
-void bsp_mcu_uart1_dma_tx_isr(                  void )
+
+bool bsp_mcu_uart1_recv_stop(               void                )
+{
+        return( false );
+}
+
+
+uint32_t bsp_mcu_uart1_dma_recv_ndtr_get(       void            )
+{
+        return( huart1.hdmarx->Instance->NDTR );
+}
+
+
+void bsp_mcu_uart1_dma_tx_isr(                  void            )
 {
         HAL_DMA_IRQHandler( huart1.hdmatx );
 }
 
-/**
- * @brief UART1
- */
+
 void bsp_mcu_uart1_dma_rx_isr(                  void )
 {
         HAL_DMA_IRQHandler( huart1.hdmarx );
 }
 
-/**
- * @brief UART1
- */
-void bsp_mcu_uart1_xmit_start(                  uint8_t *               data,
+
+bool bsp_mcu_uart1_xmit_start(                  uint8_t *               data,
                                                 size_t                  size )
 {
-        HAL_UART_Transmit_DMA( &huart1, data, size );
+        HAL_StatusTypeDef       resp    =   HAL_UART_Transmit_DMA( &huart1, data, size );
+
+        return( resp == HAL_OK ? false : true );
 }
 
-/**
- * @brief UART1
- */
+
 uint32_t bsp_mcu_uart1_recv_dma_head_get(       void )
 {
-        return( DMA2_Stream2->NDTR );
+        return( huart1.hdmarx->Instance->NDTR );
+        //return( DMA2_Stream2->NDTR );
 }
 
-/**
- * @brief UART1
- */
-/*
-bool    bsp_mcu_uart1_recv_dma_full_get(       void )
-{
-        bool    resp    =   (DMA2->LISR & DMA_LISR_TCIF2) ? true : false;
 
-        if( resp )
-        {
-                DMA2->LIFCR     |=   DMA_LIFCR_CTCIF2;
-        }
-
-        return(  resp );
-}
-*/
 bool    bsp_mcu_uart1_sts_idle(                 void )
 {
         bool    sts_idle        =   READ_BIT( huart1.Instance->SR, USART_SR_IDLE );

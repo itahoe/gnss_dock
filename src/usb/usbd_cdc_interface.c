@@ -52,7 +52,7 @@ USBD_CDC_LineCodingTypeDef      LineCoding      =   {	.bitrate        =   115200
 
 //extern	TIM_HandleTypeDef       htim_cdc; //TIM handler declaration
 extern	USBD_HandleTypeDef	husbd; //USB handler declaration
-extern	fifo_t                  gnss_data_uart_tx;
+//extern	fifo_t                  gnss_data_uart_tx;
 
 
 /* Private function prototypes -----------------------------------------------*/
@@ -363,7 +363,7 @@ size_t usb_cdc_xmit(                    uint8_t *               data,
         if( size > 0 )
         {
                 USBD_CDC_SetTxBuffer( &husbd, data, size );
-
+/*
                 do
                 {
                         resp    =   USBD_CDC_TransmitPacket( &husbd );
@@ -381,6 +381,15 @@ size_t usb_cdc_xmit(                    uint8_t *               data,
                         sent            =       size;
 
                 } while( resp != USBD_OK );
+*/
+                resp    =   USBD_CDC_TransmitPacket( &husbd );
+
+                if( resp != USBD_OK )
+                {
+                        APP_TRACE( "usb_cdc_xmit() != USBD_OK\n" );
+                        sent            =       0;
+                }
+
         }
 
         return( sent );

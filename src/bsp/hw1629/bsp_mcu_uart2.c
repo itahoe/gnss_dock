@@ -83,8 +83,11 @@ int bsp_mcu_uart2_dma_init( void )
 /**
  * @brief
  */
-void bsp_mcu_uart2_init(                const   size_t                  baud )
+bool bsp_mcu_uart2_init(                const   size_t                  baud )
 {
+        bool        resp    =   false;
+
+
         huart2.Instance                         =   USART2;
         huart2.Init.BaudRate                    =   baud;
         huart2.Init.WordLength                  =   UART_WORDLENGTH_8B;
@@ -112,6 +115,9 @@ void bsp_mcu_uart2_init(                const   size_t                  baud )
 
 	   HAL_NVIC_SetPriority(   USART2_IRQn,            BSP_NVIC_PRIO_GNSS_RECV_SMBL, 0 );
 	   HAL_NVIC_EnableIRQ( USART2_IRQn );
+
+
+        return( resp );
 }
 
 /**
@@ -125,18 +131,38 @@ void bsp_mcu_uart2_isr(                         void )
 /**
  * @brief UART1
  */
-void bsp_mcu_uart2_recv_start(              uint8_t *           data,
+bool bsp_mcu_uart2_recv_start(              uint8_t *           data,
                                             size_t              size )
 {
+        bool        resp    =   false;
+
         HAL_UART_Receive_DMA( &huart2, data, size );
 
-        SET_BIT( huart2.Instance->CR1,  USART_CR1_IDLEIE        );
+        //SET_BIT( huart2.Instance->CR1,  USART_CR1_IDLEIE        );
+
+        return( resp );
 }
+
+
+/**
+ * @brief UART2
+ */
+bool bsp_mcu_uart2_recv_stop(               void                )
+{
+        return( false );
+}
+
+
+uint32_t bsp_mcu_uart2_dma_recv_ndtr_get(       void            )
+{
+        return( huart2.hdmarx->Instance->NDTR );
+}
+
 
 /**
  * @brief UART1
  */
-void bsp_mcu_uart2_dma_tx_isr(                  void )
+void bsp_mcu_uart2_dma_tx_isr(                  void            )
 {
         HAL_DMA_IRQHandler( huart2.hdmatx );
 }
@@ -152,10 +178,12 @@ void bsp_mcu_uart2_dma_rx_isr(                  void )
 /**
  * @brief UART1
  */
-void bsp_mcu_uart2_xmit_start(                  uint8_t *               data,
+bool bsp_mcu_uart2_xmit_start(                  uint8_t *               data,
                                                 size_t                  size )
 {
-        HAL_UART_Transmit_DMA( &huart2, data, size );
+        HAL_StatusTypeDef       resp    =   HAL_UART_Transmit_DMA( &huart2, data, size );
+
+        return( resp == HAL_OK ? false : true );
 }
 
 /**

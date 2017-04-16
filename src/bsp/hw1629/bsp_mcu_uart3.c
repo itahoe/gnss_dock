@@ -17,23 +17,23 @@ static  UART_HandleTypeDef      huart3;
 static
 void bsp_mcu_uart3_io_init( void )
 {
-	GPIO_InitTypeDef        gpio_tx     =   {    .Pin       =    GPIO_PIN_10,
+        GPIO_InitTypeDef    gpio_tx     =   {    .Pin       =    GPIO_PIN_10,
 	                                             .Mode      =    GPIO_MODE_AF_PP,
 	                                             .Pull      =    GPIO_PULLUP,
 	                                             .Speed     =    GPIO_SPEED_FREQ_LOW,
 	                                             .Alternate =    GPIO_AF7_USART3 };
 
-	GPIO_InitTypeDef        gpio_rx     =   {    .Pin       =    GPIO_PIN_5,
+        GPIO_InitTypeDef    gpio_rx     =   {    .Pin       =    GPIO_PIN_5,
 	                                             .Mode      =    GPIO_MODE_AF_PP,
 	                                             .Pull      =    GPIO_PULLUP,
 	                                             .Speed     =    GPIO_SPEED_FREQ_LOW,
 	                                             .Alternate =    GPIO_AF7_USART3 };
 
-	__HAL_RCC_GPIOB_CLK_ENABLE();
-	__HAL_RCC_GPIOC_CLK_ENABLE();
+        __HAL_RCC_GPIOB_CLK_ENABLE();
+        __HAL_RCC_GPIOC_CLK_ENABLE();
 
-	HAL_GPIO_Init( GPIOB, &gpio_tx );
-	HAL_GPIO_Init( GPIOC, &gpio_rx );
+        HAL_GPIO_Init( GPIOB, &gpio_tx );
+        HAL_GPIO_Init( GPIOC, &gpio_rx );
 }
 
 
@@ -83,8 +83,10 @@ int bsp_mcu_uart3_dma_init( void )
 }
 
 
-void bsp_mcu_uart3_init(                const   size_t                  baud )
+bool bsp_mcu_uart3_init(                const   size_t                  baud )
 {
+        bool        resp    =   false;
+
         huart3.Instance                         =   USART3;
         huart3.Init.BaudRate                    =   baud;
         huart3.Init.WordLength                  =   UART_WORDLENGTH_8B;
@@ -103,7 +105,6 @@ void bsp_mcu_uart3_init(                const   size_t                  baud )
         bsp_mcu_uart3_io_init();
         bsp_mcu_uart3_dma_init();
 
-
         HAL_NVIC_SetPriority(   DMA1_Stream3_IRQn,      BSP_NVIC_PRIO_GNSS_DMA_TX, 0 );
         HAL_NVIC_EnableIRQ(     DMA1_Stream3_IRQn );
 
@@ -112,6 +113,8 @@ void bsp_mcu_uart3_init(                const   size_t                  baud )
 
         HAL_NVIC_SetPriority(   USART3_IRQn,            BSP_NVIC_PRIO_GNSS_RECV_SMBL, 0 );
         HAL_NVIC_EnableIRQ( USART3_IRQn );
+
+        return( resp );
 }
 
 
@@ -121,37 +124,56 @@ void bsp_mcu_uart3_isr(                         void )
 }
 
 
-void bsp_mcu_uart3_recv_start(              uint8_t *           data,
+bool bsp_mcu_uart3_recv_start(              uint8_t *           data,
                                             size_t              size )
 {
+        bool        resp    =   false;
+
         HAL_UART_Receive_DMA( &huart3, data, size );
 
-        SET_BIT( huart3.Instance->CR1,  USART_CR1_IDLEIE        );
+        //SET_BIT( huart3.Instance->CR1,  USART_CR1_IDLEIE        );
+
+        return( resp );
 }
 
 
-void bsp_mcu_uart3_dma_tx_isr(                  void )
+bool bsp_mcu_uart3_recv_stop(               void                )
+{
+        return( false );
+}
+
+
+uint32_t bsp_mcu_uart3_dma_recv_ndtr_get(       void            )
+{
+        return( huart3.hdmarx->Instance->NDTR );
+}
+
+
+void bsp_mcu_uart3_dma_tx_isr(                  void            )
 {
         HAL_DMA_IRQHandler( huart3.hdmatx );
 }
 
 
-void bsp_mcu_uart3_dma_rx_isr(                  void )
+void bsp_mcu_uart3_dma_rx_isr(                  void            )
 {
         HAL_DMA_IRQHandler( huart3.hdmarx );
 }
 
 
-void bsp_mcu_uart3_xmit_start(                  uint8_t *               data,
+bool bsp_mcu_uart3_xmit_start(                  uint8_t *               data,
                                                 size_t                  size )
 {
-        HAL_UART_Transmit_DMA( &huart3, data, size );
+        HAL_StatusTypeDef       resp    =   HAL_UART_Transmit_DMA( &huart3, data, size );
+
+        return( resp == HAL_OK ? false : true );
 }
 
 
-uint32_t bsp_mcu_uart3_recv_dma_head_get(       void )
+uint32_t bsp_mcu_uart3_read_ndtr(               void                    )
 {
         return( huart3.hdmarx->Instance->NDTR );
+
 }
 
 

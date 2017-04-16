@@ -13,10 +13,11 @@
 #include "config.h"
 
 
-#define APP_QUE_SIZE_USB_CDC_WRDS               10
-#define APP_QUE_SIZE_CLI_WRDS                   10
-#define APP_QUE_SIZE_STORAGE_WRDS               10
-#define APP_QUE_SIZE_GNSS_WRDS                  10
+#define APP_QUE_SIZE_USB_CDC_WRDS               4
+#define APP_QUE_SIZE_CLI_WRDS                   4
+#define APP_QUE_SIZE_STORAGE_WRDS               4
+#define APP_QUE_SIZE_GNSS_WRDS                  4
+#define APP_QUE_SIZE_COMM_WRDS                  4
 
 #define APP_TASK_STACK_SIZE_MAIN_WRDS           configMINIMAL_STACK_SIZE
 #define APP_TASK_STACK_SIZE_UI_WRDS             configMINIMAL_STACK_SIZE
@@ -25,6 +26,7 @@
 #define APP_TASK_STACK_SIZE_USB_WRDS            400
 #define APP_TASK_STACK_SIZE_STORAGE_WRDS        400
 #define APP_TASK_STACK_SIZE_CLI_WRDS            configMINIMAL_STACK_SIZE
+#define APP_TASK_STACK_SIZE_COMM_WRDS           400
 
 typedef enum    app_gnss_data_type_e
 {
@@ -107,13 +109,14 @@ void            app_cfg_write(          const   uint32_t                addr,
 
 void app_systick_hook( void );
 
-void app_task_main(                             void *          argument );
-void app_task_ui(                               void *          argument );
-void app_task_gnss(                             void *          argument );
-void app_task_dspl(                             void *          argument );
-void app_task_usb(                              void *          argument );
-void app_task_storage(                          void *          argument );
-void app_task_cli(                              void *          argument );
+void app_task_main(                             void *                  arg );
+void app_task_ui(                               void *                  arg );
+void app_task_gnss(                             void *                  arg );
+void app_task_dspl(                             void *                  arg );
+void app_task_usb(                              void *                  arg );
+void app_task_storage(                          void *                  arg );
+void app_task_cli(                              void *                  arg );
+void app_task_comm(                             void *                  arg );
 
 void app_ser1_recv_idle_isr(                    uint32_t        cnt     );
 void app_ser1_recv_half_isr(                    void                    );

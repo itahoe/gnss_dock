@@ -17,6 +17,7 @@
 #include "cfg_nmea.h"
 #include "cfg_ui.h"
 #include "cfg_usb.h"
+#include "cfg_comm.h"
 
 
 #endif	//CONFIG_H

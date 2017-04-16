@@ -268,15 +268,15 @@ void USART2_IRQHandler( void )
 
         if( USART2->SR & USART_SR_IDLE )
         {
-                uint32_t        dma_cnt_wrds    =   bsp_mcu_uart2_recv_dma_head_get();
-                app_ser2_recv_idle_isr( dma_cnt_wrds );
+                //uint32_t        dma_cnt_wrds    =   bsp_mcu_uart2_recv_dma_head_get();
+                //app_ser2_recv_idle_isr( dma_cnt_wrds );
 
         }
 
-        volatile        uint32_t        sts     =   USART2->SR;
-        volatile        uint32_t        data    =   USART2->DR;
+        //volatile        uint32_t        sts     =   USART2->SR;
+        //volatile        uint32_t        data    =   USART2->DR;
 
-        //bsp_mcu_uart2_isr();
+        bsp_mcu_uart2_isr();
 
         app_irq_cnt_uart2();
 }
@@ -288,7 +288,6 @@ void DMA1_Stream6_IRQHandler( void )
 {
         bsp_mcu_uart2_dma_tx_isr();
         app_irq_cnt_uart2_dma_tx();
-
 }
 
 
@@ -298,7 +297,6 @@ void DMA1_Stream5_IRQHandler( void )
 {
         bsp_mcu_uart2_dma_rx_isr();
         app_irq_cnt_uart2_dma_rx();
-
 }
 
 
@@ -321,13 +319,13 @@ void USART3_IRQHandler( void )
 	//volatile        uint32_t        sts     =   USART3->SR;
 	//volatile        uint32_t        data    =   USART3->DR;
 */
-
+/*
         if( USART3->SR &  USART_SR_IDLE )
         {
-                uint32_t        dma_cnt_wrds    =   bsp_mcu_uart3_recv_dma_head_get();
+                uint32_t        dma_cnt_wrds    =   bsp_mcu_uart3_read_ndtr();
                 app_ser3_recv_idle_isr( dma_cnt_wrds );
         }
-
+*/
         bsp_mcu_uart3_isr();
 
 	volatile        uint32_t        sts     =   USART3->SR;

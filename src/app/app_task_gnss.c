@@ -11,6 +11,8 @@
 #include "cmsis_os.h"
 #include "app.h"
 
+#include "ui.h"
+
 
         gnss_t                  gnss;
 extern  app_fifo_t              ser1_recv;
@@ -42,7 +44,7 @@ void app_task_gnss_ser3_send_circular(          app_stream_t *          p )
         }
 }
 
-
+/*
 static
 void app_task_gnss_ser2_send_circular(          app_stream_t *          p )
 {
@@ -64,29 +66,34 @@ void app_task_gnss_ser2_send_circular(          app_stream_t *          p )
                 p->tile         +=  len;
         }
 }
-
+*/
 
 void app_task_gnss(                             void *            argument )
 {
         app_stream_t            stream;
+        size_t                  timeout_msec    =   100;
+        TickType_t              timeout_tcks    =   timeout_msec / portTICK_PERIOD_MS;
 
 
         (void) argument;
 
-	gnss_init( &gnss );
+	//gnss_init( &gnss );
+
 	//gnss_ser3_xmit( ser3_xmit.data, CFG_GNSS_BLCK_SIZE_OCT );
-	gnss_ser3_recv_start( ser3_recv.data, CFG_GNSS_BLCK_SIZE_OCT );
-	gnss_ser2_recv_start( ser2_recv.data, CFG_GNSS_BLCK_SIZE_OCT );
-	gnss_ser1_recv_start( ser1_recv.data, CFG_GNSS_BLCK_SIZE_OCT );
+
+	//gnss_ser3_recv_start( ser3_recv.data, CFG_GNSS_BLCK_SIZE_OCT );
+	//gnss_ser2_recv_start( ser2_recv.data, CFG_GNSS_BLCK_SIZE_OCT );
+	//gnss_ser1_recv_start( ser1_recv.data, CFG_GNSS_BLCK_SIZE_OCT );
 
         while( true )
         {
-                if( xQueueReceive( app_que_gnss_hndl, &stream, portMAX_DELAY ) )
+                //if( xQueueReceive( app_que_gnss_hndl, &stream, portMAX_DELAY ) )
+                if( xQueueReceive( app_que_gnss_hndl, &stream, timeout_tcks ) )
                 {
                         switch( stream.type )
                         {
                                 case APP_MSG_TYPE_SER3_RECV:
-                                        app_task_gnss_ser2_send_circular( &stream );
+                                        //app_task_gnss_ser2_send_circular( &stream );
                                         APP_TRACE( "%s\n", stream.head );
                                         break;
 
@@ -101,5 +108,18 @@ void app_task_gnss(                             void *            argument )
                                         break;
                         }
                 }
+
+                //ui_led_pwr_set(         UI_LED_RGB_COLOR_RED    );
+                //ui_led_pwr_set(         UI_LED_RGB_COLOR_GREEN  );
+
+                //xQueueReceive( app_que_gnss_hndl, &stream, timeout_tcks );
+/*
+                size    =   gnss_ser3_recv();
+
+                if( size )
+                {
+                        app_task_gnss_ser2_send_circular();
+                }
+*/
         }
 }
