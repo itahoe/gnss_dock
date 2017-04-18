@@ -10,9 +10,6 @@
 #include "app.h"
 #include "cmsis_os.h"
 
-volatile        int     uart1_irq_cnt   = 0;
-volatile        int     uart2_irq_cnt   = 0;
-volatile        int     uart3_irq_cnt   = 0;
 
 extern  PCD_HandleTypeDef       hpcd;
 
@@ -265,18 +262,22 @@ void USART2_IRQHandler( void )
 	volatile        uint32_t        sts     =   USART2->SR;
 	volatile        uint32_t        data    =   USART2->DR;
 */
+        volatile        uint32_t        sts     =   USART2->SR;
+        volatile        uint32_t        data    =   USART2->DR;
 
-        if( USART2->SR & USART_SR_IDLE )
+        if( sts & USART_SR_IDLE )
         {
-                //uint32_t        dma_cnt_wrds    =   bsp_mcu_uart2_recv_dma_head_get();
-                //app_ser2_recv_idle_isr( dma_cnt_wrds );
+                uint32_t        dma_cnt_wrds    =   bsp_mcu_uart2_recv_dma_head_get();
+                app_ser2_recv_idle_isr( dma_cnt_wrds );
 
         }
 
-        //volatile        uint32_t        sts     =   USART2->SR;
-        //volatile        uint32_t        data    =   USART2->DR;
+        if( sts & USART_SR_TC )
+        {
+                CLEAR_BIT( USART2->SR, USART_SR_TC );
+        }
 
-        bsp_mcu_uart2_isr();
+        //bsp_mcu_uart2_isr();
 
         app_irq_cnt_uart2();
 }
@@ -319,17 +320,17 @@ void USART3_IRQHandler( void )
 	//volatile        uint32_t        sts     =   USART3->SR;
 	//volatile        uint32_t        data    =   USART3->DR;
 */
-/*
-        if( USART3->SR &  USART_SR_IDLE )
-        {
-                uint32_t        dma_cnt_wrds    =   bsp_mcu_uart3_read_ndtr();
-                app_ser3_recv_idle_isr( dma_cnt_wrds );
-        }
-*/
+
         bsp_mcu_uart3_isr();
 
 	volatile        uint32_t        sts     =   USART3->SR;
         volatile        uint32_t        data    =   USART3->DR;
+
+        if( sts &  USART_SR_IDLE )
+        {
+                uint32_t        dma_cnt_wrds    =   bsp_mcu_uart2_dma_recv_ndtr_get();
+                app_ser3_recv_idle_isr( dma_cnt_wrds );
+        }
 
         app_irq_cnt_uart3();
 }

@@ -19,6 +19,7 @@ extern  QueueHandle_t           app_que_usb_cdc_hndl;
 extern  QueueHandle_t           app_que_storage_hndl;
 extern  QueueHandle_t           app_que_cli_hndl;
 extern  QueueHandle_t           app_que_comm_hndl;
+extern  QueueHandle_t           app_que_dspl_hndl;
 static  uint8_t                 uart1_recv_data[ CFG_COMM_BLCK_SIZE_UART1_RECV_OCT ];
 static  uint8_t                 uart2_recv_data[ CFG_COMM_BLCK_SIZE_UART2_RECV_OCT ];
 static  uint8_t                 uart3_recv_data[ CFG_COMM_BLCK_SIZE_UART3_RECV_OCT ];
@@ -172,6 +173,11 @@ void app_task_comm(                             void *                  arg )
                                         //xQueueSend( app_que_usb_cdc_hndl, &stream, NULL );
                                         break;
 
+                                case APP_MSG_TYPE_USB_RECV:
+                                        uart1.xmit( stream.data, stream.size );
+                                        break;
+
+
                                 default:
                                         break;
                         }
@@ -183,6 +189,11 @@ void app_task_comm(                             void *                  arg )
                         if( recieved )
                         {
                                 usb_cdc_xmit( uart1.recv.tile, uart1.recv.size );
+
+                                stream.type     =   APP_MSG_TYPE_SER1_RECV;
+                                stream.data     =   uart1.recv.tile;
+                                stream.size     =   uart1.recv.size;
+                                xQueueSend( app_que_dspl_hndl, &stream, NULL );
                         }
 
                         recieved        =   app_task_comm_uart_recv_hook( &uart2.recv );

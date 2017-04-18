@@ -15,7 +15,8 @@
 #include "ui.h"
 
 
-extern  app_fifo_t              ser1_recv;
+//extern  app_fifo_t              ser1_recv;
+extern  QueueHandle_t           app_que_dspl_hndl;
 extern  gnss_t                  gnss;
 extern	time_t	time_dat;
 
@@ -38,16 +39,17 @@ void app_task_dspl_fix(                         nmea_fix_t              fix )
 
 void app_task_dspl(                             void *            arg )
 {
-        app_fifo_t*             p               =   &ser1_recv;
-        uint8_t *               tile            =   p->data;
-        uint32_t                dummy;
+        //app_fifo_t*             p               =   &ser1_recv;
+        //uint8_t *               tile            =   p->data;
+        //uint32_t                dummy;
         bool                    resp;
+        app_stream_t            stream;
 
 
         while( true )
         {
+/*
                 xTaskNotifyWait( 0, 0, &dummy, portMAX_DELAY );
-
                 while( tile != p->head )
                 {
                         if( tile > (p->data + CFG_GNSS_BLCK_SIZE_OCT) )
@@ -62,6 +64,32 @@ void app_task_dspl(                             void *            arg )
                                 app_task_dspl_fix( gnss.nmea.gga.fix );
 
                                 gnss_time_sync( &gnss, &time_dat );
+                        }
+                }
+*/
+
+
+                if( xQueueReceive( app_que_dspl_hndl, &stream, portMAX_DELAY ) )
+                {
+                        switch( stream.type )
+                        {
+                                case APP_MSG_TYPE_SER1_RECV:
+
+                                while( stream.size-- )
+                                {
+                                        resp    =   gnss_recv( &gnss, *stream.data++  );
+
+                                        if( resp )
+                                        {
+                                                app_task_dspl_fix( gnss.nmea.gga.fix );
+                                                gnss_time_sync( &gnss, &time_dat );
+                                        }
+                                }
+
+                                        break;
+
+                                default:
+                                        break;
                         }
                 }
 

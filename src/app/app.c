@@ -21,9 +21,9 @@
 
 
         app_t                   app;
-        app_fifo_t              ser1_recv;
-        app_fifo_t              ser2_recv;
-        app_fifo_t              ser3_recv;
+        //app_fifo_t              ser1_recv;
+        //app_fifo_t              ser2_recv;
+        //app_fifo_t              ser3_recv;
         time_t                  time_dat        =   0;
 extern  USBD_HandleTypeDef      husbd;
 
@@ -43,6 +43,10 @@ extern  USBD_HandleTypeDef      husbd;
         QueueHandle_t           app_que_gnss_hndl;
         uint8_t                 app_que_gnss_alloc[     APP_QUE_SIZE_GNSS_WRDS * sizeof( app_stream_t ) ];
         StaticQueue_t           app_que_gnss;
+
+        QueueHandle_t           app_que_dspl_hndl;
+        uint8_t                 app_que_dspl_alloc[     APP_QUE_SIZE_DSPL_WRDS * sizeof( app_stream_t ) ];
+        StaticQueue_t           app_que_dspl;
 
         QueueHandle_t           app_que_comm_hndl;
         uint8_t                 app_que_comm_alloc[     APP_QUE_SIZE_COMM_WRDS * sizeof( app_stream_t ) ];
@@ -156,36 +160,16 @@ void app_ser1_recv_idle_isr(                    uint32_t                cnt )
 {
         //bool            resp;
 
-
+/*
         ser1_recv.head          =  (ser1_recv.data + CFG_GNSS_BLCK_SIZE_OCT) - cnt;
 
         xTaskNotifyFromISR(     task_dspl,
                                 APP_GNSS_DATA_TYPE_STREAM,
                                 eSetValueWithOverwrite,
                                 pdFALSE );
-/*
-        app_stream_t    stream  =       {       .type   =   APP_MSG_TYPE_SER1_RECV,
-                                                .data   =   ser1_recv.data,
-                                                .head   =   ser1_recv.head,
-                                                .tile   =   ser1_recv.tile,
-                                                .size   =   cnt };
 
-        resp    =   xQueueSendFromISR( app_que_usb_cdc_hndl, &stream, NULL );
-
-        if( resp != pdTRUE )
-        {
-                //APP_TRACE( "app_ser1_recv_idle_isr() :: xQueueSendFromISR( app_que_usb_cdc_hndl ) == != pdTRUE\n" );
-        }
-*/
-/*
-        resp            =   xQueueSendFromISR( app_que_gnss_hndl, &stream, NULL );
-
-        if( resp != pdTRUE )
-        {
-                APP_TRACE( "app_ser1_recv_idle_isr() :: xQueueSendFromISR( app_que_gnss_hndl ) == != pdTRUE\n" );
-        }
-*/
         ser1_recv.tile  =   ser1_recv.head;
+*/
 }
 
 /*
@@ -246,6 +230,7 @@ void app_ser2_recv_full_isr( void )
 
 void app_ser2_recv_idle_isr(                    uint32_t                cnt )
 {
+/*
         bool            resp;
 
 
@@ -265,6 +250,7 @@ void app_ser2_recv_idle_isr(                    uint32_t                cnt )
         }
 
         ser2_recv.tile  =   ser2_recv.head;
+*/
 }
 
 
@@ -275,6 +261,7 @@ void app_ser2_xmit_full_isr( void )
 
 void app_ser3_recv_idle_isr(                    uint32_t                cnt )
 {
+/*
         bool            resp;
 
 
@@ -294,6 +281,7 @@ void app_ser3_recv_idle_isr(                    uint32_t                cnt )
         }
 
         ser3_recv.tile  =   ser3_recv.head;
+*/
 }
 
 
@@ -388,6 +376,11 @@ int main( void )
                                                         sizeof( app_stream_t ),
                                                         app_que_comm_alloc,
                                                         &app_que_comm );
+
+        app_que_dspl_hndl       =   xQueueCreateStatic( APP_QUE_SIZE_DSPL_WRDS,
+                                                        sizeof( app_stream_t ),
+                                                        app_que_dspl_alloc,
+                                                        &app_que_dspl );
 
 
         task_main               =   xTaskCreateStatic(  app_task_main,

@@ -18,6 +18,7 @@
 #define APP_QUE_SIZE_STORAGE_WRDS               4
 #define APP_QUE_SIZE_GNSS_WRDS                  4
 #define APP_QUE_SIZE_COMM_WRDS                  4
+#define APP_QUE_SIZE_DSPL_WRDS                  4
 
 #define APP_TASK_STACK_SIZE_MAIN_WRDS           configMINIMAL_STACK_SIZE
 #define APP_TASK_STACK_SIZE_UI_WRDS             configMINIMAL_STACK_SIZE

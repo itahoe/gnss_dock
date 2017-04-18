@@ -87,7 +87,7 @@ void app_task_cli_resp(                         nvg_t *                 p )
 
                         //resp    =   xQueueSendFromISR( app_usb_cdc_xmit_que_hndl, &stream, NULL );
                         resp    =   xQueueSend( app_que_usb_cdc_hndl, &stream, portMAX_DELAY );
-                        resp    =   xQueueSend( app_que_comm_hndl, &stream, portMAX_DELAY );
+                        //resp    =   xQueueSend( app_que_comm_hndl, &stream, portMAX_DELAY );
 
                         if( resp != pdTRUE )
                         {

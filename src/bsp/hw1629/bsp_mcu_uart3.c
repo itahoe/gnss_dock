@@ -169,14 +169,6 @@ bool bsp_mcu_uart3_xmit_start(                  uint8_t *               data,
         return( resp == HAL_OK ? false : true );
 }
 
-
-uint32_t bsp_mcu_uart3_read_ndtr(               void                    )
-{
-        return( huart3.hdmarx->Instance->NDTR );
-
-}
-
-
 bool    bsp_mcu_uart3_sts_idle(                 void )
 {
         bool    sts_idle        =   READ_BIT( huart3.Instance->SR, USART_SR_IDLE );

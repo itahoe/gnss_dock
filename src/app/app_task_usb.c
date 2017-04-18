@@ -15,6 +15,7 @@
         USBD_HandleTypeDef      husbd;
 extern  QueueHandle_t           app_que_usb_cdc_hndl;
 extern  QueueHandle_t           app_que_cli_hndl;
+extern  QueueHandle_t           app_que_comm_hndl;
 
 
 static
@@ -49,6 +50,7 @@ void usb_cdc_recv_hook(                 uint8_t *               data,
                                                 .size   =   size        };
 
         resp    =   xQueueSendFromISR( app_que_cli_hndl, &stream, NULL );
+        resp    =   xQueueSendFromISR( app_que_comm_hndl, &stream, NULL );
 
         if( resp != pdTRUE )
         {

@@ -101,8 +101,8 @@ uint32_t bsp_mcu_uart1_recv_dma_head_get(       void );
 
 uint32_t bsp_mcu_uart2_recv_dma_head_get(       void );
 
-//uint32_t bsp_mcu_uart3_recv_dma_head_get(       void );
-uint32_t bsp_mcu_uart3_read_ndtr(               void                    );
+uint32_t bsp_mcu_uart3_recv_dma_head_get(       void );
+//uint32_t bsp_mcu_uart3_read_ndtr(               void                    );
 
 uint32_t bsp_mcu_uart6_recv_dma_head_get(       void );
 

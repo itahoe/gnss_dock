@@ -348,7 +348,7 @@ size_t usb_cdc_recv(                    uint8_t *               data,
 
 
         usb_cdc_recv_hook( data, size );
-        bsp_mcu_uart1_xmit_start( data, size );
+        //bsp_mcu_uart1_xmit_start( data, size );
 
         return( resp );
 }

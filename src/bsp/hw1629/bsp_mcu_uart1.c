@@ -17,20 +17,19 @@ static  UART_HandleTypeDef      huart1;
 static
 void bsp_mcu_uart1_io_init( void )
 {
-        GPIO_InitTypeDef    gpio_tx     =   {    .Pin       =    GPIO_PIN_6,
+        GPIO_InitTypeDef        gpio_tx     =   {    .Pin       =    GPIO_PIN_6,
 	                                             .Mode      =    GPIO_MODE_AF_PP,
 	                                             .Pull      =    GPIO_PULLUP,
 	                                             .Speed     =    GPIO_SPEED_FREQ_LOW,
 	                                             .Alternate =    GPIO_AF7_USART1 };
 
-        GPIO_InitTypeDef    gpio_rx     =   {    .Pin       =    GPIO_PIN_7,
+        GPIO_InitTypeDef        gpio_rx     =   {    .Pin       =    GPIO_PIN_7,
 	                                             .Mode      =    GPIO_MODE_AF_PP,
 	                                             .Pull      =    GPIO_PULLUP,
 	                                             .Speed     =    GPIO_SPEED_FREQ_LOW,
 	                                             .Alternate =    GPIO_AF7_USART1 };
 
         __HAL_RCC_GPIOB_CLK_ENABLE();
-
 
         HAL_GPIO_Init( GPIOB, &gpio_tx );
         HAL_GPIO_Init( GPIOB, &gpio_rx );
@@ -164,6 +163,7 @@ void bsp_mcu_uart1_dma_rx_isr(                  void )
 bool bsp_mcu_uart1_xmit_start(                  uint8_t *               data,
                                                 size_t                  size )
 {
+        APP_TRACE( "%s", data );
         HAL_StatusTypeDef       resp    =   HAL_UART_Transmit_DMA( &huart1, data, size );
 
         return( resp == HAL_OK ? false : true );
