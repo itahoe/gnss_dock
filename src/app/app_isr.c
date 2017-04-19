@@ -199,28 +199,21 @@ void SysTick_Handler(void)
 void USART1_IRQHandler( void )
 {
 /*
-        bsp_mcu_uart1_isr();
+        volatile        uint32_t        sts     =   USART1->SR;
+        volatile        uint32_t        data    =   USART1->DR;
 
-        if( bsp_mcu_uart3_sts_idle() )
+        if( sts &  USART_SR_IDLE )
         {
                 uint32_t        dma_cnt_wrds    =   bsp_mcu_uart1_recv_dma_head_get();
                 app_ser1_recv_idle_isr( dma_cnt_wrds );
         }
 
-        volatile        uint32_t        sts     =   USART1->SR;
-        volatile        uint32_t        data    =   USART1->DR;
+        if( sts & USART_SR_TC )
+        {
+                //CLEAR_BIT( USART2->SR, USART_SR_TC );
+        }
 */
-
-        if( USART1->SR &  USART_SR_IDLE )
-        {
-                uint32_t        dma_cnt_wrds    =   bsp_mcu_uart1_recv_dma_head_get();
-                app_ser1_recv_idle_isr( dma_cnt_wrds );
-        }
-
         bsp_mcu_uart1_isr();
-
-        volatile        uint32_t        sts     =   USART1->SR;
-        volatile        uint32_t        data    =   USART1->DR;
 
         app_irq_cnt_uart1();
 }
@@ -262,6 +255,7 @@ void USART2_IRQHandler( void )
 	volatile        uint32_t        sts     =   USART2->SR;
 	volatile        uint32_t        data    =   USART2->DR;
 */
+/*
         volatile        uint32_t        sts     =   USART2->SR;
         volatile        uint32_t        data    =   USART2->DR;
 
@@ -274,10 +268,10 @@ void USART2_IRQHandler( void )
 
         if( sts & USART_SR_TC )
         {
-                CLEAR_BIT( USART2->SR, USART_SR_TC );
+                //CLEAR_BIT( USART2->SR, USART_SR_TC );
         }
-
-        //bsp_mcu_uart2_isr();
+*/
+        bsp_mcu_uart2_isr();
 
         app_irq_cnt_uart2();
 }
@@ -322,7 +316,7 @@ void USART3_IRQHandler( void )
 */
 
         bsp_mcu_uart3_isr();
-
+/*
 	volatile        uint32_t        sts     =   USART3->SR;
         volatile        uint32_t        data    =   USART3->DR;
 
@@ -331,7 +325,7 @@ void USART3_IRQHandler( void )
                 uint32_t        dma_cnt_wrds    =   bsp_mcu_uart2_dma_recv_ndtr_get();
                 app_ser3_recv_idle_isr( dma_cnt_wrds );
         }
-
+*/
         app_irq_cnt_uart3();
 }
 

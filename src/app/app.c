@@ -109,7 +109,6 @@ void app_irq_cnt_uart1( void )
         #endif
 }
 
-
 void app_irq_cnt_uart3_dma_rx( void )
 {
 	#ifndef NDEBUG
@@ -130,7 +129,6 @@ void app_irq_cnt_uart1_dma_rx( void )
         app.irq_cnt_uart1_dma_rx++;
         #endif
 }
-
 
 void app_irq_cnt_uart3_dma_tx( void )
 {
@@ -153,49 +151,9 @@ void app_irq_cnt_uart1_dma_tx( void )
         #endif
 }
 
-
-
-
 void app_ser1_recv_idle_isr(                    uint32_t                cnt )
 {
-        //bool            resp;
-
-/*
-        ser1_recv.head          =  (ser1_recv.data + CFG_GNSS_BLCK_SIZE_OCT) - cnt;
-
-        xTaskNotifyFromISR(     task_dspl,
-                                APP_GNSS_DATA_TYPE_STREAM,
-                                eSetValueWithOverwrite,
-                                pdFALSE );
-
-        ser1_recv.tile  =   ser1_recv.head;
-*/
 }
-
-/*
-void app_ser1_recv_half_isr( void )
-{
-        app_stream_t    stream  =       {       .type   =   APP_MSG_TYPE_SER1_RECV,
-                                                .data   =   ser1_recv.data,
-                                                .head   =   ser1_recv.head,
-                                                .tile   =   ser1_recv.tile,
-                                                .size   =   CFG_GNSS_BLCK_SIZE_OCT / 2};
-
-        xQueueSendFromISR( app_que_storage_hndl, &stream, NULL );
-}
-
-
-void app_ser1_recv_full_isr( void )
-{
-        app_stream_t    stream  =       {       .type   =   APP_MSG_TYPE_SER1_RECV,
-                                                .data   =   ser1_recv.data + CFG_GNSS_BLCK_SIZE_OCT / 2,
-                                                .head   =   ser1_recv.head,
-                                                .tile   =   ser1_recv.tile,
-                                                .size   =   CFG_GNSS_BLCK_SIZE_OCT / 2};
-
-        xQueueSendFromISR( app_que_storage_hndl, &stream, NULL );
-}
-*/
 
 void app_ser1_xmit_full_isr( void )
 {
@@ -203,102 +161,29 @@ void app_ser1_xmit_full_isr( void )
 	USBD_CDC_ReceivePacket( &husbd );
 }
 
-/*
-void app_ser2_recv_half_isr( void )
-{
-        app_stream_t    stream  =       {       .type   =   APP_MSG_TYPE_SER2_RECV,
-                                                .data   =   ser2_recv.data,
-                                                .head   =   ser2_recv.head,
-                                                .tile   =   ser2_recv.tile,
-                                                .size   =   CFG_GNSS_BLCK_SIZE_OCT / 2};
-
-        xQueueSendFromISR( app_que_storage_hndl, &stream, NULL );
-}
-
-
-void app_ser2_recv_full_isr( void )
-{
-        app_stream_t    stream  =       {       .type   =   APP_MSG_TYPE_SER2_RECV,
-                                                .data   =   ser2_recv.data + CFG_GNSS_BLCK_SIZE_OCT / 2,
-                                                .head   =   ser2_recv.head,
-                                                .tile   =   ser2_recv.tile,
-                                                .size   =   CFG_GNSS_BLCK_SIZE_OCT / 2};
-
-        xQueueSendFromISR( app_que_storage_hndl, &stream, NULL );
-}
-*/
-
 void app_ser2_recv_idle_isr(                    uint32_t                cnt )
 {
-/*
-        bool            resp;
-
-
-        ser2_recv.head  =  (ser2_recv.data + CFG_GNSS_BLCK_SIZE_OCT) - cnt;
-
-        app_stream_t    stream  =       {       .type   =   APP_MSG_TYPE_SER2_RECV,
-                                                .data   =   ser2_recv.data,
-                                                .head   =   ser2_recv.head,
-                                                .tile   =   ser2_recv.tile,
-                                                .size   =   cnt };
-
-        resp            =   xQueueSendFromISR( app_que_gnss_hndl, &stream, NULL );
-
-        if( resp != pdTRUE )
-        {
-                //queue send error
-        }
-
-        ser2_recv.tile  =   ser2_recv.head;
-*/
 }
-
 
 void app_ser2_xmit_full_isr( void )
 {
 }
 
-
 void app_ser3_recv_idle_isr(                    uint32_t                cnt )
 {
-/*
-        bool            resp;
-
-
-        ser3_recv.head  =  (ser3_recv.data + CFG_GNSS_BLCK_SIZE_OCT) - cnt;
-
-        app_stream_t    stream  =       {       .type   =   APP_MSG_TYPE_SER3_RECV,
-                                                .data   =   ser3_recv.data,
-                                                .head   =   ser3_recv.head,
-                                                .tile   =   ser3_recv.tile,
-                                                .size   =   cnt };
-
-        resp            =   xQueueSendFromISR( app_que_gnss_hndl, &stream, NULL );
-
-        if( resp != pdTRUE )
-        {
-                APP_TRACE( "app_ser3_recv_idle_isr() :: xQueueSendFromISR( app_que_gnss_hndl) == != pdTRUE\n" );
-        }
-
-        ser3_recv.tile  =   ser3_recv.head;
-*/
 }
-
 
 void app_ser3_recv_half_isr( void )
 {
 }
 
-
 void app_ser3_recv_full_isr( void )
 {
 }
 
-
 void app_ser3_xmit_full_isr( void )
 {
 }
-
 
 /**
   * @brief  Main program

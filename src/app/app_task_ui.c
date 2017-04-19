@@ -26,8 +26,9 @@ extern  QueueHandle_t           app_que_storage_hndl;
 void app_task_ui(                               void *            argument )
 {
 
-        const   TickType_t      delay_start_check_msec          = 100;
-        const   TickType_t      delay_cycle_msec                = 1000 / CFG_UI_SYSTICK_HZ;
+        const   TickType_t      delay_start_check_msec  =   100;
+        const   TickType_t      delay_cycle_msec        =   1000 / CFG_UI_SYSTICK_HZ;
+
                 bool            evt_ui_key_pwr;
                 bool            evt_ui_key_func;
                 ui_key_sts_t    key_sts;
@@ -46,9 +47,9 @@ void app_task_ui(                               void *            argument )
         osDelay( delay_start_check_msec );
 	ui_led_gnss_set(        UI_LED_GNSS_MODE_DGPS   );
         osDelay( delay_start_check_msec );
-	ui_led_gnss_set(        UI_LED_GNSS_MODE_RTKINT );
-        osDelay( delay_start_check_msec );
 	ui_led_gnss_set(        UI_LED_GNSS_MODE_RTKFLT );
+        osDelay( delay_start_check_msec );
+	ui_led_gnss_set(        UI_LED_GNSS_MODE_RTKINT );
         osDelay( delay_start_check_msec );
 	ui_led_gnss_set(        UI_LED_GNSS_MODE_NONE   );
 

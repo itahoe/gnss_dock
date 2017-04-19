@@ -94,7 +94,7 @@ void app_task_gnss(                             void *            argument )
                         {
                                 case APP_MSG_TYPE_SER3_RECV:
                                         //app_task_gnss_ser2_send_circular( &stream );
-                                        APP_TRACE( "%s\n", stream.head );
+                                        //APP_TRACE( "%s\n", stream.head );
                                         break;
 
                                 case APP_MSG_TYPE_SER2_RECV:
