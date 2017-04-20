@@ -164,7 +164,11 @@ void bsp_mcu_uart3_dma_rx_isr(                  void            )
 bool bsp_mcu_uart3_xmit_start(                  uint8_t *               data,
                                                 size_t                  size )
 {
-        HAL_StatusTypeDef       resp    =   HAL_UART_Transmit_DMA( &huart3, data, size );
+        HAL_StatusTypeDef       resp;
+
+
+        //while( HAL_UART_GetState( &huart3 ) != HAL_UART_STATE_READY );
+        resp    =   HAL_UART_Transmit_DMA( &huart3, data, size );
 
         return( resp == HAL_OK ? false : true );
 }

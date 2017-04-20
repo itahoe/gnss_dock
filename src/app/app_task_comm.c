@@ -185,7 +185,6 @@ void app_task_comm(                             void *                  arg )
                 else //by timeout
                 {
                         recieved        =   app_task_comm_uart_recv_hook( &uart1.recv );
-
                         if( recieved )
                         {
                                 usb_cdc_xmit( uart1.recv.tile, uart1.recv.size );
@@ -197,19 +196,17 @@ void app_task_comm(                             void *                  arg )
                         }
 
                         recieved        =   app_task_comm_uart_recv_hook( &uart2.recv );
-
                         if( recieved )
                         {
                                 uart3.xmit( uart2.recv.tile, uart2.recv.size );
                         }
 
                         recieved        =   app_task_comm_uart_recv_hook( &uart3.recv );
-
                         if( recieved )
                         {
                                 uart2.xmit( uart3.recv.tile, uart3.recv.size );
 
-                                stream.type     =   APP_MSG_TYPE_USB_RECV;
+                                stream.type     =   APP_MSG_TYPE_SER3_RECV;
                                 stream.data     =   uart3.recv.tile;
                                 stream.size     =   uart3.recv.size;
                                 xQueueSend( app_que_cli_hndl, &stream, NULL );
