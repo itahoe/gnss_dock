@@ -220,8 +220,6 @@ int main( void )
         int             task_usb_parameter              =  1;
         int             task_storage_parameter          =  1;
         int             task_cli_parameter              =  1;
-        //int             task_comm_parameter             =  1;
-        //int             task_dspl_parameter             =  1;
         int             task_uart1_parameter            =  1;
         int             task_uart2_parameter            =  1;
         int             task_uart3_parameter            =  1;
@@ -281,18 +279,7 @@ int main( void )
                                                         sizeof(app_pipe_t),
                                                         app_que_gnss_alloc,
                                                         &app_que_gnss );
-/*
-        app_que_comm_hndl       =   xQueueCreateStatic( APP_QUE_SIZE_COMM_WRDS,
-                                                        sizeof(app_pipe_t),
-                                                        app_que_comm_alloc,
-                                                        &app_que_comm );
-*/
-/*
-        app_que_dspl_hndl       =   xQueueCreateStatic( APP_QUE_SIZE_DSPL_WRDS,
-                                                        sizeof(app_pipe_t),
-                                                        app_que_dspl_alloc,
-                                                        &app_que_dspl );
-*/
+
         app_que_uart1_hndl      =   xQueueCreateStatic( APP_QUE_SIZE_UART1_WRDS,
                                                         sizeof(app_pipe_t),
                                                         app_que_uart1_alloc,
@@ -332,15 +319,7 @@ int main( void )
                                                         osPriorityNormal,
                                                         task_gnss_stack,
                                                         &task_gnss_tcb );
-/*
-        task_dspl               =   xTaskCreateStatic(  app_task_dspl,
-                                                        "DSPL",
-                                                        APP_TASK_STACK_SIZE_DSPL_WRDS,
-                                                        (void *) task_dspl_parameter,
-                                                        osPriorityNormal,
-                                                        task_dspl_stack,
-                                                        &task_dspl_tcb );
-*/
+
         task_usb                =   xTaskCreateStatic(  app_task_usb,
                                                         "USB",
                                                         APP_TASK_STACK_SIZE_USB_WRDS,
@@ -364,15 +343,7 @@ int main( void )
                                                         osPriorityNormal,
                                                         task_cli_stack,
                                                         &task_cli_tcb );
-/*
-        task_comm               =   xTaskCreateStatic(  app_task_comm,
-                                                        "CLI",
-                                                        APP_TASK_STACK_SIZE_COMM_WRDS,
-                                                        (void *) task_comm_parameter,
-                                                        osPriorityNormal,
-                                                        task_comm_stack,
-                                                        &task_comm_tcb );
-*/
+
         task_uart1              =   xTaskCreateStatic(  app_task_uart1,
                                                         "UART1",
                                                         APP_TASK_STACK_SIZE_UART1_WRDS,
