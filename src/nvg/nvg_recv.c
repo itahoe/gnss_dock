@@ -27,7 +27,7 @@ bool    nvg_recv_log(                           nvg_log_t *             p,
 {
         bool            resp            =   false;
 
-        APP_TRACE( "nvg_recv_log: %s\n", str );
+        //APP_TRACE( "nvg_recv_log: %s\n", str );
 
         if( strncmp( str, "MODE,", sizeof("MODE")-1 ) == 0 )
         {

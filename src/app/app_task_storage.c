@@ -22,9 +22,9 @@ static  storage_t               log_com2        =   { .fext   =  "ser2.log", };
 
 void app_task_storage(                          void *          argument )
 {
-        app_stream_t            pipe;
-        bool                    write_com2_active       =   false;
-        bool                    write_com1_active       =   false;
+        app_pipe_t              pipe;
+        bool                    write_uart2_active      =   false;
+        bool                    write_uart1_active      =   false;
         const   TickType_t      fopen_err_delay_msec    = 100;
 
 
@@ -34,13 +34,13 @@ void app_task_storage(                          void *          argument )
         {
                 xQueueReceive( app_que_storage_hndl, &pipe, portMAX_DELAY );
 
-                switch( pipe.type )
+                switch( pipe.tag )
                 {
-                        case APP_MSG_TYPE_STORAGE_TOGGLE:
-                                if( write_com2_active || write_com1_active )
+                        case APP_PIPE_TAG_STORAGE_TOGGLE:
+                                if( write_uart2_active || write_uart1_active )
                                 {
-                                        write_com2_active       =   false;
-                                        write_com1_active       =   false;
+                                        write_uart2_active      =   false;
+                                        write_uart1_active      =   false;
 
                                         switch( app.cfg.log_mode )
                                         {
@@ -68,16 +68,16 @@ void app_task_storage(                          void *          argument )
                                         switch( app.cfg.log_mode )
                                         {
                                                 case NVG_LOG_MODE_3:
-                                                        write_com2_active       =   storage_open( &log_com2 );
-                                                        write_com1_active       =   storage_open( &log_com1 );
+                                                        write_uart2_active      =   storage_open( &log_com2 );
+                                                        write_uart1_active      =   storage_open( &log_com1 );
                                                         break;
 
                                                 case NVG_LOG_MODE_2:
-                                                        write_com2_active       =   storage_open( &log_com2 );
+                                                        write_uart2_active      =   storage_open( &log_com2 );
                                                         break;
 
                                                 case NVG_LOG_MODE_1:
-                                                        write_com1_active       =   storage_open( &log_com1 );
+                                                        write_uart1_active      =   storage_open( &log_com1 );
                                                         break;
 
                                                 case NVG_LOG_MODE_INVALID:
@@ -85,19 +85,19 @@ void app_task_storage(                          void *          argument )
                                                         break;
                                         }
 
-                                        if( !write_com2_active && !write_com1_active )
+                                        if( !write_uart2_active && !write_uart1_active )
                                         {
                                                 ui_led_sd_set( true );
                                                 osDelay( fopen_err_delay_msec );
                                         }
                                 }
 
-                                ui_led_sd_set(  write_com2_active || write_com1_active );
+                                ui_led_sd_set(  write_uart2_active || write_uart1_active );
 
                                 break;
 
-                        case APP_MSG_TYPE_SER2_RECV:
-                                if( write_com2_active )
+                        case APP_PIPE_TAG_UART2:
+                                if( write_uart2_active )
                                 {
                                         ui_led_sd_set(  false );
                                         storage_write( &log_com2, pipe.data, pipe.size );
@@ -105,8 +105,8 @@ void app_task_storage(                          void *          argument )
                                 }
                                 break;
 
-                        case APP_MSG_TYPE_SER1_RECV:
-                                if( write_com1_active )
+                        case APP_PIPE_TAG_UART1:
+                                if( write_uart1_active )
                                 {
                                         ui_led_sd_set(  false );
                                         storage_write( &log_com1, pipe.data, pipe.size );
@@ -114,7 +114,7 @@ void app_task_storage(                          void *          argument )
                                 }
                                 break;
 
-                        case APP_MSG_TYPE_ERROR:
+                        case APP_PIPE_TAG_ERROR:
                         default:
                                 break;
                 }

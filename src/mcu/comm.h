@@ -65,5 +65,7 @@ typedef	struct	comm_s
 } comm_t;
 
 
+bool comm_uart_recv_hook(                       comm_pipe_inp_t *       p );
+
 
 #endif	//COMM_H

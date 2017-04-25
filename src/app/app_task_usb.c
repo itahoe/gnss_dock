@@ -16,52 +16,38 @@
 extern  QueueHandle_t           app_que_usb_cdc_hndl;
 extern  QueueHandle_t           app_que_cli_hndl;
 extern  QueueHandle_t           app_que_comm_hndl;
-
-
-static
-void app_task_usb_send_circular(                app_stream_t *          p )
-{
-        size_t          len;
-
-
-        if( p->tile > p->head )
-        {
-                len             =   (p->data + CFG_GNSS_BLCK_SIZE_OCT) - p->tile;
-                usb_cdc_xmit( p->tile, len );
-                p->tile         =   p->data;
-        }
-
-        len             =   p->head - p->tile;
-
-        if( len > 0 )
-        {
-                usb_cdc_xmit( p->tile, len );
-                p->tile         +=  len;
-        }
-}
+extern  QueueHandle_t           app_que_uart1_hndl;
 
 
 void usb_cdc_recv_hook(                 uint8_t *               data,
                                         size_t                  size )
 {
         BaseType_t              resp;
-        app_stream_t            stream  =   {   .type   =   APP_MSG_TYPE_USB_RECV,
+        app_pipe_t              pipe    =   {   .tag    =   APP_PIPE_TAG_USB_RECV,
                                                 .data   =   data,
                                                 .size   =   size        };
 
-        resp    =   xQueueSendFromISR( app_que_cli_hndl, &stream, NULL );
-        resp    =   xQueueSendFromISR( app_que_comm_hndl, &stream, NULL );
+
+        resp    =   xQueueSendFromISR( app_que_uart1_hndl, &pipe, NULL );
 
         if( resp != pdTRUE )
         {
-                //queue send error
+                APP_TRACE( "%s, usb_cdc_recv_hook : xQueueSendFromISR( app_que_uart1_hndl ) != pdTRUE\n", __FILE__ );
+        }
+
+
+        resp    =   xQueueSendFromISR( app_que_cli_hndl, &pipe, NULL );
+
+        if( resp != pdTRUE )
+        {
+                APP_TRACE( "%s, usb_cdc_recv_hook : xQueueSendFromISR( app_que_cli_hndl ) != pdTRUE\n", __FILE__ );
         }
 }
 
 
 void app_task_usb(                              void *            argument )
 {
-        app_stream_t            stream;
+        app_pipe_t              pipe;
 
 
         (void) argument;
@@ -73,24 +59,18 @@ void app_task_usb(                              void *            argument )
 
         while( true )
         {
-                if( xQueueReceive( app_que_usb_cdc_hndl, &stream, portMAX_DELAY ) )
+                if( xQueueReceive( app_que_usb_cdc_hndl, &pipe, portMAX_DELAY ) )
                 {
-                        switch( stream.type )
+                        switch( pipe.tag )
                         {
-
-                                case APP_MSG_TYPE_CLI_XMIT:
-                                        APP_TRACE( "app_task_usb::app_usb_cdc_xmit_que_hndl\n" );
-                                        app_task_usb_send_circular( &stream );
+                                case APP_PIPE_TAG_CLI:
+                                        usb_cdc_xmit( pipe.data, pipe.size );
                                         break;
 
-                                case APP_MSG_TYPE_SER1_RECV:
-                                        app_task_usb_send_circular( &stream );
+                                case APP_PIPE_TAG_UART1:
+                                        usb_cdc_xmit( pipe.data, pipe.size );
                                         break;
 
-                                case APP_MSG_TYPE_USB_RECV:
-                                case APP_MSG_TYPE_SER3_RECV:
-                                case APP_MSG_TYPE_SER2_RECV:
-                                case APP_MSG_TYPE_ERROR:
                                 default:
                                         break;
                         }

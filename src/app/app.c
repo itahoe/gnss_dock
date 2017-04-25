@@ -21,36 +21,46 @@
 
 
         app_t                   app;
-        //app_fifo_t              ser1_recv;
-        //app_fifo_t              ser2_recv;
-        //app_fifo_t              ser3_recv;
         time_t                  time_dat        =   0;
 extern  USBD_HandleTypeDef      husbd;
 
 
         QueueHandle_t           app_que_usb_cdc_hndl;
-        uint8_t                 app_que_usb_cdc_alloc[  APP_QUE_SIZE_USB_CDC_WRDS * sizeof( app_stream_t ) ];
+        uint8_t                 app_que_usb_cdc_alloc[  APP_QUE_SIZE_USB_CDC_WRDS * sizeof(app_pipe_t) ];
         StaticQueue_t           app_que_usb_cdc;
 
         QueueHandle_t           app_que_cli_hndl;
-        uint8_t                 app_que_cli_alloc[      APP_QUE_SIZE_CLI_WRDS * sizeof( app_stream_t ) ];
+        uint8_t                 app_que_cli_alloc[      APP_QUE_SIZE_CLI_WRDS * sizeof(app_pipe_t) ];
         StaticQueue_t           app_que_cli;
 
         QueueHandle_t           app_que_storage_hndl;
-        uint8_t                 app_que_storage_alloc[  APP_QUE_SIZE_STORAGE_WRDS * sizeof( app_stream_t ) ];
+        uint8_t                 app_que_storage_alloc[  APP_QUE_SIZE_STORAGE_WRDS * sizeof(app_pipe_t) ];
         StaticQueue_t           app_que_storage;
 
         QueueHandle_t           app_que_gnss_hndl;
-        uint8_t                 app_que_gnss_alloc[     APP_QUE_SIZE_GNSS_WRDS * sizeof( app_stream_t ) ];
+        uint8_t                 app_que_gnss_alloc[     APP_QUE_SIZE_GNSS_WRDS * sizeof(app_pipe_t) ];
         StaticQueue_t           app_que_gnss;
-
+/*
         QueueHandle_t           app_que_dspl_hndl;
-        uint8_t                 app_que_dspl_alloc[     APP_QUE_SIZE_DSPL_WRDS * sizeof( app_stream_t ) ];
+        uint8_t                 app_que_dspl_alloc[     APP_QUE_SIZE_DSPL_WRDS * sizeof(app_pipe_t) ];
         StaticQueue_t           app_que_dspl;
-
+*/
+/*
         QueueHandle_t           app_que_comm_hndl;
-        uint8_t                 app_que_comm_alloc[     APP_QUE_SIZE_COMM_WRDS * sizeof( app_stream_t ) ];
+        uint8_t                 app_que_comm_alloc[     APP_QUE_SIZE_COMM_WRDS * sizeof(app_pipe_t) ];
         StaticQueue_t           app_que_comm;
+*/
+        QueueHandle_t           app_que_uart1_hndl;
+        uint8_t                 app_que_uart1_alloc[    APP_QUE_SIZE_UART1_WRDS * sizeof(app_pipe_t) ];
+        StaticQueue_t           app_que_uart1;
+
+        QueueHandle_t           app_que_uart2_hndl;
+        uint8_t                 app_que_uart2_alloc[    APP_QUE_SIZE_UART2_WRDS * sizeof(app_pipe_t) ];
+        StaticQueue_t           app_que_uart2;
+
+        QueueHandle_t           app_que_uart3_hndl;
+        uint8_t                 app_que_uart3_alloc[    APP_QUE_SIZE_UART3_WRDS * sizeof(app_pipe_t) ];
+        StaticQueue_t           app_que_uart3;
 
 
         StackType_t             task_main_stack[        APP_TASK_STACK_SIZE_MAIN_WRDS ];
@@ -64,11 +74,11 @@ extern  USBD_HandleTypeDef      husbd;
         StackType_t             task_gnss_stack[        APP_TASK_STACK_SIZE_GNSS_WRDS ];
         StaticTask_t            task_gnss_tcb;
         TaskHandle_t            task_gnss;
-
+/*
         StackType_t             task_dspl_stack[        APP_TASK_STACK_SIZE_DSPL_WRDS  ];
         StaticTask_t            task_dspl_tcb;
         TaskHandle_t            task_dspl;
-
+*/
         StackType_t             task_usb_stack[         APP_TASK_STACK_SIZE_USB_WRDS  ];
         StaticTask_t            task_usb_tcb;
         TaskHandle_t            task_usb;
@@ -80,10 +90,22 @@ extern  USBD_HandleTypeDef      husbd;
         StackType_t             task_cli_stack[         APP_TASK_STACK_SIZE_CLI_WRDS ];
         StaticTask_t            task_cli_tcb;
         TaskHandle_t            task_cli;
-
+/*
         StackType_t             task_comm_stack[        APP_TASK_STACK_SIZE_COMM_WRDS ];
         StaticTask_t            task_comm_tcb;
         TaskHandle_t            task_comm;
+*/
+        StackType_t             task_uart1_stack[       APP_TASK_STACK_SIZE_UART1_WRDS ];
+        StaticTask_t            task_uart1_tcb;
+        TaskHandle_t            task_uart1;
+
+        StackType_t             task_uart2_stack[       APP_TASK_STACK_SIZE_UART2_WRDS ];
+        StaticTask_t            task_uart2_tcb;
+        TaskHandle_t            task_uart2;
+
+        StackType_t             task_uart3_stack[       APP_TASK_STACK_SIZE_UART3_WRDS ];
+        StaticTask_t            task_uart3_tcb;
+        TaskHandle_t            task_uart3;
 
 
 
@@ -195,11 +217,14 @@ int main( void )
         int             task_main_parameter             =  1;
         int             task_ui_parameter               =  1;
         int             task_gnss_parameter             =  1;
-        int             task_dspl_parameter             =  1;
         int             task_usb_parameter              =  1;
         int             task_storage_parameter          =  1;
         int             task_cli_parameter              =  1;
-        int             task_comm_parameter             =  1;
+        //int             task_comm_parameter             =  1;
+        //int             task_dspl_parameter             =  1;
+        int             task_uart1_parameter            =  1;
+        int             task_uart2_parameter            =  1;
+        int             task_uart3_parameter            =  1;
 
 
 	#if defined( NDEBUG )
@@ -238,34 +263,50 @@ int main( void )
 
 
         app_que_usb_cdc_hndl    =   xQueueCreateStatic( APP_QUE_SIZE_USB_CDC_WRDS,
-                                                        sizeof( app_stream_t ),
+                                                        sizeof(app_pipe_t),
                                                         app_que_usb_cdc_alloc,
                                                         &app_que_usb_cdc );
 
         app_que_cli_hndl        =   xQueueCreateStatic( APP_QUE_SIZE_CLI_WRDS,
-                                                        sizeof( app_stream_t ),
+                                                        sizeof(app_pipe_t),
                                                         app_que_cli_alloc,
                                                         &app_que_cli );
 
         app_que_storage_hndl    =   xQueueCreateStatic( APP_QUE_SIZE_STORAGE_WRDS,
-                                                        sizeof( app_stream_t ),
+                                                        sizeof(app_pipe_t),
                                                         app_que_storage_alloc,
                                                         &app_que_storage );
 
         app_que_gnss_hndl       =   xQueueCreateStatic( APP_QUE_SIZE_GNSS_WRDS,
-                                                        sizeof( app_stream_t ),
+                                                        sizeof(app_pipe_t),
                                                         app_que_gnss_alloc,
                                                         &app_que_gnss );
-
+/*
         app_que_comm_hndl       =   xQueueCreateStatic( APP_QUE_SIZE_COMM_WRDS,
-                                                        sizeof( app_stream_t ),
+                                                        sizeof(app_pipe_t),
                                                         app_que_comm_alloc,
                                                         &app_que_comm );
-
+*/
+/*
         app_que_dspl_hndl       =   xQueueCreateStatic( APP_QUE_SIZE_DSPL_WRDS,
-                                                        sizeof( app_stream_t ),
+                                                        sizeof(app_pipe_t),
                                                         app_que_dspl_alloc,
                                                         &app_que_dspl );
+*/
+        app_que_uart1_hndl      =   xQueueCreateStatic( APP_QUE_SIZE_UART1_WRDS,
+                                                        sizeof(app_pipe_t),
+                                                        app_que_uart1_alloc,
+                                                        &app_que_uart1 );
+
+        app_que_uart2_hndl      =   xQueueCreateStatic( APP_QUE_SIZE_UART2_WRDS,
+                                                        sizeof(app_pipe_t),
+                                                        app_que_uart2_alloc,
+                                                        &app_que_uart2 );
+
+        app_que_uart3_hndl      =   xQueueCreateStatic( APP_QUE_SIZE_UART3_WRDS,
+                                                        sizeof(app_pipe_t),
+                                                        app_que_uart3_alloc,
+                                                        &app_que_uart3 );
 
 
         task_main               =   xTaskCreateStatic(  app_task_main,
@@ -291,7 +332,7 @@ int main( void )
                                                         osPriorityNormal,
                                                         task_gnss_stack,
                                                         &task_gnss_tcb );
-
+/*
         task_dspl               =   xTaskCreateStatic(  app_task_dspl,
                                                         "DSPL",
                                                         APP_TASK_STACK_SIZE_DSPL_WRDS,
@@ -299,7 +340,7 @@ int main( void )
                                                         osPriorityNormal,
                                                         task_dspl_stack,
                                                         &task_dspl_tcb );
-
+*/
         task_usb                =   xTaskCreateStatic(  app_task_usb,
                                                         "USB",
                                                         APP_TASK_STACK_SIZE_USB_WRDS,
@@ -323,7 +364,7 @@ int main( void )
                                                         osPriorityNormal,
                                                         task_cli_stack,
                                                         &task_cli_tcb );
-
+/*
         task_comm               =   xTaskCreateStatic(  app_task_comm,
                                                         "CLI",
                                                         APP_TASK_STACK_SIZE_COMM_WRDS,
@@ -331,6 +372,30 @@ int main( void )
                                                         osPriorityNormal,
                                                         task_comm_stack,
                                                         &task_comm_tcb );
+*/
+        task_uart1              =   xTaskCreateStatic(  app_task_uart1,
+                                                        "UART1",
+                                                        APP_TASK_STACK_SIZE_UART1_WRDS,
+                                                        (void *) task_uart1_parameter,
+                                                        osPriorityNormal,
+                                                        task_uart1_stack,
+                                                        &task_uart1_tcb );
+
+        task_uart2              =   xTaskCreateStatic(  app_task_uart2,
+                                                        "UART2",
+                                                        APP_TASK_STACK_SIZE_UART2_WRDS,
+                                                        (void *) task_uart2_parameter,
+                                                        osPriorityNormal,
+                                                        task_uart2_stack,
+                                                        &task_uart2_tcb );
+
+        task_uart3              =   xTaskCreateStatic(  app_task_uart3,
+                                                        "UART3",
+                                                        APP_TASK_STACK_SIZE_UART3_WRDS,
+                                                        (void *) task_uart3_parameter,
+                                                        osPriorityNormal,
+                                                        task_uart3_stack,
+                                                        &task_uart3_tcb );
 
 
         osKernelStart();

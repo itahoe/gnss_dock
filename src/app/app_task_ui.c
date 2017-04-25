@@ -32,7 +32,7 @@ void app_task_ui(                               void *            argument )
                 bool            evt_ui_key_pwr;
                 bool            evt_ui_key_func;
                 ui_key_sts_t    key_sts;
-                app_stream_t    stream;
+                app_pipe_t      pipe;
                 bool            resp;
 
 
@@ -102,11 +102,11 @@ void app_task_ui(                               void *            argument )
                         switch( key_sts )
                         {
                                 case UI_KEY_STS_LONG:
-                                        stream.type     =   APP_MSG_TYPE_STORAGE_TOGGLE;
+                                        pipe.tag        =   APP_PIPE_TAG_STORAGE_TOGGLE;
 
                                         do
                                         {
-                                                resp    =   xQueueSend( app_que_storage_hndl, &stream, NULL );
+                                                resp    =   xQueueSend( app_que_storage_hndl, &pipe, NULL );
                                         }
                                         while( resp != pdTRUE );
 

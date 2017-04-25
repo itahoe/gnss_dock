@@ -15,15 +15,14 @@
 
 
 extern  app_t                   app;
-extern  app_fifo_t              gnss_com1_incoming;
 extern  QueueHandle_t           app_que_usb_cdc_hndl;
 extern  QueueHandle_t           app_que_cli_hndl;
-extern  QueueHandle_t           app_que_comm_hndl;
-        nvg_t                   nvg;
+extern  QueueHandle_t           app_que_uart1_hndl;
+extern  QueueHandle_t           app_que_uart2_hndl;
+extern  QueueHandle_t           app_que_uart3_hndl;
+        nvg_t                   nvg_usb;
+        nvg_t                   nvg_ser3;
 
-static  size_t                  size;
-static  char                    str_inp[80];
-static  char                    str_out[80];
 
 
 static
@@ -35,20 +34,20 @@ bool app_task_cli_recv(                         nvg_t *                 p,
 	switch( c )
 	{
 		case    '$':
-			size            =   0;
-			break;
-
-		case    '\n':
-			resp            =   nvg_recv( p, str_inp );
+			p->size            =   0;
 			break;
 
 		case    '\r':
+			resp            =   nvg_recv( p, p->str_inp );
+			break;
+
+		case    '\n':
 			break;
 
 		default:
-			if( size < sizeof( str_inp ) )
+			if( p->size < sizeof( p->str_inp ) )
 			{
-				*(str_inp + size++)   =   c;
+				*(p->str_inp + p->size++)   =   c;
 			}
 
 			break;
@@ -58,41 +57,23 @@ bool app_task_cli_recv(                         nvg_t *                 p,
 }
 
 static
-void app_task_cli_resp(                         nvg_t *                 p )
+bool app_task_cli_resp(                         nvg_t *                 p )
 {
-        BaseType_t              resp;
-        size_t                  len;
-        app_stream_t            stream;
+        bool                    resp    =   false;
         uint8_t                 chksum;
 
         switch( p->type )
         {
                 case NVG_TYPE_BSS:
-                        //APP_TRACE( "NVG_TYPE: BSS\n" );
                         break;
 
                 case NVG_TYPE_LOG:
                         app.cfg.log_mode        =   p->log.mode;
-                        len                     =   snprintf( str_out, sizeof(str_out), "$PNVGLOG,MODE,%d*", app.cfg.log_mode );
-                        nmea_chksum( &chksum, str_out+1, '*' );
-                        len                     +=  snprintf( str_out+len, sizeof(str_out)-len, "%02X\r\n", chksum );
-
-                        APP_TRACE( "app_task_cli_resp: %s\n", str_out );
-
-                        stream.type             =   APP_MSG_TYPE_CLI_XMIT;
-                        stream.data             =   (uint8_t *) str_out;
-                        stream.head             =   (uint8_t *) str_out + len;
-                        stream.tile             =   (uint8_t *) str_out;
-                        stream.size             =   len;
-
-                        //resp    =   xQueueSendFromISR( app_usb_cdc_xmit_que_hndl, &stream, NULL );
-                        resp    =   xQueueSend( app_que_usb_cdc_hndl, &stream, portMAX_DELAY );
-                        resp    =   xQueueSend( app_que_comm_hndl, &stream, portMAX_DELAY );
-
-                        if( resp != pdTRUE )
-                        {
-                                //queue send error
-                        }
+                        p->size                 =   snprintf( p->str_out, sizeof(p->str_out), "$PNVGLOG,MODE,%d*", app.cfg.log_mode );
+                        nmea_chksum( &chksum, p->str_out+1, '*' );
+                        p->size                 +=  snprintf( p->str_out + p->size, sizeof(p->str_out) - p->size, "%02X\r\n", chksum );
+                        resp                    =  true;
+                        //APP_TRACE( "%s", p->str_out );
                         break;
 
                 case NVG_TYPE_VER:
@@ -102,50 +83,67 @@ void app_task_cli_resp(                         nvg_t *                 p )
                 default:
                         break;
         }
+
+        return( resp );
 }
 
 
 void app_task_cli(                              void *          argument )
 {
         bool                    resp;
-        app_stream_t            stream;
+        app_pipe_t              pipe;
+        app_pipe_t              out;
 
 
-        nvg.log.mode    =   (nvg_log_mode_t) app_cfg_read( RTC_BKP_DR0 );
+        nvg_usb.log.mode        =   (nvg_log_mode_t) app_cfg_read( RTC_BKP_DR0 );
+        nvg_ser3.log.mode       =   (nvg_log_mode_t) app_cfg_read( RTC_BKP_DR0 );
 
         while( true )
         {
-                xQueueReceive( app_que_cli_hndl, &stream, portMAX_DELAY );
+                xQueueReceive( app_que_cli_hndl, &pipe, portMAX_DELAY );
 
-                switch( stream.type )
+                switch( pipe.tag )
                 {
-                        case APP_MSG_TYPE_USB_RECV:
-                                while( stream.size-- )
+                        case APP_PIPE_TAG_USB_RECV:
+                                while( pipe.size-- )
                                 {
-                                        resp    =   app_task_cli_recv( &nvg, *stream.data++ );
+                                        resp    =   app_task_cli_recv( &nvg_usb, *pipe.data++ );
 
                                         if( resp )
                                         {
-                                                app_task_cli_resp( &nvg );
+                                                if( app_task_cli_resp( &nvg_usb ) )
+                                                {
+                                                        out.tag         =   APP_PIPE_TAG_CLI;
+                                                        out.data        =   (uint8_t *) nvg_usb.str_out;
+                                                        out.head        =   (uint8_t *) nvg_usb.str_out + nvg_usb.size;
+                                                        out.tile        =   (uint8_t *) nvg_usb.str_out;
+                                                        out.size        =   nvg_usb.size;
+                                                        xQueueSend( app_que_usb_cdc_hndl, &out, portMAX_DELAY );
+                                                }
                                         }
                                 }
                                 break;
 
-                        case APP_MSG_TYPE_SER3_RECV:
-                                while( stream.size-- )
+                        case APP_PIPE_TAG_UART3:
+                                while( pipe.size-- )
                                 {
-                                        resp    =   app_task_cli_recv( &nvg, *stream.data++ );
+                                        resp    =   app_task_cli_recv( &nvg_ser3, *pipe.data++ );
 
                                         if( resp )
                                         {
-                                                app_task_cli_resp( &nvg );
+                                                if( app_task_cli_resp( &nvg_ser3 ) )
+                                                {
+                                                        out.tag         =   APP_PIPE_TAG_CLI;
+                                                        out.data        =   (uint8_t *) nvg_ser3.str_out;
+                                                        out.head        =   (uint8_t *) nvg_ser3.str_out + nvg_ser3.size;
+                                                        out.tile        =   (uint8_t *) nvg_ser3.str_out;
+                                                        out.size        =   nvg_ser3.size;
+                                                        xQueueSend( app_que_uart3_hndl, &out, portMAX_DELAY );
+                                                }
                                         }
                                 }
                                 break;
 
-                        case APP_MSG_TYPE_SER2_RECV:
-                        case APP_MSG_TYPE_SER1_RECV:
-                        case APP_MSG_TYPE_ERROR:
                         default:
                                 break;
                 }

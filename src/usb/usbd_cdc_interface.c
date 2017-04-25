@@ -386,7 +386,7 @@ size_t usb_cdc_xmit(                    uint8_t *               data,
 
                 if( resp != USBD_OK )
                 {
-                        APP_TRACE( "usb_cdc_xmit() != USBD_OK\n" );
+                        //APP_TRACE( "usb_cdc_xmit() != USBD_OK\n" );
                         sent            =       0;
                 }
 

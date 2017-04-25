@@ -108,8 +108,10 @@ typedef	struct	nvg_s
         nvg_ver_t               ver;
         nvg_bss_t               bss;
         nvg_type_t              type;
-        char                    data[80];
         size_t                  size;
+        char                    data[80];
+        char                    str_inp[80];
+        char                    str_out[80];
 } nvg_t;
 
 

@@ -20,10 +20,10 @@ extern  QueueHandle_t           app_que_storage_hndl;
 extern  QueueHandle_t           app_que_cli_hndl;
 extern  QueueHandle_t           app_que_comm_hndl;
 extern  QueueHandle_t           app_que_dspl_hndl;
-static  uint8_t                 uart1_recv_data[ CFG_COMM_BLCK_SIZE_UART1_RECV_OCT ];
+//static  uint8_t                 uart1_recv_data[ CFG_COMM_BLCK_SIZE_UART1_RECV_OCT ];
 static  uint8_t                 uart2_recv_data[ CFG_COMM_BLCK_SIZE_UART2_RECV_OCT ];
 static  uint8_t                 uart3_recv_data[ CFG_COMM_BLCK_SIZE_UART3_RECV_OCT ];
-
+/*
 static  comm_t                  uart1   =   {   .init           =   bsp_mcu_uart1_init,
                                                 .xmit           =   bsp_mcu_uart1_xmit_start,
                                                 .recv.open      =   bsp_mcu_uart1_recv_start,
@@ -33,7 +33,7 @@ static  comm_t                  uart1   =   {   .init           =   bsp_mcu_uart
                                                 .recv.ndtr      =   CFG_COMM_BLCK_SIZE_UART1_RECV_OCT,
                                                 .recv.data      =   uart1_recv_data,
                                                 .recv.head      =   uart1_recv_data, };
-
+*/
 static  comm_t                  uart2   =   {   .init           =   bsp_mcu_uart2_init,
                                                 .xmit           =   bsp_mcu_uart2_xmit_start,
                                                 .recv.open      =   bsp_mcu_uart2_recv_start,
@@ -55,51 +55,27 @@ static  comm_t                  uart3   =   {   .init           =   bsp_mcu_uart
                                                 .recv.head      =   uart3_recv_data, };
 
 
-void app_ser1_recv_half_isr( void )
-{
-        app_stream_t    stream  =       {       .type   =   APP_MSG_TYPE_SER1_RECV,
-                                                .data   =   uart1.recv.data,
-                                                .head   =   uart1.recv.head,
-                                                .tile   =   uart1.recv.tile,
-                                                .size   =   CFG_COMM_BLCK_SIZE_UART1_RECV_OCT / 2};
-
-        xQueueSendFromISR( app_que_storage_hndl, &stream, NULL );
-}
-
-
-void app_ser1_recv_full_isr( void )
-{
-        app_stream_t    stream  =       {       .type   =   APP_MSG_TYPE_SER1_RECV,
-                                                .data   =   uart1.recv.data + CFG_COMM_BLCK_SIZE_UART1_RECV_OCT/ 2,
-                                                .head   =   uart1.recv.head,
-                                                .tile   =   uart1.recv.tile,
-                                                .size   =   CFG_COMM_BLCK_SIZE_UART1_RECV_OCT / 2};
-
-        xQueueSendFromISR( app_que_storage_hndl, &stream, NULL );
-}
-
-
 void app_ser2_recv_half_isr( void )
 {
-        app_stream_t    stream  =       {       .type   =   APP_MSG_TYPE_SER2_RECV,
+        app_pipe_t      pipe    =       {       .tag    =   APP_PIPE_TAG_UART2,
                                                 .data   =   uart2.recv.data,
                                                 .head   =   uart2.recv.head,
                                                 .tile   =   uart2.recv.tile,
                                                 .size   =   CFG_COMM_BLCK_SIZE_UART1_RECV_OCT  / 2};
 
-        xQueueSendFromISR( app_que_storage_hndl, &stream, NULL );
+        xQueueSendFromISR( app_que_storage_hndl, &pipe, NULL );
 }
 
 
 void app_ser2_recv_full_isr( void )
 {
-        app_stream_t    stream  =       {       .type   =   APP_MSG_TYPE_SER2_RECV,
+        app_pipe_t      pipe    =       {       .tag    =   APP_PIPE_TAG_UART2,
                                                 .data   =   uart2.recv.data + CFG_COMM_BLCK_SIZE_UART1_RECV_OCT / 2,
                                                 .head   =   uart2.recv.head,
                                                 .tile   =   uart2.recv.tile,
                                                 .size   =   CFG_COMM_BLCK_SIZE_UART1_RECV_OCT / 2};
 
-        xQueueSendFromISR( app_que_storage_hndl, &stream, NULL );
+        xQueueSendFromISR( app_que_storage_hndl, &pipe, NULL );
 }
 
 
@@ -138,14 +114,13 @@ void app_task_comm(                             void *                  arg )
         TickType_t              polling_cycle_tcks      =   CFG_COMM_POLLING_CYCLE_mSEC / portTICK_PERIOD_MS;
         bool                    no_timeout;
         bool                    recieved;
-        //comm_msg_t              msg;
-        app_stream_t            stream;
+        app_pipe_t              pipe;
 
 
         (void) arg;
 
-        uart1.init( CFG_COMM_UART1_BAUDRATE );
-        uart1.recv.open( uart1.recv.data, uart1.recv.blck_size );
+        //uart1.init( CFG_COMM_UART1_BAUDRATE );
+        //uart1.recv.open( uart1.recv.data, uart1.recv.blck_size );
 
         uart2.init( CFG_COMM_UART2_BAUDRATE );
         uart2.recv.open( uart2.recv.data, uart2.recv.blck_size );
@@ -156,34 +131,28 @@ void app_task_comm(                             void *                  arg )
 
         while( true )
         {
-
-                //no_timeout      =   xTaskNotifyWait( 0, 0, (uint32_t *) &msg, polling_cycle_tcks );
-                no_timeout      =   xQueueReceive( app_que_comm_hndl, &stream, polling_cycle_tcks );
+                no_timeout      =   xQueueReceive( app_que_comm_hndl, &pipe, polling_cycle_tcks );
 
                 if( no_timeout )
                 {
-                        switch( stream.type )
+                        switch( pipe.tag )
                         {
-                                case APP_MSG_TYPE_CLI_XMIT:
-                                        uart3.xmit( stream.data, stream.size );
-
-                                        //stream.type     =   APP_MSG_TYPE_USB_RECV;
-                                        //stream.data     =   uart3.recv.tile;
-                                        //stream.size     =   uart3.recv.size;
-                                        //xQueueSend( app_que_usb_cdc_hndl, &stream, NULL );
+                                case APP_PIPE_TAG_UART3:
+                                        uart3.xmit( pipe.data, pipe.size );
+                                        APP_TRACE( "APP_COMM - APP_MSG_TYPE_SER3_XMIT\n" );
                                         break;
-
-                                case APP_MSG_TYPE_USB_RECV:
-                                        uart1.xmit( stream.data, stream.size );
+/*
+                                case APP_PIPE_TAG_SER1_XMIT:
+                                        //uart1.xmit( stream.data, stream.size );
                                         break;
-
-
+*/
                                 default:
                                         break;
                         }
                 }
-                else //by timeout
+                else //queue passed by timeout
                 {
+/*
                         recieved        =   app_task_comm_uart_recv_hook( &uart1.recv );
                         if( recieved )
                         {
@@ -194,7 +163,7 @@ void app_task_comm(                             void *                  arg )
                                 stream.size     =   uart1.recv.size;
                                 xQueueSend( app_que_dspl_hndl, &stream, NULL );
                         }
-
+*/
                         recieved        =   app_task_comm_uart_recv_hook( &uart2.recv );
                         if( recieved )
                         {
@@ -206,10 +175,10 @@ void app_task_comm(                             void *                  arg )
                         {
                                 uart2.xmit( uart3.recv.tile, uart3.recv.size );
 
-                                stream.type     =   APP_MSG_TYPE_SER3_RECV;
-                                stream.data     =   uart3.recv.tile;
-                                stream.size     =   uart3.recv.size;
-                                xQueueSend( app_que_cli_hndl, &stream, NULL );
+                                pipe.tag        =   APP_PIPE_TAG_UART3;
+                                pipe.data       =   uart3.recv.tile;
+                                pipe.size       =   uart3.recv.size;
+                                xQueueSend( app_que_cli_hndl, &pipe, NULL );
                         }
                 }
         }
