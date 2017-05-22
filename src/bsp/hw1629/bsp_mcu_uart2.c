@@ -184,7 +184,6 @@ bool bsp_mcu_uart2_xmit_start(                  uint8_t *               data,
         HAL_StatusTypeDef       resp;
 
 
-        //while( HAL_UART_GetState( &huart2 ) != HAL_UART_STATE_READY );
         resp    =   HAL_UART_Transmit_DMA( &huart2, data, size );
 
         return( resp == HAL_OK ? false : true );
@@ -195,26 +194,12 @@ bool bsp_mcu_uart2_xmit_start(                  uint8_t *               data,
  */
 uint32_t bsp_mcu_uart2_recv_dma_head_get(       void )
 {
-        //return( DMA2_Stream2->NDTR );
         return( huart2.hdmarx->Instance->NDTR );
 }
 
 /**
  * @brief UART1
  */
-/*
-bool    bsp_mcu_uart1_recv_dma_full_get(       void )
-{
-        bool    resp    =   (DMA2->LISR & DMA_LISR_TCIF2) ? true : false;
-
-        if( resp )
-        {
-                DMA2->LIFCR     |=   DMA_LIFCR_CTCIF2;
-        }
-
-        return(  resp );
-}
-*/
 bool    bsp_mcu_uart2_sts_idle(                 void )
 {
         bool    sts_idle        =   READ_BIT( huart2.Instance->SR, USART_SR_IDLE );

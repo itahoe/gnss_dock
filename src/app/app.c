@@ -9,7 +9,7 @@
 #include "cmsis_os.h"
 
 
-#include "bsp_mcu.h"
+//#include "bsp_mcu.h"
 #include "gnss.h"
 #include "app.h"
 #include "storage.h"
@@ -40,16 +40,7 @@ extern  USBD_HandleTypeDef      husbd;
         QueueHandle_t           app_que_gnss_hndl;
         uint8_t                 app_que_gnss_alloc[     APP_QUE_SIZE_GNSS_WRDS * sizeof(app_pipe_t) ];
         StaticQueue_t           app_que_gnss;
-/*
-        QueueHandle_t           app_que_dspl_hndl;
-        uint8_t                 app_que_dspl_alloc[     APP_QUE_SIZE_DSPL_WRDS * sizeof(app_pipe_t) ];
-        StaticQueue_t           app_que_dspl;
-*/
-/*
-        QueueHandle_t           app_que_comm_hndl;
-        uint8_t                 app_que_comm_alloc[     APP_QUE_SIZE_COMM_WRDS * sizeof(app_pipe_t) ];
-        StaticQueue_t           app_que_comm;
-*/
+
         QueueHandle_t           app_que_uart1_hndl;
         uint8_t                 app_que_uart1_alloc[    APP_QUE_SIZE_UART1_WRDS * sizeof(app_pipe_t) ];
         StaticQueue_t           app_que_uart1;
@@ -74,11 +65,7 @@ extern  USBD_HandleTypeDef      husbd;
         StackType_t             task_gnss_stack[        APP_TASK_STACK_SIZE_GNSS_WRDS ];
         StaticTask_t            task_gnss_tcb;
         TaskHandle_t            task_gnss;
-/*
-        StackType_t             task_dspl_stack[        APP_TASK_STACK_SIZE_DSPL_WRDS  ];
-        StaticTask_t            task_dspl_tcb;
-        TaskHandle_t            task_dspl;
-*/
+
         StackType_t             task_usb_stack[         APP_TASK_STACK_SIZE_USB_WRDS  ];
         StaticTask_t            task_usb_tcb;
         TaskHandle_t            task_usb;
@@ -90,11 +77,7 @@ extern  USBD_HandleTypeDef      husbd;
         StackType_t             task_cli_stack[         APP_TASK_STACK_SIZE_CLI_WRDS ];
         StaticTask_t            task_cli_tcb;
         TaskHandle_t            task_cli;
-/*
-        StackType_t             task_comm_stack[        APP_TASK_STACK_SIZE_COMM_WRDS ];
-        StaticTask_t            task_comm_tcb;
-        TaskHandle_t            task_comm;
-*/
+
         StackType_t             task_uart1_stack[       APP_TASK_STACK_SIZE_UART1_WRDS ];
         StaticTask_t            task_uart1_tcb;
         TaskHandle_t            task_uart1;
@@ -106,72 +89,6 @@ extern  USBD_HandleTypeDef      husbd;
         StackType_t             task_uart3_stack[       APP_TASK_STACK_SIZE_UART3_WRDS ];
         StaticTask_t            task_uart3_tcb;
         TaskHandle_t            task_uart3;
-
-
-
-
-void app_irq_cnt_uart3( void )
-{
-	#ifndef NDEBUG
-        app.irq_cnt_uart3++;
-        #endif
-}
-
-void app_irq_cnt_uart2( void )
-{
-	#ifndef NDEBUG
-        app.irq_cnt_uart2++;
-        #endif
-}
-
-void app_irq_cnt_uart1( void )
-{
-	#ifndef NDEBUG
-        app.irq_cnt_uart1++;
-        #endif
-}
-
-void app_irq_cnt_uart3_dma_rx( void )
-{
-	#ifndef NDEBUG
-        app.irq_cnt_uart3_dma_rx++;
-        #endif
-}
-
-void app_irq_cnt_uart2_dma_rx( void )
-{
-	#ifndef NDEBUG
-        app.irq_cnt_uart2_dma_rx++;
-        #endif
-}
-
-void app_irq_cnt_uart1_dma_rx( void )
-{
-	#ifndef NDEBUG
-        app.irq_cnt_uart1_dma_rx++;
-        #endif
-}
-
-void app_irq_cnt_uart3_dma_tx( void )
-{
-	#ifndef NDEBUG
-        app.irq_cnt_uart3_dma_tx++;
-        #endif
-}
-
-void app_irq_cnt_uart2_dma_tx( void )
-{
-	#ifndef NDEBUG
-        app.irq_cnt_uart2_dma_tx++;
-        #endif
-}
-
-void app_irq_cnt_uart1_dma_tx( void )
-{
-	#ifndef NDEBUG
-        app.irq_cnt_uart1_dma_tx++;
-        #endif
-}
 
 void app_ser1_recv_idle_isr(                    uint32_t                cnt )
 {
@@ -235,8 +152,7 @@ int main( void )
 
         app_clk_init();
 
-        app_cfg_init();
-        app.cfg.log_mode        =   app_cfg_read( RTC_BKP_DR0 );
+        app_cfg_init( &app.cfg );
 
         APP_TRACE( "GNSS_DOCK Start\n" );
 

@@ -16,7 +16,8 @@
 #define	CFG_COMM_UART2_BAUDRATE                 230400
 #define	CFG_COMM_UART3_BAUDRATE                 115200
 
-#define	CFG_COMM_POLLING_CYCLE_mSEC             100
+//#define	CFG_COMM_POLLING_CYCLE_mSEC             100
+#define	CFG_COMM_POLLING_CYCLE_mSEC             20
 
 
 #endif	//CFG_COMM_H

@@ -7,12 +7,13 @@
 
 #include <stdio.h>
 #include "app.h"
+#include "nvg.h"
 
 
 static  RTC_HandleTypeDef       hrtc;
 
 
-bool app_cfg_init( void )
+bool app_cfg_init(                              app_cfg_t *             p )
 {
         bool            err     =   false;
 
@@ -35,6 +36,18 @@ bool app_cfg_init( void )
         {
                 err     =   true;
         }
+
+        p->log_mode     =   app_cfg_read( RTC_BKP_DR0 );
+
+        if(     (p->log_mode != NVG_LOG_MODE_3) &&
+                (p->log_mode != NVG_LOG_MODE_2) &&
+                (p->log_mode != NVG_LOG_MODE_1)    )
+        {
+                p->log_mode     =   NVG_LOG_MODE_1;
+                app_cfg_write( RTC_BKP_DR0, p->log_mode );
+        }
+
+
         return( err );
 }
 

@@ -46,17 +46,9 @@ typedef enum    app_gnss_data_type_e
 typedef enum    app_pipe_tag_e
 {
         APP_PIPE_TAG_ERROR,
-        //APP_PIPE_TAG_SER1_RECV,
-        //APP_PIPE_TAG_SER1_XMIT,
-        //APP_PIPE_TAG_SER2_RECV,
-        //APP_PIPE_TAG_SER2_XMIT,
-        //APP_PIPE_TAG_SER3_RECV,
-        //APP_PIPE_TAG_SER3_XMIT,
-
         APP_PIPE_TAG_UART1,
         APP_PIPE_TAG_UART2,
         APP_PIPE_TAG_UART3,
-
         APP_PIPE_TAG_USB_RECV,
         APP_PIPE_TAG_CLI,
         APP_PIPE_TAG_STORAGE_TOGGLE,
@@ -85,18 +77,6 @@ typedef	struct	app_s
 	#ifndef NDEBUG
 	size_t          ism_pckts_sent;
 	size_t          tick_1hz_cnt;
-
-        volatile        int           irq_cnt_uart1;
-        volatile        int           irq_cnt_uart1_dma_rx;
-        volatile        int           irq_cnt_uart1_dma_tx;
-
-        volatile        int           irq_cnt_uart2;
-        volatile        int           irq_cnt_uart2_dma_rx;
-        volatile        int           irq_cnt_uart2_dma_tx;
-
-        volatile        int           irq_cnt_uart3;
-        volatile        int           irq_cnt_uart3_dma_rx;
-        volatile        int           irq_cnt_uart3_dma_tx;
 	#endif
 
 }	app_t;
@@ -106,7 +86,7 @@ void app_error( void );
 HAL_StatusTypeDef app_clk_init( void );
 
 
-bool app_cfg_init( void );
+bool app_cfg_init(                              app_cfg_t *             p );
 
 uint32_t        app_cfg_read(           const   uint32_t                addr );
 
@@ -141,19 +121,6 @@ void app_ser3_recv_idle_isr(                    uint32_t        cnt     );
 void app_ser3_recv_half_isr(                    void                    );
 void app_ser3_recv_full_isr(                    void                    );
 void app_ser3_xmit_full_isr(                    void                    );
-
-
-void app_irq_cnt_uart3( void );
-void app_irq_cnt_uart3_dma_rx( void );
-void app_irq_cnt_uart3_dma_tx( void );
-
-void app_irq_cnt_uart2( void );
-void app_irq_cnt_uart2_dma_rx( void );
-void app_irq_cnt_uart2_dma_tx( void );
-
-void app_irq_cnt_uart1( void );
-void app_irq_cnt_uart1_dma_rx( void );
-void app_irq_cnt_uart1_dma_tx( void );
 
 
 #endif	//APP_H

@@ -165,8 +165,19 @@ bool bsp_mcu_uart1_xmit_start(                  uint8_t *               data,
 {
         HAL_StatusTypeDef       resp;
 
+/*
+        do
+        {
+                resp    =   HAL_UART_Transmit_DMA( &huart1, data, size );
 
-        //while( HAL_UART_GetState( &huart1 ) != HAL_UART_STATE_READY );
+                if( resp != HAL_OK )
+                {
+                        APP_TRACE( "HAL_UART_Transmit_DMA( huart1 ) = %d\n", resp );
+                }
+        }
+        while( resp != HAL_OK );
+*/
+
         resp    =   HAL_UART_Transmit_DMA( &huart1, data, size );
 
         return( resp == HAL_OK ? false : true );

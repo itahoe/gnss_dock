@@ -16,10 +16,12 @@ bool    nvg_recv_bss(                           nvg_bss_t *             p,
 {
         bool            resp            =   false;
 
+
         APP_TRACE( "NVGBSS: %s\n", str );
 
         return( resp );
 }
+
 
 static
 bool    nvg_recv_log(                           nvg_log_t *             p,
@@ -27,7 +29,6 @@ bool    nvg_recv_log(                           nvg_log_t *             p,
 {
         bool            resp            =   false;
 
-        //APP_TRACE( "nvg_recv_log: %s\n", str );
 
         if( strncmp( str, "MODE,", sizeof("MODE")-1 ) == 0 )
         {
@@ -52,11 +53,13 @@ bool    nvg_recv_log(                           nvg_log_t *             p,
         return( resp );
 }
 
+
 static
 bool    nvg_recv_ver(                           nvg_ver_t *             p,
                                         const   char *                  str )
 {
         bool            resp            =   false;
+
 
         APP_TRACE( "NVGVER: %s\n", str );
 

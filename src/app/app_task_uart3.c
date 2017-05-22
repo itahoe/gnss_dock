@@ -15,6 +15,10 @@
 #include "usbd_cdc_interface.h"
 
 
+bool app_task_uart3_xmit(                       uint8_t *               data,
+                                                size_t                  size );
+
+
 extern  QueueHandle_t           app_que_uart1_hndl;
 extern  QueueHandle_t           app_que_uart2_hndl;
 extern  QueueHandle_t           app_que_uart3_hndl;
@@ -23,7 +27,8 @@ extern  QueueHandle_t           app_que_cli_hndl;
 static  uint8_t         uart3_recv_data[ CFG_COMM_BLCK_SIZE_UART3_RECV_OCT ];
 
 static  comm_t          uart3   =   {   .init           =   bsp_mcu_uart3_init,
-                                        .xmit           =   bsp_mcu_uart3_xmit_start,
+                                        //.xmit           =   bsp_mcu_uart3_xmit_start,
+                                        .xmit           =   app_task_uart3_xmit,
                                         .recv.open      =   bsp_mcu_uart3_recv_start,
                                         .recv.close     =   bsp_mcu_uart3_recv_stop,
                                         .recv.dma_get   =   bsp_mcu_uart3_dma_recv_ndtr_get,
@@ -32,30 +37,28 @@ static  comm_t          uart3   =   {   .init           =   bsp_mcu_uart3_init,
                                         .recv.data      =   uart3_recv_data,
                                         .recv.head      =   uart3_recv_data, };
 
-/*
-void app_ser3_recv_half_isr( void )
+static
+bool app_task_uart3_xmit(                       uint8_t *               data,
+                                                size_t                  size )
 {
-        app_pipe_t      pipe    =   {   .tag            =   APP_PIPE_TAG_UART3,
-                                        .data           =   uart3.recv.data,
-                                        .head           =   uart3.recv.head,
-                                        .tile           =   uart3.recv.tile,
-                                        .size           =   CFG_COMM_BLCK_SIZE_UART3_RECV_OCT / 2};
+        bool            error;
 
-        xQueueSendFromISR( app_que_storage_hndl, &pipe, NULL );
-}
-*/
-/*
-void app_ser3_recv_full_isr( void )
-{
-        app_pipe_t      pipe    =   {   .tag            =   APP_PIPE_TAG_UART3,
-                                        .data           =   uart3.recv.data + CFG_COMM_BLCK_SIZE_UART3_RECV_OCT/ 2,
-                                        .head           =   uart3.recv.head,
-                                        .tile           =   uart3.recv.tile,
-                                        .size           =   CFG_COMM_BLCK_SIZE_UART3_RECV_OCT / 2};
 
-        xQueueSendFromISR( app_que_storage_hndl, &pipe, NULL );
+        do
+        {
+                error   =   bsp_mcu_uart3_xmit_start( data, size );
+
+                if( error )
+                {
+                        APP_TRACE( "app_task_uart3_xmit() = ERROR\n" );
+                        taskYIELD();
+                }
+        }
+        while( error );
+
+        return( error );
 }
-*/
+
 
 void app_task_uart3(                            void *                  arg )
 {
@@ -92,7 +95,7 @@ void app_task_uart3(                            void *                  arg )
                                         break;
                         }
                 }
-                else //queue passed by timeout
+                //else //queue passed by timeout
                 {
                         not_empty       =   comm_uart_recv_hook( &uart3.recv );
 
