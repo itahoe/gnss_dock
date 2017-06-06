@@ -37,9 +37,9 @@ static  comm_t          uart2   =   {   .init           =   bsp_mcu_uart2_init,
 void app_ser2_recv_half_isr( void )
 {
         app_pipe_t      pipe    =   {   .tag            =   APP_PIPE_TAG_UART2,
-                                        .data           =   uart2.recv.data,
+                                        //.data           =   uart2.recv.data,
+                                        //.tile           =   uart2.recv.tile,
                                         .head           =   uart2.recv.head,
-                                        .tile           =   uart2.recv.tile,
                                         .size           =   CFG_COMM_BLCK_SIZE_UART2_RECV_OCT / 2};
 
         xQueueSendFromISR( app_que_storage_hndl, &pipe, NULL );
@@ -49,9 +49,9 @@ void app_ser2_recv_half_isr( void )
 void app_ser2_recv_full_isr( void )
 {
         app_pipe_t      pipe    =   {   .tag            =   APP_PIPE_TAG_UART2,
-                                        .data           =   uart2.recv.data + CFG_COMM_BLCK_SIZE_UART2_RECV_OCT/ 2,
+                                        //.data           =   uart2.recv.data + CFG_COMM_BLCK_SIZE_UART2_RECV_OCT/ 2,
+                                        //.tile           =   uart2.recv.tile,
                                         .head           =   uart2.recv.head,
-                                        .tile           =   uart2.recv.tile,
                                         .size           =   CFG_COMM_BLCK_SIZE_UART2_RECV_OCT / 2};
 
         xQueueSendFromISR( app_que_storage_hndl, &pipe, NULL );
@@ -81,11 +81,11 @@ void app_task_uart2(                            void *                  arg )
                         switch( pipe.tag )
                         {
                                 case APP_PIPE_TAG_CLI:
-                                        uart2.xmit( pipe.data, pipe.size );
+                                        uart2.xmit( pipe.head, pipe.size );
                                         break;
 
                                 case APP_PIPE_TAG_UART3:
-                                        uart2.xmit( pipe.data, pipe.size );
+                                        uart2.xmit( pipe.head, pipe.size );
                                         break;
 
                                 default:
@@ -99,7 +99,7 @@ void app_task_uart2(                            void *                  arg )
                         if( not_empty )
                         {
                                 pipe.tag        =   APP_PIPE_TAG_UART2;
-                                pipe.data       =   uart2.recv.tile;
+                                pipe.head       =   uart2.recv.tile;
                                 pipe.size       =   uart2.recv.size;
                                 xQueueSend( app_que_cli_hndl,       &pipe, NULL );
                                 xQueueSend( app_que_uart3_hndl,     &pipe, NULL );

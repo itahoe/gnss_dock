@@ -24,7 +24,7 @@ void usb_cdc_recv_hook(                 uint8_t *               data,
 {
         BaseType_t              resp;
         app_pipe_t              pipe    =   {   .tag    =   APP_PIPE_TAG_USB_RECV,
-                                                .data   =   data,
+                                                .head   =   data,
                                                 .size   =   size        };
 
 
@@ -64,11 +64,11 @@ void app_task_usb(                              void *            argument )
                         switch( pipe.tag )
                         {
                                 case APP_PIPE_TAG_CLI:
-                                        usb_cdc_xmit( pipe.data, pipe.size );
+                                        usb_cdc_xmit( pipe.head, pipe.size );
                                         break;
 
                                 case APP_PIPE_TAG_UART1:
-                                        usb_cdc_xmit( pipe.data, pipe.size );
+                                        usb_cdc_xmit( pipe.head, pipe.size );
                                         break;
 
                                 default:

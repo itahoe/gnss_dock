@@ -37,9 +37,9 @@ static  comm_t          uart1   =   {   .init           =   bsp_mcu_uart1_init,
 void app_ser1_recv_half_isr( void )
 {
         app_pipe_t      pipe    =   {   .tag            =   APP_PIPE_TAG_UART1,
-                                        .data           =   uart1.recv.data,
                                         .head           =   uart1.recv.head,
-                                        .tile           =   uart1.recv.tile,
+                                        //.tile           =   uart1.recv.tile,
+                                        //.data           =   uart1.recv.data,
                                         .size           =   CFG_COMM_BLCK_SIZE_UART1_RECV_OCT / 2};
 
         xQueueSendFromISR( app_que_storage_hndl, &pipe, NULL );
@@ -49,9 +49,9 @@ void app_ser1_recv_half_isr( void )
 void app_ser1_recv_full_isr( void )
 {
         app_pipe_t      pipe    =   {   .tag            =   APP_PIPE_TAG_UART1,
-                                        .data           =   uart1.recv.data + CFG_COMM_BLCK_SIZE_UART1_RECV_OCT/ 2,
                                         .head           =   uart1.recv.head,
-                                        .tile           =   uart1.recv.tile,
+                                        //.tile           =   uart1.recv.tile,
+                                        //.data           =   uart1.recv.data + CFG_COMM_BLCK_SIZE_UART1_RECV_OCT/ 2,
                                         .size           =   CFG_COMM_BLCK_SIZE_UART1_RECV_OCT / 2};
 
         xQueueSendFromISR( app_que_storage_hndl, &pipe, NULL );
@@ -81,7 +81,7 @@ void app_task_uart1(                            void *                  arg )
                         switch( pipe.tag )
                         {
                                 case APP_PIPE_TAG_USB_RECV:
-                                        uart1.xmit( pipe.data, pipe.size );
+                                        uart1.xmit( pipe.head, pipe.size );
                                         break;
 
                                 default:
@@ -95,7 +95,7 @@ void app_task_uart1(                            void *                  arg )
                         if( not_empty )
                         {
                                 pipe.tag        =   APP_PIPE_TAG_UART1;
-                                pipe.data       =   uart1.recv.tile;
+                                pipe.head       =   uart1.recv.tile;
                                 pipe.size       =   uart1.recv.size;
                                 xQueueSend( app_que_usb_cdc_hndl,   &pipe, NULL );
                                 xQueueSend( app_que_gnss_hndl,      &pipe, NULL );

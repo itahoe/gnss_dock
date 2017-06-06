@@ -74,8 +74,11 @@ typedef enum    nvg_type_s
 {
         NVG_TYPE_INVALID,
         NVG_TYPE_BSS,
-        NVG_TYPE_LOG,
         NVG_TYPE_VER,
+        NVG_TYPE_LOG_MODE,
+        NVG_TYPE_LOG_CLOSE,
+        NVG_TYPE_LOG_OPEN,
+        NVG_TYPE_LOG_RESTART,
 } nvg_type_t;
 
 typedef enum    nvg_log_mode_s
@@ -88,7 +91,7 @@ typedef enum    nvg_log_mode_s
 
 typedef	struct	nvg_log_s
 {
-        nvg_log_mode_t     mode;
+        nvg_log_mode_t          mode;
 } nvg_log_t;
 
 
@@ -107,7 +110,6 @@ typedef	struct	nvg_s
         nvg_log_t               log;
         nvg_ver_t               ver;
         nvg_bss_t               bss;
-        nvg_type_t              type;
         size_t                  size;
         char                    data[80];
         char                    str_inp[80];
@@ -115,17 +117,14 @@ typedef	struct	nvg_s
 } nvg_t;
 
 
-bool nvg_recv(                                  nvg_t *                 p,
+nvg_type_t nvg_recv(                            nvg_t *                 p,
                                         const   char *                  str );
 
-bool nvg_recv_log(                          nvg_log_t *         p,
-                                    const   char *              str );
+nvg_type_t nvg_getc(                            nvg_t *                 p,
+                                        const   char                    c );
 
-bool nvg_recv_ver(                          nvg_ver_t *         p,
-                                    const   char *              str );
-
-bool nvg_recv_bss(                          nvg_bss_t *         p,
-                                    const   char *              str );
+void nvg_resp(                                  nvg_t *                 p,
+                                        const   nvg_log_mode_t          mode );
 
 
 #endif	//NVG_H

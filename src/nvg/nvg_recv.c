@@ -11,69 +11,90 @@
 
 
 static
-bool    nvg_recv_bss(                           nvg_bss_t *             p,
+nvg_type_t nvg_recv_bss(                        nvg_bss_t *             p,
                                         const   char *                  str )
 {
-        bool            resp            =   false;
+	nvg_type_t      type    =   NVG_TYPE_INVALID;
 
-
-        APP_TRACE( "NVGBSS: %s\n", str );
-
-        return( resp );
+        return( type );
 }
 
 
 static
-bool    nvg_recv_log(                           nvg_log_t *             p,
+nvg_type_t nvg_recv_ver(                        nvg_ver_t *             p,
                                         const   char *                  str )
 {
-        bool            resp            =   false;
+	nvg_type_t      type    =   NVG_TYPE_INVALID;
+
+        return( type );
+}
+
+
+static
+nvg_type_t nvg_recv_log(                        nvg_log_t *             p,
+                                        const   char *                  str )
+{
+	nvg_type_t      type    =   NVG_TYPE_INVALID;
 
 
         if( strncmp( str, "MODE,", sizeof("MODE")-1 ) == 0 )
         {
                 str             +=  sizeof("MODE")-1;
+                type            =   NVG_TYPE_LOG_MODE;
 
                 if( *str == ',' )
                 {
                         str++;
-                        p->mode         =   (nvg_log_mode_t) strtol( str, NULL, 10 );
+                        //p->mode         =   (nvg_log_mode_t) strtol( str, NULL, 10 );
                         app_cfg_write( RTC_BKP_DR0, p->mode );
-
-                        resp            =   true;
                 }
                 else if( *str == '*' )
                 {
                         str++;
-                        resp            =   true;
                 }
+        }
+        else if( strncmp( str, "CLOSE,", sizeof("CLOSE")-1 ) == 0 )
+        {
+                str             +=  sizeof("CLOSE")-1;
 
+                if( *str == '*' )
+                {
+                        str++;
+                        type            =   NVG_TYPE_LOG_CLOSE;
+                }
+        }
+        else if( strncmp( str, "OPEN,", sizeof("OPEN")-1 ) == 0 )
+        {
+                str             +=  sizeof("OPEN")-1;
+
+                if( *str == '*' )
+                {
+                        str++;
+                        type            =   NVG_TYPE_LOG_OPEN;
+                }
+        }
+        else if( strncmp( str, "RESTART,", sizeof("RESTART")-1 ) == 0 )
+        {
+                str             +=  sizeof("RESTART")-1;
+
+                if( *str == '*' )
+                {
+                        str++;
+                        type            =   NVG_TYPE_LOG_RESTART;
+                }
         }
 
-        return( resp );
-}
-
-
-static
-bool    nvg_recv_ver(                           nvg_ver_t *             p,
-                                        const   char *                  str )
-{
-        bool            resp            =   false;
-
-
-        APP_TRACE( "NVGVER: %s\n", str );
-
-        return( resp );
+        return( type );
 }
 
 
 /**
  * @brief GNSS recieve char hook
  */
-bool nvg_recv(                                  nvg_t *                 p,
+nvg_type_t nvg_recv(                            nvg_t *                 p,
                                         const   char *                  str )
 {
-	bool            resp    =   false;
+	nvg_type_t      type    =   NVG_TYPE_INVALID;
         size_t          len;
 	uint8_t         chksum;
 	int             est;
@@ -84,7 +105,7 @@ bool nvg_recv(                                  nvg_t *                 p,
 
 	if(  chksum != (uint8_t) est )
 	{
-		return( resp );
+		return( type );
 	}
 
 	if(         str[0] == 'G' ) //sentence type: general
@@ -96,26 +117,22 @@ bool nvg_recv(                                  nvg_t *                 p,
 		{
                         if(         strncmp( str+4, "BSS,", sizeof("BSS")-1 ) == 0 )
                         {
-                                p->type =   NVG_TYPE_BSS;
-                                resp    =   nvg_recv_bss( &p->bss, str+8 );
-                        }
-                        else if(    strncmp( str+4, "LOG,", sizeof("LOG")-1 ) == 0 )
-                        {
-                                p->type =  NVG_TYPE_LOG;
-                                resp    =   nvg_recv_log( &p->log, str+8 );
+                                type    =   nvg_recv_bss( &p->bss, str+8 );
                         }
                         else if(    strncmp( str+4, "VER,", sizeof("VER")-1 ) == 0 )
                         {
-                                p->type =  NVG_TYPE_VER;
-                                resp    =   nvg_recv_ver( &p->ver, str+8 );
+                                type    =   nvg_recv_ver( &p->ver, str+8 );
+                        }
+                        else if(    strncmp( str+4, "LOG,", sizeof("LOG")-1 ) == 0 )
+                        {
+                                type    =   nvg_recv_log( &p->log, str+8 );
                         }
                         else
                         {
-                                p->type =  NVG_TYPE_INVALID;
-                                resp    =   true;
+                                //type    =   NVG_TYPE_INVALID;
                         }
 		}
 	}
 
-	return( resp );
+	return( type );
 }

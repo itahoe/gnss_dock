@@ -51,6 +51,12 @@ bool app_task_uart3_xmit(                       uint8_t *               data,
                 if( error )
                 {
                         APP_TRACE( "app_task_uart3_xmit() = ERROR\n" );
+
+                        if( size == 0 )
+                        {
+                                break;
+                        }
+
                         taskYIELD();
                 }
         }
@@ -83,11 +89,11 @@ void app_task_uart3(                            void *                  arg )
                         switch( pipe.tag )
                         {
                                 case APP_PIPE_TAG_UART2:
-                                        uart3.xmit( pipe.data, pipe.size );
+                                        uart3.xmit( pipe.head, pipe.size );
                                         break;
 
                                 case APP_PIPE_TAG_CLI:
-                                        uart3.xmit( pipe.data, pipe.size );
+                                        uart3.xmit( pipe.head, pipe.size );
                                         APP_TRACE( "%s xQueueReceive( app_que_uart2_hndl )\n", __FILE__ );
                                         break;
 
@@ -102,7 +108,7 @@ void app_task_uart3(                            void *                  arg )
                         if( not_empty )
                         {
                                 pipe.tag        =   APP_PIPE_TAG_UART3;
-                                pipe.data       =   uart3.recv.tile;
+                                pipe.head       =   uart3.recv.tile;
                                 pipe.size       =   uart3.recv.size;
                                 xQueueSend( app_que_uart2_hndl,      &pipe, NULL );
                                 xQueueSend( app_que_cli_hndl,        &pipe, NULL );

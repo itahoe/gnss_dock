@@ -51,6 +51,8 @@ typedef enum    app_pipe_tag_e
         APP_PIPE_TAG_UART3,
         APP_PIPE_TAG_USB_RECV,
         APP_PIPE_TAG_CLI,
+        APP_PIPE_TAG_STORAGE_CLOSE,
+        APP_PIPE_TAG_STORAGE_OPEN,
         APP_PIPE_TAG_STORAGE_TOGGLE,
 } app_pipe_tag_t;
 
@@ -62,10 +64,10 @@ typedef	struct	app_cfg_s
 typedef	struct	app_pipe_s
 {
         app_pipe_tag_t          tag;
-        uint8_t *               data;
-        size_t                  size;
         uint8_t *               head;
-        uint8_t *               tile;
+        //uint8_t *               tile;
+        //uint8_t *               data;
+        size_t                  size;
 } app_pipe_t;
 
 typedef	struct	app_s

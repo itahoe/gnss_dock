@@ -59,7 +59,7 @@ void app_task_gnss(                             void *            argument )
                                 case APP_PIPE_TAG_UART1:
                                         while( pipe.size-- )
                                         {
-                                                resp    =   gnss_recv( &gnss, *pipe.data++  );
+                                                resp    =   gnss_recv( &gnss, *pipe.head++  );
 
                                                 if( resp )
                                                 {

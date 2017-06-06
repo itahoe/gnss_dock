@@ -36,6 +36,96 @@ void app_task_storage(                          void *          argument )
 
                 switch( pipe.tag )
                 {
+                        case APP_PIPE_TAG_ERROR:
+                                break;
+
+                        case APP_PIPE_TAG_UART2:
+                                if( write_uart2_active )
+                                {
+                                        ui_led_sd_set(  false );
+                                        storage_write( &log_com2, pipe.head, pipe.size );
+                                        ui_led_sd_set(  true );
+                                }
+                                break;
+
+                        case APP_PIPE_TAG_UART1:
+                                if( write_uart1_active )
+                                {
+                                        ui_led_sd_set(  false );
+                                        storage_write( &log_com1, pipe.head, pipe.size );
+                                        ui_led_sd_set(  true );
+                                }
+                                break;
+
+                        case APP_PIPE_TAG_STORAGE_CLOSE:
+                                if( write_uart2_active || write_uart1_active )
+                                {
+                                        write_uart2_active      =   false;
+                                        write_uart1_active      =   false;
+
+                                        switch( app.cfg.log_mode )
+                                        {
+                                                case NVG_LOG_MODE_3:
+                                                        storage_close( &log_com2 );
+                                                        storage_close( &log_com1 );
+                                                        break;
+
+                                                case NVG_LOG_MODE_2:
+                                                        storage_close( &log_com2 );
+                                                        break;
+
+                                                case NVG_LOG_MODE_1:
+                                                        storage_close( &log_com1 );
+                                                        break;
+
+                                                case NVG_LOG_MODE_INVALID:
+                                                default:
+                                                        break;
+                                        }
+
+                                }
+
+                                ui_led_sd_set(  write_uart2_active || write_uart1_active );
+
+                                break;
+
+                        case APP_PIPE_TAG_STORAGE_OPEN:
+                                if( write_uart2_active || write_uart1_active )
+                                {
+                                }
+                                else
+                                {
+                                        switch( app.cfg.log_mode )
+                                        {
+                                                case NVG_LOG_MODE_3:
+                                                        write_uart2_active      =   storage_open( &log_com2 );
+                                                        write_uart1_active      =   storage_open( &log_com1 );
+                                                        break;
+
+                                                case NVG_LOG_MODE_2:
+                                                        write_uart2_active      =   storage_open( &log_com2 );
+                                                        break;
+
+                                                case NVG_LOG_MODE_1:
+                                                        write_uart1_active      =   storage_open( &log_com1 );
+                                                        break;
+
+                                                case NVG_LOG_MODE_INVALID:
+                                                default:
+                                                        break;
+                                        }
+
+                                        if( !write_uart2_active && !write_uart1_active )
+                                        {
+                                                ui_led_sd_set( true );
+                                                osDelay( fopen_err_delay_msec );
+                                        }
+                                }
+
+                                ui_led_sd_set(  write_uart2_active || write_uart1_active );
+
+                                break;
+
                         case APP_PIPE_TAG_STORAGE_TOGGLE:
                                 if( write_uart2_active || write_uart1_active )
                                 {
@@ -96,25 +186,6 @@ void app_task_storage(                          void *          argument )
 
                                 break;
 
-                        case APP_PIPE_TAG_UART2:
-                                if( write_uart2_active )
-                                {
-                                        ui_led_sd_set(  false );
-                                        storage_write( &log_com2, pipe.data, pipe.size );
-                                        ui_led_sd_set(  true );
-                                }
-                                break;
-
-                        case APP_PIPE_TAG_UART1:
-                                if( write_uart1_active )
-                                {
-                                        ui_led_sd_set(  false );
-                                        storage_write( &log_com1, pipe.data, pipe.size );
-                                        ui_led_sd_set(  true );
-                                }
-                                break;
-
-                        case APP_PIPE_TAG_ERROR:
                         default:
                                 break;
                 }
