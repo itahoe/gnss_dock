@@ -37,9 +37,10 @@ static  comm_t          uart1   =   {   .init           =   bsp_mcu_uart1_init,
 void app_ser1_recv_half_isr( void )
 {
         app_pipe_t      pipe    =   {   .tag            =   APP_PIPE_TAG_UART1,
-                                        .head           =   uart1.recv.head,
-                                        //.tile           =   uart1.recv.tile,
                                         //.data           =   uart1.recv.data,
+                                        //.tile           =   uart1.recv.tile,
+                                        //.head           =   uart1.recv.head,
+                                        .head           =   uart1.recv.data,
                                         .size           =   CFG_COMM_BLCK_SIZE_UART1_RECV_OCT / 2};
 
         xQueueSendFromISR( app_que_storage_hndl, &pipe, NULL );
@@ -49,12 +50,42 @@ void app_ser1_recv_half_isr( void )
 void app_ser1_recv_full_isr( void )
 {
         app_pipe_t      pipe    =   {   .tag            =   APP_PIPE_TAG_UART1,
-                                        .head           =   uart1.recv.head,
-                                        //.tile           =   uart1.recv.tile,
                                         //.data           =   uart1.recv.data + CFG_COMM_BLCK_SIZE_UART1_RECV_OCT/ 2,
+                                        //.tile           =   uart1.recv.tile,
+                                        //.head           =   uart1.recv.head,
+                                        .head           =   uart1.recv.data + CFG_COMM_BLCK_SIZE_UART1_RECV_OCT/ 2,
                                         .size           =   CFG_COMM_BLCK_SIZE_UART1_RECV_OCT / 2};
 
         xQueueSendFromISR( app_que_storage_hndl, &pipe, NULL );
+}
+
+
+static
+bool app_task_uart1_xmit(                       uint8_t *               data,
+                                                size_t                  size )
+{
+        bool            error;
+
+
+        do
+        {
+                error   =   bsp_mcu_uart1_xmit_start( data, size );
+
+                if( error )
+                {
+                        APP_TRACE( "app_task_uart1_xmit() = ERROR\n" );
+
+                        if( size == 0 )
+                        {
+                                break;
+                        }
+
+                        taskYIELD();
+                }
+        }
+        while( error );
+
+        return( error );
 }
 
 
@@ -81,7 +112,8 @@ void app_task_uart1(                            void *                  arg )
                         switch( pipe.tag )
                         {
                                 case APP_PIPE_TAG_USB_RECV:
-                                        uart1.xmit( pipe.head, pipe.size );
+                                        //uart1.xmit( pipe.head, pipe.size );
+                                        app_task_uart1_xmit( pipe.head, pipe.size );
                                         break;
 
                                 default:

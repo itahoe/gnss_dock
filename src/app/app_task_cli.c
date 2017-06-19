@@ -116,7 +116,7 @@ void app_task_cli_recv(                         nvg_t *                 p,
                         //case NVG_TYPE_BSS:
                         //case NVG_TYPE_VER:
                                 break;
-
+/*
                         case NVG_TYPE_LOG_MODE:
                                 app.cfg.log_mode        =   p->log.mode;
                                 nvg_resp( p, (nvg_log_mode_t) app.cfg.log_mode );
@@ -125,6 +125,18 @@ void app_task_cli_recv(                         nvg_t *                 p,
                                 out.head                =   (uint8_t *) p->str_out;
                                 out.size                =   p->size;
                                 xQueueSend( que, &out, portMAX_DELAY );
+                                break;
+*/
+                        case NVG_TYPE_LOG_MODE_GET:
+                                nvg_resp( p, (nvg_log_mode_t) app.cfg.log_mode );
+                                out.tag                 =   APP_PIPE_TAG_CLI;
+                                out.head                =   (uint8_t *) p->str_out;
+                                out.size                =   p->size;
+                                xQueueSend( que, &out, portMAX_DELAY );
+                                break;
+
+                        case NVG_TYPE_LOG_MODE_SET:
+                                app.cfg.log_mode        =   p->log.mode;
                                 break;
 
                         case NVG_TYPE_LOG_CLOSE:

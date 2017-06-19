@@ -39,7 +39,8 @@ void app_ser2_recv_half_isr( void )
         app_pipe_t      pipe    =   {   .tag            =   APP_PIPE_TAG_UART2,
                                         //.data           =   uart2.recv.data,
                                         //.tile           =   uart2.recv.tile,
-                                        .head           =   uart2.recv.head,
+                                        //.head           =   uart2.recv.head,
+                                        .head           =   uart2.recv.data,
                                         .size           =   CFG_COMM_BLCK_SIZE_UART2_RECV_OCT / 2};
 
         xQueueSendFromISR( app_que_storage_hndl, &pipe, NULL );
@@ -51,10 +52,40 @@ void app_ser2_recv_full_isr( void )
         app_pipe_t      pipe    =   {   .tag            =   APP_PIPE_TAG_UART2,
                                         //.data           =   uart2.recv.data + CFG_COMM_BLCK_SIZE_UART2_RECV_OCT/ 2,
                                         //.tile           =   uart2.recv.tile,
-                                        .head           =   uart2.recv.head,
+                                        //.head           =   uart2.recv.head,
+                                        .head           =   uart2.recv.data + CFG_COMM_BLCK_SIZE_UART2_RECV_OCT/ 2,
                                         .size           =   CFG_COMM_BLCK_SIZE_UART2_RECV_OCT / 2};
 
         xQueueSendFromISR( app_que_storage_hndl, &pipe, NULL );
+}
+
+
+static
+bool app_task_uart2_xmit(                       uint8_t *               data,
+                                                size_t                  size )
+{
+        bool            error;
+
+
+        do
+        {
+                error   =   bsp_mcu_uart2_xmit_start( data, size );
+
+                if( error )
+                {
+                        APP_TRACE( "app_task_uart2_xmit() = ERROR\n" );
+
+                        if( size == 0 )
+                        {
+                                break;
+                        }
+
+                        taskYIELD();
+                }
+        }
+        while( error );
+
+        return( error );
 }
 
 
@@ -81,11 +112,13 @@ void app_task_uart2(                            void *                  arg )
                         switch( pipe.tag )
                         {
                                 case APP_PIPE_TAG_CLI:
-                                        uart2.xmit( pipe.head, pipe.size );
+                                        //uart2.xmit( pipe.head, pipe.size );
+                                        app_task_uart2_xmit( pipe.head, pipe.size );
                                         break;
 
                                 case APP_PIPE_TAG_UART3:
-                                        uart2.xmit( pipe.head, pipe.size );
+                                        //uart2.xmit( pipe.head, pipe.size );
+                                        app_task_uart2_xmit( pipe.head, pipe.size );
                                         break;
 
                                 default:

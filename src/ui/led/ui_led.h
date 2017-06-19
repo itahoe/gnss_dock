@@ -11,6 +11,7 @@
 #include	<stdbool.h>
 #include	<string.h>
 #include	"config.h"
+#include	"bsp_led.h"
 #include	"bsp.h"
 
 
@@ -22,9 +23,13 @@
   * @brief   Single LED
   */
 
-typedef    void    ( * ui_led_init_t )( void );
-typedef    bool    ( * ui_led_get_t )( void );
-typedef    void    ( * ui_led_set_t )( bool bval );
+typedef    void ( * ui_led_init_t )( void );
+//typedef    bool ( * ui_led_get_t )( void );
+//typedef    void ( * ui_led_set_t )( bool bval );
+//typedef    void ( * ui_led_set_t )(     const   int     bval );
+typedef    bsp_led_color_t ( * ui_led_get_t )( void );
+typedef    void ( * ui_led_set_t )(     const   bsp_led_color_t         color );
+
 
 typedef	struct	ui_led_s
 {
@@ -47,14 +52,11 @@ typedef enum    ui_led_mode_s
   */
 typedef enum    ui_led_gnss_mode_s
 {
-	//UI_LED_GNSS_STS_PASS,
-	//UI_LED_GNSS_STS_SKIP,
-	//UI_LED_GNSS_STS_OMIT,
 	UI_LED_GNSS_MODE_NONE,
 	UI_LED_GNSS_MODE_GPS,
 	UI_LED_GNSS_MODE_DGPS,
-	UI_LED_GNSS_MODE_RTKINT,
 	UI_LED_GNSS_MODE_RTKFLT,
+	UI_LED_GNSS_MODE_RTKINT,
 } ui_led_gnss_mode_t;
 
 typedef	struct	ui_led_sp4t_s
@@ -81,7 +83,7 @@ typedef enum    ui_led_rgb_color_s
 	UI_LED_RGB_COLOR_MAGENTA,
 	UI_LED_RGB_COLOR_WHITE,
 } ui_led_rgb_color_t;
-
+/*
 typedef	struct	ui_led_rgb_s
 {
 	ui_led_rgb_color_t      color;
@@ -89,6 +91,15 @@ typedef	struct	ui_led_rgb_s
 	ui_led_t                g;
 	ui_led_t                b;
 } ui_led_rgb_t;
+*/
+typedef	struct	ui_led_gnss_s
+{
+	ui_led_init_t           init;
+	ui_led_set_t            set;
+	ui_led_get_t            get;
+	size_t                  tick;
+	ui_led_gnss_mode_t      mode;
+} ui_led_gnss_t;
 
 
 bool ui_led_hook(                       ui_led_t *              p );
@@ -124,7 +135,8 @@ void ui_led_gnss_hook(                  void );
 
 void ui_led_gnss_toggle(                void );
 
-void ui_led_gnss_set(           const   ui_led_gnss_mode_t      mode );
+void ui_led_gnss_set(           const   int                     mode );
+//void ui_led_gnss_set(           const   ui_led_rgb_color_t      color );
 
 void ui_led_gnss_flash(         const   size_t                  len );
 

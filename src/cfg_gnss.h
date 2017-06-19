@@ -10,10 +10,12 @@
 
 //#define CFG_GNSS_BLCK_SIZE_OCT          4096
 #define CFG_GNSS_BLCK_SIZE_OCT          8192
-//#define CFG_GNSS_BLCK_SIZE_OCT          2048
+//#define CFG_GNSS_BLCK_SIZE_OCT          16384
 
 #define CFG_GNSS_UART2_BLCK_SIZE_OCT	4096
 #define CFG_GNSS_UART3_BLCK_SIZE_OCT	4096
+//#define CFG_GNSS_UART2_BLCK_SIZE_OCT	8192
+//#define CFG_GNSS_UART3_BLCK_SIZE_OCT	8192
 
 #define	CFG_GNSS_MSG_KEY0L              "PNVGCFG,W"
 #define	CFG_GNSS_MSG_KEY0S              "PNVGRZA,2,9600,7" //UART2 - bluetooth

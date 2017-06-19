@@ -16,16 +16,16 @@
 
 extern  app_t                   app;
 extern  QueueHandle_t           app_que_storage_hndl;
-static  storage_t               log_com1        =   { .fext   =  "ser1.log", };
-static  storage_t               log_com2        =   { .fext   =  "ser2.log", };
+static  storage_t               log_ser1        =   { .fext   =  "ser1.log", };
+static  storage_t               log_ser2        =   { .fext   =  "ser2.log", };
 
 
 void app_task_storage(                          void *          argument )
 {
-        app_pipe_t              pipe;
-        bool                    write_uart2_active      =   false;
-        bool                    write_uart1_active      =   false;
-        const   TickType_t      fopen_err_delay_msec    = 100;
+                app_pipe_t      pipe;
+                bool            write_uart2_active      =   false;
+                bool            write_uart1_active      =   false;
+        const   TickType_t      fopen_err_delay_msec    =   100;
 
 
 	storage_init();
@@ -43,16 +43,18 @@ void app_task_storage(                          void *          argument )
                                 if( write_uart2_active )
                                 {
                                         ui_led_sd_set(  false );
-                                        storage_write( &log_com2, pipe.head, pipe.size );
+                                        storage_write( &log_ser2, pipe.head, pipe.size );
                                         ui_led_sd_set(  true );
                                 }
                                 break;
 
                         case APP_PIPE_TAG_UART1:
+                                //APP_TRACE( "head:%0X size:%d\n", pipe.head, pipe.size );
+
                                 if( write_uart1_active )
                                 {
                                         ui_led_sd_set(  false );
-                                        storage_write( &log_com1, pipe.head, pipe.size );
+                                        storage_write( &log_ser1, pipe.head, pipe.size );
                                         ui_led_sd_set(  true );
                                 }
                                 break;
@@ -66,16 +68,16 @@ void app_task_storage(                          void *          argument )
                                         switch( app.cfg.log_mode )
                                         {
                                                 case NVG_LOG_MODE_3:
-                                                        storage_close( &log_com2 );
-                                                        storage_close( &log_com1 );
+                                                        storage_close( &log_ser2 );
+                                                        storage_close( &log_ser1 );
                                                         break;
 
                                                 case NVG_LOG_MODE_2:
-                                                        storage_close( &log_com2 );
+                                                        storage_close( &log_ser2 );
                                                         break;
 
                                                 case NVG_LOG_MODE_1:
-                                                        storage_close( &log_com1 );
+                                                        storage_close( &log_ser1 );
                                                         break;
 
                                                 case NVG_LOG_MODE_INVALID:
@@ -98,16 +100,16 @@ void app_task_storage(                          void *          argument )
                                         switch( app.cfg.log_mode )
                                         {
                                                 case NVG_LOG_MODE_3:
-                                                        write_uart2_active      =   storage_open( &log_com2 );
-                                                        write_uart1_active      =   storage_open( &log_com1 );
+                                                        write_uart2_active      =   storage_open( &log_ser2 );
+                                                        write_uart1_active      =   storage_open( &log_ser1 );
                                                         break;
 
                                                 case NVG_LOG_MODE_2:
-                                                        write_uart2_active      =   storage_open( &log_com2 );
+                                                        write_uart2_active      =   storage_open( &log_ser2 );
                                                         break;
 
                                                 case NVG_LOG_MODE_1:
-                                                        write_uart1_active      =   storage_open( &log_com1 );
+                                                        write_uart1_active      =   storage_open( &log_ser1 );
                                                         break;
 
                                                 case NVG_LOG_MODE_INVALID:
@@ -135,16 +137,16 @@ void app_task_storage(                          void *          argument )
                                         switch( app.cfg.log_mode )
                                         {
                                                 case NVG_LOG_MODE_3:
-                                                        storage_close( &log_com2 );
-                                                        storage_close( &log_com1 );
+                                                        storage_close( &log_ser2 );
+                                                        storage_close( &log_ser1 );
                                                         break;
 
                                                 case NVG_LOG_MODE_2:
-                                                        storage_close( &log_com2 );
+                                                        storage_close( &log_ser2 );
                                                         break;
 
                                                 case NVG_LOG_MODE_1:
-                                                        storage_close( &log_com1 );
+                                                        storage_close( &log_ser1 );
                                                         break;
 
                                                 case NVG_LOG_MODE_INVALID:
@@ -158,16 +160,16 @@ void app_task_storage(                          void *          argument )
                                         switch( app.cfg.log_mode )
                                         {
                                                 case NVG_LOG_MODE_3:
-                                                        write_uart2_active      =   storage_open( &log_com2 );
-                                                        write_uart1_active      =   storage_open( &log_com1 );
+                                                        write_uart2_active      =   storage_open( &log_ser2 );
+                                                        write_uart1_active      =   storage_open( &log_ser1 );
                                                         break;
 
                                                 case NVG_LOG_MODE_2:
-                                                        write_uart2_active      =   storage_open( &log_com2 );
+                                                        write_uart2_active      =   storage_open( &log_ser2 );
                                                         break;
 
                                                 case NVG_LOG_MODE_1:
-                                                        write_uart1_active      =   storage_open( &log_com1 );
+                                                        write_uart1_active      =   storage_open( &log_ser1 );
                                                         break;
 
                                                 case NVG_LOG_MODE_INVALID:

@@ -26,7 +26,7 @@ extern  QueueHandle_t           app_que_storage_hndl;
 void app_task_ui(                               void *            argument )
 {
 
-        const   TickType_t      delay_start_check_msec  =   100;
+        const   TickType_t      delay_start_check_msec  =   200;
         const   TickType_t      delay_cycle_msec        =   1000 / CFG_UI_SYSTICK_HZ;
 
                 bool            evt_ui_key_pwr;

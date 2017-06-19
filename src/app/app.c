@@ -159,6 +159,10 @@ int main( void )
         HAL_Init();
 	ui_init();
         ui_led_pwr_set( UI_LED_RGB_COLOR_BLACK );
+	ui_led_gnss_set( UI_LED_GNSS_MODE_NONE );
+	//ui_led_gnss_set( UI_LED_RGB_COLOR_BLACK );
+	ui_led_sd_set( false );
+	ui_led_usb_set( false );
 
 	pmu_init();
 

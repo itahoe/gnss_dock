@@ -108,7 +108,7 @@ void storage_write(                             storage_t *             p,
                 }
                 else
                 {
-                        //APP_TRACE_FF( "f_write() = ", resp );
+                        //APP_TRACE_FF( "f_write() = ", p->fresult );
                         //APP_TRACE( "pbuf: %0X\n", pbuf );
                         //APP_TRACE( "len: %d\n", len );
                         //APP_TRACE( "wr_bytes: %d\n", wr_bytes );

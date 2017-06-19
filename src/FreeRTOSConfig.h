@@ -105,7 +105,12 @@
 #define configUSE_MALLOC_FAILED_HOOK        0
 #define configUSE_APPLICATION_TASK_TAG      0
 #define configUSE_COUNTING_SEMAPHORES       1
+
+#ifdef NDEBUG
 #define configGENERATE_RUN_TIME_STATS       0
+#else
+#define configGENERATE_RUN_TIME_STATS       0
+#endif
 
 /* Co-routine definitions. */
 #define configUSE_CO_ROUTINES               0

@@ -40,16 +40,18 @@ nvg_type_t nvg_recv_log(                        nvg_log_t *             p,
         if( strncmp( str, "MODE,", sizeof("MODE")-1 ) == 0 )
         {
                 str             +=  sizeof("MODE")-1;
-                type            =   NVG_TYPE_LOG_MODE;
+                //type            =   NVG_TYPE_LOG_MODE;
 
                 if( *str == ',' )
                 {
+                        type            =   NVG_TYPE_LOG_MODE_SET;
                         str++;
-                        //p->mode         =   (nvg_log_mode_t) strtol( str, NULL, 10 );
+                        p->mode         =   (nvg_log_mode_t) strtol( str, NULL, 10 );
                         app_cfg_write( RTC_BKP_DR0, p->mode );
                 }
                 else if( *str == '*' )
                 {
+                        type            =   NVG_TYPE_LOG_MODE_GET;
                         str++;
                 }
         }

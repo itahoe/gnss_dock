@@ -30,12 +30,14 @@ bool ui_led_hook(                       ui_led_t *              p )
 /**
  * @brief LED Toggle.
  */
+/*
 void ui_led_toggle(                     ui_led_t *              p )
 {
 	const   bool    led_sts =   p->get();
 
 	p->set( led_sts ? false : true );
 }
+*/
 
 /**
  * @brief LED Control.
@@ -45,6 +47,7 @@ void ui_led_set(                        ui_led_t *              p,
 {
 	p->set( mode );
 }
+
 
 /**
  * @brief LED Flash.
