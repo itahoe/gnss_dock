@@ -221,9 +221,9 @@ void ui_led_gnss_set(                   const   int                     mode )
 
         switch( mode )
         {
-                case UI_LED_GNSS_MODE_RTKINT:   color   =   BSP_LED_COLOR_MAGENTA;      break;
+                case UI_LED_GNSS_MODE_RTKINT:   color   =   BSP_LED_COLOR_GREEN;        break;
                 case UI_LED_GNSS_MODE_RTKFLT:   color   =   BSP_LED_COLOR_BLUE;         break;
-                case UI_LED_GNSS_MODE_DGPS:     color   =   BSP_LED_COLOR_GREEN;        break;
+                case UI_LED_GNSS_MODE_DGPS:     color   =   BSP_LED_COLOR_YELLOW;       break;
                 case UI_LED_GNSS_MODE_GPS:      color   =   BSP_LED_COLOR_RED;          break;
                 case UI_LED_GNSS_MODE_NONE:
                 default:                        color   =   BSP_LED_COLOR_BLACK;        break;
